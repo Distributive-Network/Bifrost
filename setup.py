@@ -1,6 +1,5 @@
 import os, sys
-from distutils.core import setup
-from distutils.command.install import install as _install
+from setuptools import setup, find_packages
 
 #def _post_install(dir):
 #    from subprocess import call
@@ -24,10 +23,9 @@ setup(
     description="A bridge between two languages",
     long_description="Allows for intercommunication between python and node environments",
     long_description_content_type="text/markdown",
-    packages=['bifrost'],
+    packages=find_packages(),
     install_requires=[
         'numpy',
         'posix_ipc'
     ]
-    python_requires='>=3.6',
 )
