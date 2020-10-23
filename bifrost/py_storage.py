@@ -29,7 +29,7 @@ class VariableSync():
         return
 
     
-    def parse_variables(self, var_dict, keys, custom_funcs, warn):
+    def parse_variables(self, var_dict, keys, custom_funcs, warn=False):
         final_output = {}
         for var_name in keys:
             var = var_dict[var_name]
@@ -68,7 +68,7 @@ class VariableSync():
 
         return final_output
     
-    def unparse_variables(self, var_dict, custom_funcs):
+    def unparse_variables(self, var_dict, custom_funcs, warn=False):
         final_output = {}
         for var_name in list(var_dict.keys()):
             var = var_dict[var_name]
@@ -85,7 +85,8 @@ class VariableSync():
                     try:
                         final_output[var_name] = custom_funcs[var['type']](data)
                     except Exception as e:
-                        print(e)
+                        if warn:
+                            print(e)
             else:
                 final_output[var_name] = var_dict[var_name]
         return final_output
@@ -109,12 +110,12 @@ class VariableSync():
             print(e)
         return final_output
     
-    def syncfrom(self, custom_funcs=None):
+    def syncfrom(self, custom_funcs=None, warn=False):
         self.mapFile.seek(0)
         byte_lines = self.mapFile.readline()
         final_str = byte_lines.decode()
 
         final_output = json.loads(final_str)
-        vars_to_sync = self.unparse_variables(final_output, custom_funcs)
+        vars_to_sync = self.unparse_variables(final_output, custom_funcs, warn=warn)
 
         return vars_to_sync

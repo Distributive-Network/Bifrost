@@ -9,9 +9,6 @@ const SHM_FILE_NAME = args[args.length-1];
 
 
 
-
-
-
 console.log("Beginning Node Process");
 
 class Evaluator{
@@ -30,11 +27,17 @@ class Evaluator{
 
         this.mm= mmap.alloc(size, mmap.PROT_READ | mmap.PROT_WRITE,
             mmap.MAP_SHARED, fd, 0);
+        this.dontSync = Object.keys(this.context);
     }
 
     syncTo(){
         let final_output = {};
-        for (let key of this.toSync){
+        let allVarsToSync = Object.keys(this.context).filter(x=> !this.dontSync.includes(x)); //all variables that are not in the default context;
+        allVarsToSync = new Set(allVarsToSync);
+        this.toSync.forEach(item=> allVarsToSync.add(item));
+        allVarsToSync = Array.from(allVarsToSync);
+
+        for (let key of allVarsToSync){
             try{
                 if (typeof this.context[key] !== 'undefined'){
                     //if it is a dataArray, convert back to numpy!
@@ -52,10 +55,12 @@ class Evaluator{
                     }
                 }
             }catch(err){
-                console.log("Could not resync key: ", key);
-                console.log(err);
+                continue;
             }
         }
+        let newVars = Object.keys(this.context).filter(x=> !this.dontSync.includes(x));
+        newVars = newVars.filter
+
         this.toSync = [];
 
         let final_str = JSON.stringify(final_output);
@@ -86,7 +91,7 @@ class Evaluator{
 
     async evaluate(script){
         await vm.runInContext(script, this.context);
-        console.log("Done evaluating");
+        //console.log("Done evaluating");
     }
 }
 

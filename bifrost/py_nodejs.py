@@ -82,6 +82,8 @@ class NodeSTDProc(Thread):
 class Node():
     def __init__(self, cwd= os.getcwd()):
         self.cwd = cwd
+        self.serializer_custom_funcs = {}
+        self.deserializer_custom_funcs = {}
         self.replFile = os.path.dirname(os.path.realpath(__file__)) + '/js/main.js'
         self.vs = VariableSync()
         self.init_process()
@@ -94,8 +96,21 @@ class Node():
                               self.vs.SHARED_MEMORY_NAME], cwd=self.cwd,stdin=subprocess.PIPE,
                               stdout=subprocess.PIPE)
         self.nstdproc = NodeSTDProc(self.process)
+    
+    def register_custom_serializer(self, func, var_type):
+        if var_type is not str:
+            var_type = str(var_type)
+        self.serializer_custom_funcs[var_type] = func
+        return
+    
+    def register_custom_deserializer(self, func, var_type):
+        if var_type is not str:
+            var_type = str(var_type)
+        self.deserializer_custom_funcs[var_type] = func
 
-    def run(self, script, timeout=None):
+    def run(self, script, vars = {}, timeout=None):
+        self.vs.syncto(vars, self.serializer_custom_funcs, warn=False)
+
         global NODE_IS_RUNNING
         global NODE_LOCK
         NODE_LOCK.acquire_write()
@@ -120,7 +135,10 @@ class Node():
                     NODE_IS_RUNNING = False
                     NODE_LOCK.release_write()
                     print("Process took longer than " + str(timeout))
-        return 1
+        new_vars = self.vs.syncfrom(self.deserializer_custom_funcs, warn=False)
+        for key in new_vars.keys():
+            vars[key] = new_vars[key]
+        return vars
 
 
     def write(self, s):
@@ -146,10 +164,11 @@ class Node():
             return -1
         return 1
         
-    def cancel(self):
+    def cancel(self, restart=True):
         os.kill(self.process.pid, signal.SIGSTOP)
         self.nstdproc.stop()
-        self.init_process()
+        if restart:
+            self.init_process()
     
     def clear(self):
         self.cancel()
@@ -195,15 +214,16 @@ def onEnd():
 #     out = node.vs.syncfrom()
 #     print(np.array_equal(_temp, out['a']))
 
-#     node.vs.syncto({'a': "hello \n world", 'b': b})
-
 #     #print(node.vs.syncfrom())
 
 #     print(b[0][0][0][0])
-#     node.run('console.log("Hello world");console.log(a);console.log(b.typedArray[0]);b.typedArray[0] = 1;')
+#     vars_to_sync = {'a': "How are you doing?", 'b': b}
+#     vars_to_sync = node.run('console.log("Hello world");console.log(a);console.log(b.typedArray[0]);b.typedArray[0] = 1;var k = Math.random();',
+#             {'a': "How are you doing?", 'b': b})
 
-#     print(node.vs.syncfrom()['a'])
-#     print(node.vs.syncfrom()['b'][0][0][0][0])
+#     print(vars_to_sync['a'])
+#     print(vars_to_sync['b'][0][0][0][0])
+#     print(vars_to_sync['k'])
 #     # node.run("""
 #     # async function main(){
 #     #     console.log("Waiting 5 seconds");

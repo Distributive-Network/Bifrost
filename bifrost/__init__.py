@@ -15,7 +15,7 @@ def isnotebook():
 
 
 if isnotebook():
-    from .notebook import *
+    from .notebook import npm
 else:
     from .py_nodejs import npm, node
 
