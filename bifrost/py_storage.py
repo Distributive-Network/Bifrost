@@ -19,7 +19,7 @@ class VariableSync():
         self.memory.close_fd()
         self.clearCache()
         print("Memory map has been established")
-    
+
     def __del__(self):
         try:
             self.mapFile.close()
@@ -32,14 +32,14 @@ class VariableSync():
 
     def setCache(self, key, hsh):
         self.cache[key] = hsh
-    
+
     def inCache(self, key, val, var_type):
         hsh = ''
         if var_type == np.ndarray:
             arr_bytes = bytes(val.data)
             hsh = xxhash.xxh32( arr_bytes ).hexdigest() + str(val.shape)
         else:
-            hsh = xxhash.xxh32( JSON.dumps(val).encode('utf8') ).hexdigest() 
+            hsh = xxhash.xxh32( JSON.dumps(val).encode('utf8') ).hexdigest()
         if key in self.cache and hsh == self.cache[key]:
             return True, hsh
         return False, hsh
@@ -47,7 +47,7 @@ class VariableSync():
 
     def clearCache(self):
         self.cache = {}
- 
+
     def parse_variables(self, var_dict, keys, custom_funcs, warn=False):
         final_output = {}
         for var_name in keys:

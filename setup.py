@@ -26,6 +26,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         'numpy',
-        'posix_ipc'
+        'posix_ipc',
+        'xxhash'
     ]
 )
