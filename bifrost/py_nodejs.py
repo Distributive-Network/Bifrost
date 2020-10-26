@@ -109,8 +109,10 @@ class Node():
         self.deserializer_custom_funcs[var_type] = func
 
     def run(self, script, vars = {}, timeout=None):
+        s = time.time()
         self.vs.syncto(vars, self.serializer_custom_funcs, warn=False)
-
+        print("syncing to took: " + str(time.time() - s) + " seconds")
+        s = time.time()
         global NODE_IS_RUNNING
         global NODE_LOCK
         NODE_LOCK.acquire_write()
@@ -135,9 +137,12 @@ class Node():
                     NODE_IS_RUNNING = False
                     NODE_LOCK.release_write()
                     print("Process took longer than " + str(timeout))
+        print("Execution took: " + str(time.time() - s) + " seconds")
+        s = time.time()
         new_vars = self.vs.syncfrom(self.deserializer_custom_funcs, warn=False)
         for key in new_vars.keys():
             vars[key] = new_vars[key]
+        print("Syncing from took: " + str(time.time() - s) + " seconds")
         return vars
 
 
@@ -196,43 +201,44 @@ def onEnd():
 # print(os.getcwd())
 # print(os.path.dirname(os.path.realpath(__file__)))
 
-# def test():    
-#     npm = Npm()
-#     node = Node()
-
-
-#     a = np.random.randn( 30, 28, 28, 1)
-#     b = np.random.randn( 10, 28, 28, 1)
-#     _temp = np.copy(a)
-
-#     s = time.time()
-#     for i in range(5):
-#         node.vs.syncto({'a':a, 'b': b}, warn=True)
-#     e = time.time()
-
-#     print("Time taken: ", (e-s)/5)
-#     out = node.vs.syncfrom()
-#     print(np.array_equal(_temp, out['a']))
-
+#def test():
+#    npm = Npm()
+#    node = Node()
+#
+#    a = np.random.randn( 30, 28, 28, 1)
+#    b = np.random.randn( 30000, 28, 28, 1)
+#    node.vs.syncto({'a': a})
+#
+#    _temp = np.copy(a)
+#
+#    s = time.time()
+#    for i in range(5):
+#        node.vs.syncto({'a':a, 'b': b}, warn=True)
+#    e = time.time()
+#
+#    print("Time taken: ", (e-s)/5)
+#    out = node.vs.syncfrom()
+#    print(np.array_equal(_temp, out['a']))
+#
 #     #print(node.vs.syncfrom())
-
-#     print(b[0][0][0][0])
-#     vars_to_sync = {'a': "How are you doing?", 'b': b}
-#     vars_to_sync = node.run('console.log("Hello world");console.log(a);console.log(b.typedArray[0]);b.typedArray[0] = 1;var k = Math.random();',
-#             {'a': "How are you doing?", 'b': b})
-
-#     print(vars_to_sync['a'])
-#     print(vars_to_sync['b'][0][0][0][0])
-#     print(vars_to_sync['k'])
-#     # node.run("""
-#     # async function main(){
-#     #     console.log("Waiting 5 seconds");
-#     #     await new Promise((resolve, reject)=>{
-#     #         setTimeout(resolve, 5*1000);
-#     #     });
-#     #     console.log("Done waiting!");
-#     # }
-#     # main();
-#     # """)
-
-# test()
+#
+#    print(b[0][0][0][0])
+#    vars_to_sync = {'a': "How are you doing?", 'b': b}
+#    vars_to_sync = node.run('console.log("Hello world");console.log(a);console.log(b.typedArray[0]);b.typedArray[0] = 1;var k = Math.random();',
+#            {'a': "How are you doing?", 'b': b})
+#
+#    print(vars_to_sync['a'])
+#    print(vars_to_sync['b'][0][0][0][0])
+#    print(vars_to_sync['k'])
+#    # node.run("""
+#    # async function main(){
+#    #     console.log("Waiting 5 seconds");
+#    #     await new Promise((resolve, reject)=>{
+#    #         setTimeout(resolve, 5*1000);
+#    #     });
+#    #     console.log("Done waiting!");
+#    # }
+#    # main();
+#    # """)
+#
+#test()

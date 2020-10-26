@@ -1,4 +1,5 @@
 import math, json, sys, hashlib, posix_ipc, mmap
+import xxhash
 from tempfile import TemporaryFile
 from io import BytesIO
 import base64, uuid
@@ -16,6 +17,7 @@ class VariableSync():
         self.mapFile = mmap.mmap(self.memory.fd, self.memory.size)
 
         self.memory.close_fd()
+        self.clearCache()
         print("Memory map has been established")
     
     def __del__(self):
@@ -28,17 +30,42 @@ class VariableSync():
             print("Could not unlink shared memory for some reason")
         return
 
+    def setCache(self, key, hsh):
+        self.cache[key] = hsh
     
+    def inCache(self, key, val, var_type):
+        hsh = ''
+        if var_type == np.ndarray:
+            arr_bytes = bytes(val.data)
+            hsh = xxhash.xxh32( arr_bytes ).hexdigest() + str(val.shape)
+        else:
+            hsh = xxhash.xxh32( JSON.dumps(val).encode('utf8') ).hexdigest() 
+        if key in self.cache and hsh == self.cache[key]:
+            return True, hsh
+        return False, hsh
+
+
+    def clearCache(self):
+        self.cache = {}
+ 
     def parse_variables(self, var_dict, keys, custom_funcs, warn=False):
         final_output = {}
         for var_name in keys:
             var = var_dict[var_name]
             var_type = type(var)
+            #try:
+            #    b, hsh = self.inCache(var_name, var, var_type)
+            #    if b:
+            #        continue
+            #    else:
+            #        self.setCache(var_name, hsh)
+            #except Exception as e:
+            #    pass
             if var_type == np.ndarray:
-                outfile = TemporaryFile()
-                np.save(outfile, var, allow_pickle=False)
-                outfile.seek(0)
-                out_bytes = outfile.read()
+                outBytes = BytesIO()
+                np.save(outBytes, var, allow_pickle=False)
+                outBytes.seek(0)
+                out_bytes = outBytes.read()
                 out_b64 =  base64.b64encode(out_bytes)
                 out_string = out_b64.decode('ascii')
                 final_output[var_name] = {

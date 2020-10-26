@@ -13,10 +13,11 @@ console.log("Beginning Node Process");
 
 class Evaluator{
     constructor(){
-        this.context = global;
+        this.context                     = global;
         this.context['parseNumpyFile']   = npy.parseNumpyFile;
         this.context['unparseNumpyFile'] = npy.unparseNumpyFile;
         this.context['buildDataArray']   = npy.buildDataArray;
+        this.context['require']          = require;
         vm.createContext(this.context);
         console.log("VM context has been prepared.");
 
@@ -43,7 +44,7 @@ class Evaluator{
                     //if it is a dataArray, convert back to numpy!
                     if (typeof this.context[key].constructor !== 'undefined' && this.context[key].constructor.name === 'DataArray'){
                         let abData = npy.unparseNumpyFile(this.context[key]).buffer;
-                        let data = utils.abtostr(abData);
+                        let data = Buffer.from(abData, 'binary').toString('base64');
 
                         final_output[key] = {
                             'type': 'numpy',
@@ -80,7 +81,7 @@ class Evaluator{
             let obj = jsonVars[key];
             if (obj['type'] == 'numpy' && typeof obj['data'] === 'string'){
                 let data = obj['data'];
-                let abData = utils.strtoab(data);
+                let abData = Buffer.from(data, 'base64').buffer;
                 const npArr = npy.parseNumpyFile(abData);
                 obj = npArr;
             }

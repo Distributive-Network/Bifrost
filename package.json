@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/Kings-Distributed-Systems/Bifrost#readme",
   "dependencies": {
+    "dcp-client": "^3.2.2",
     "mmap.js": "^1.0.3",
     "nodeshm": "^0.1.1",
     "npy-js": "git+https://github.com/Kings-Distributed-Systems/npy-js.git"
