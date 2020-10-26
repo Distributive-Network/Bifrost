@@ -14,6 +14,13 @@ from setuptools import setup, find_packages
 #                     msg="Running post install task")
 
 
+def package_files(directory):
+    paths = []
+    for (path, directories, filenames) in os.walk(directory):
+        for filename in filenames:
+            paths.append(os.path.join(path, filename))
+    return paths
+
 
 setup(
     name="Bifrost",
@@ -23,14 +30,15 @@ setup(
     description="A bridge between two languages",
     long_description="Allows for intercommunication between python and node environments",
     long_description_content_type="text/markdown",
-    packages=find_packages(),
-    package_data={
-        '': ['*.js','*.json']
-    },
     install_requires=[
         'numpy',
         'posix_ipc',
         'xxhash'
     ],
+    package_data={
+        '': ['js/main.js','js/utils.js']
+    },
+    packages=find_packages(),
     include_package_data=False,
+    zip_safe=False
 )
