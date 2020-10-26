@@ -109,10 +109,7 @@ class Node():
         self.deserializer_custom_funcs[var_type] = func
 
     def run(self, script, vars = {}, timeout=None):
-        s = time.time()
         self.vs.syncto(vars, self.serializer_custom_funcs, warn=False)
-        print("syncing to took: " + str(time.time() - s) + " seconds")
-        s = time.time()
         global NODE_IS_RUNNING
         global NODE_LOCK
         NODE_LOCK.acquire_write()
@@ -125,7 +122,6 @@ class Node():
             return
 
         flag = NODE_IS_RUNNING
-        start = time.time()
         while flag:
             NODE_LOCK.acquire_read()
             flag = NODE_IS_RUNNING
@@ -137,12 +133,9 @@ class Node():
                     NODE_IS_RUNNING = False
                     NODE_LOCK.release_write()
                     print("Process took longer than " + str(timeout))
-        print("Execution took: " + str(time.time() - s) + " seconds")
-        s = time.time()
         new_vars = self.vs.syncfrom(self.deserializer_custom_funcs, warn=False)
         for key in new_vars.keys():
             vars[key] = new_vars[key]
-        print("Syncing from took: " + str(time.time() - s) + " seconds")
         return vars
 
 
@@ -168,7 +161,7 @@ class Node():
             NODE_LOCK.release_write()
             return -1
         return 1
-        
+ 
     def cancel(self, restart=True):
         os.kill(self.process.pid, signal.SIGSTOP)
         self.nstdproc.stop()
