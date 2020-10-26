@@ -9,6 +9,10 @@ const SHM_FILE_NAME = args[args.length-1];
 
 
 
+process.stderr.pipe(process.stdout);
+
+
+
 console.log("Beginning Node Process");
 
 class Evaluator{
