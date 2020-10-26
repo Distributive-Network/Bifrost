@@ -24,9 +24,13 @@ setup(
     long_description="Allows for intercommunication between python and node environments",
     long_description_content_type="text/markdown",
     packages=find_packages(),
+    package_data={
+        '': ['*.js','*.json']
+    },
     install_requires=[
         'numpy',
         'posix_ipc',
         'xxhash'
-    ]
+    ],
+    include_package_data=False,
 )
