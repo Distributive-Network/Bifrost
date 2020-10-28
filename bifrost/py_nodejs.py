@@ -163,8 +163,15 @@ class Node():
         return 1
  
     def cancel(self, restart=True):
-        os.kill(self.process.pid, signal.SIGSTOP)
-        self.nstdproc.stop()
+        try:
+            os.kill(self.process.pid, signal.SIGSTOP)
+            self.nstdproc.stop()
+        except Exception as e:
+            print(e)
+        try:
+            self.nstdproc.stop()
+        except Exception as e:
+            print(e)
         if restart:
             self.init_process()
     
