@@ -18,7 +18,7 @@ class Npm():
         if not (os.path.exists(cwd + '/node_modules/npy-js') and os.path.exists(cwd + '/node_modules/mmap.js')):
             self.run(['npm', 'init', '--yes'])
             self.run(['npm', 'install', 
-                'git+https://github.com/Kings-Distributed-Systems/npy-js.git', 'mmap.js', 'nodeshm'])
+                      'git+https://github.com/Kings-Distributed-Systems/npy-js.git', 'git+https://github.com/bungabear/mmap.js', 'nodeshm'])
     
     def run(self, cmd):
         process = Popen(cmd, cwd = self.cwd, stdout = subprocess.PIPE)
