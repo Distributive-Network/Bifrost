@@ -58,7 +58,7 @@ class Evaluator{
                     }else{
                         let val = JSON.stringify(this.context[key]);
                         if (deepEqual(JSON.parse(val), this.context[key])){
-                          final_output[key] = val; 
+                          final_output[key] = this.context[key]; 
                         }
                     }
                 }
@@ -76,6 +76,7 @@ class Evaluator{
         final_str = Buffer.from(final_str, 'utf-8').toString('utf-8');
 
         this.mm.write(final_str + '\n');
+
     }
 
 
