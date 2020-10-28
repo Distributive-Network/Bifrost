@@ -54,4 +54,3 @@ function strtoab(str){
 
 exports.abtostr   = abtostr;
 exports.strtoab   = strtoab;
-exports.deepEqual = deepEqual;
