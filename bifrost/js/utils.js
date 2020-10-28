@@ -52,6 +52,6 @@ function strtoab(str){
     return binaryArray.buffer;
 };
 
-exports.abtostr = abtostr;
-exports.strtoab = strtoab;
-
+exports.abtostr   = abtostr;
+exports.strtoab   = strtoab;
+exports.deepEqual = deepEqual;

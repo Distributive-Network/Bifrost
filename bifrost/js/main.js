@@ -1,10 +1,11 @@
-const stream = require('stream');
-const vm     = require('vm');
-const utils  = require('./utils');
-const shm    = require('nodeshm');
-const mmap   = require('mmap.js');
-const npy    = require('npy-js');
-const args   = process.argv;
+const stream    = require('stream');
+const vm        = require('vm');
+const utils     = require('./utils');
+const shm       = require('nodeshm');
+const mmap      = require('mmap.js');
+const npy       = require('npy-js');
+const args      = process.argv;
+const deepEqual = require('./deepEqual.js').deepEqual;
 const SHM_FILE_NAME = args[args.length-1];
 
 
@@ -56,7 +57,9 @@ class Evaluator{
                         };
                     }else{
                         let val = JSON.stringify(this.context[key]);
-                        final_output[key] = val; 
+                        if (deepEqual(JSON.parse(val), this.context[key])){
+                          final_output[key] = val; 
+                        }
                     }
                 }
             }catch(err){
