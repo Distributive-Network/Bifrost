@@ -137,6 +137,12 @@ class Node():
             vars[key] = new_vars[key]
         return vars
 
+    def clean_lock(self):
+        global NODE_LOCK
+        global NODE_IS_RUNNING
+        NODE_IS_RUNNING = False
+        NODE_LOCK = ReadWriteLock()
+
 
     def write(self, s):
         try:
