@@ -101,19 +101,22 @@ class VariableSync():
             var = var_dict[var_name]
 
             if type(var) == dict:
-                if(var['type'] == 'numpy'):
-                    data = var['data']
-                    data_bytes = base64.b64decode(data)
-                    load_bytes = BytesIO(data_bytes)
-                    loaded_np = np.load(load_bytes, allow_pickle=False)
-                    final_output[var_name] = loaded_np
+                if 'type' in var and 'data' in var:
+                    if(var['type'] == 'numpy'):
+                        data = var['data']
+                        data_bytes = base64.b64decode(data)
+                        load_bytes = BytesIO(data_bytes)
+                        loaded_np = np.load(load_bytes, allow_pickle=False)
+                        final_output[var_name] = loaded_np
+                    else:
+                        data = var['data']
+                        try:
+                            final_output[var_name] = custom_funcs[var['type']](data)
+                        except Exception as e:
+                            if warn:
+                                print(e)
                 else:
-                    data = var['data']
-                    try:
-                        final_output[var_name] = custom_funcs[var['type']](data)
-                    except Exception as e:
-                        if warn:
-                            print(e)
+                    final_output[var_name] = var_dict[var_name]
             else:
                 final_output[var_name] = var_dict[var_name]
         return final_output
