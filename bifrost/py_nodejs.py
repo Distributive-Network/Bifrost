@@ -92,10 +92,13 @@ class Node():
 
 
     def init_process(self):
+        env = os.environ
+        env["NODE_PATH"] = self.cwd + '/node_modules'
         self.process = Popen(['node',
                               '--max-old-space-size=10000',
                               self.replFile,
                               self.vs.SHARED_MEMORY_NAME], cwd=self.cwd,stdin=subprocess.PIPE,
+                              env=env,
                               stdout=subprocess.PIPE)
         self.nstdproc = NodeSTDProc(self.process)
 

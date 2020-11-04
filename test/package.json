@@ -1,0 +1,19 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dcp-client": "^3.2.2",
+    "mmap.js": "git+https://github.com/bungabear/mmap.js.git",
+    "nodeshm": "^0.1.1",
+    "npy-js": "git+https://github.com/Kings-Distributed-Systems/npy-js.git"
+  },
+  "devDependencies": {},
+  "description": ""
+}
