@@ -15,10 +15,10 @@ NODE_IS_RUNNING = False
 class Npm():
     def __init__(self, cwd = os.getcwd()):
         self.cwd = cwd
-        if not (os.path.exists(cwd + '/node_modules/npy-js') and os.path.exists(cwd + '/node_modules/mmap.js')):
+        if not (os.path.exists(cwd + '/node_modules/npy-js') and os.path.exists(cwd + '/node_modules/mmap.js') and os.path.exists(cwd + '/node_modules/xxhash') and os.path.exists(cwd + '/node_modules/nodeshm') ):
             self.run(['npm', 'init', '--yes'])
             self.run(['npm', 'install', 
-                      'git+https://github.com/Kings-Distributed-Systems/npy-js.git', 'git+https://github.com/bungabear/mmap.js', 'nodeshm'])
+                      'git+https://github.com/Kings-Distributed-Systems/npy-js.git', 'git+https://github.com/bungabear/mmap.js', 'nodeshm', 'xxhash'])
 
     def run(self, cmd):
         process = Popen(cmd, cwd = self.cwd, stdout = subprocess.PIPE)

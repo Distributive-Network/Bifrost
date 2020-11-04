@@ -4,7 +4,7 @@ const utils     = require('./utils');
 const shm       = require('nodeshm');
 const mmap      = require('mmap.js');
 const npy       = require('npy-js');
-const crypto    = require('crypto');
+const XXHash    = require('xxhash');
 const args      = process.argv;
 const deepEqual = require('./deepEqual.js').deepEqual;
 const SHM_FILE_NAME = args[args.length-1];
@@ -39,8 +39,7 @@ class Evaluator{
 
     inCache( key, val){
       let results = { 'bool': false, 'hash': '' };
-
-      results.hash = crypto.createHash('md5').update(val).digest('hex');
+      results.hash = XXHash.hash64( val );
 
       if (typeof this.cache[key] !== 'undefined'){
         if (this.cache[key] === results.hash){
@@ -66,14 +65,14 @@ class Evaluator{
                 if (typeof this.context[key] !== 'undefined'){
                     //if it is a dataArray, convert back to numpy!
                     if (typeof this.context[key].constructor !== 'undefined' && this.context[key].constructor.name === 'DataArray'){
-                        let abData = npy.unparseNumpyFile(this.context[key]).buffer;
-                        let data = Buffer.from(abData, 'binary').toString('base64');
-                        let cacheResults = this.inCache( key, data );
+                        let cacheResults = this.inCache( key, Buffer.concat( [ this.context[key].typedArray.buffer, 
+                                        Buffer.from( this.context[key].shape ) ] ) );
                         if (cacheResults.bool){
-                          //is in the cache already
                           continue;
                         }else{
                           this.setCache( key, cacheResults.hash );
+                          let abData = npy.unparseNumpyFile(this.context[key]).buffer;
+                          let data = Buffer.from(abData, 'binary').toString('base64');
                           final_output[key] = {
                               'type': 'numpy',
                               'data': data
@@ -82,7 +81,7 @@ class Evaluator{
                     }else{
                         let val = JSON.stringify(this.context[key]);
                         if (deepEqual(JSON.parse(val), this.context[key])){
-                          let cacheResults = this.inCache( key, val );
+                          let cacheResults = this.inCache( key, Buffer.from(val) );
                           if (cacheResults.bool){
                             continue;
                           }else{
