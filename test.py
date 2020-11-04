@@ -1,4 +1,5 @@
 import time
+import numpy as np
 from bifrost import node, npm
 
 def check_equals(in_vals, out_vals):
@@ -45,3 +46,15 @@ for i in range(10):
         print("No problem found")
     else:
         print("Problem during initial serialization")
+
+
+vals = {
+    'a': np.random.randn(100, 224,224, 3)
+}
+for i in range(5):
+    start = time.time()
+    out_vals = node.run("""
+    console.log(a.shape, a.typedArray.length);
+    """, vals)
+    end = time.time()
+    print("Took: ", end - start, " seconds")

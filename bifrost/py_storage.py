@@ -137,7 +137,7 @@ class VariableSync():
             print("Could not write final bytes due to : ")
             print(e)
         return final_output
-    
+
     def syncfrom(self, custom_funcs=None, warn=False):
         self.mapFile.seek(0)
         byte_lines = self.mapFile.readline()

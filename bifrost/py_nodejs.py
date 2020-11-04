@@ -128,16 +128,23 @@ class Node():
 
         flag = NODE_IS_RUNNING
         while flag:
-            NODE_LOCK.acquire_read()
-            flag = NODE_IS_RUNNING
-            NODE_LOCK.release_read()
-            if timeout is not None:
-                if (time.time() - start) > timeout:
-                    self.cancel()
-                    NODE_LOCK.acquire_write()
-                    NODE_IS_RUNNING = False
-                    NODE_LOCK.release_write()
-                    print("Process took longer than " + str(timeout))
+            try:
+                NODE_LOCK.acquire_read()
+                flag = NODE_IS_RUNNING
+                NODE_LOCK.release_read()
+                if timeout is not None:
+                    if (time.time() - start) > timeout:
+                        self.cancel()
+                        NODE_LOCK.acquire_write()
+                        NODE_IS_RUNNING = False
+                        NODE_LOCK.release_write()
+                        print("Process took longer than " + str(timeout))
+            except KeyboardInterrupt:
+                self.cancel()
+                NODE_LOCK.acquire_write()
+                NODE_IS_RUNNING = False
+                NODE_LOCK.release_write()
+                print("Process was interrupted.")
         new_vars = self.vs.syncfrom(self.deserializer_custom_funcs, warn=False)
         for key in new_vars.keys():
             vars[key] = new_vars[key]
