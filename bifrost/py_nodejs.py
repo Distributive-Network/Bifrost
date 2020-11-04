@@ -54,10 +54,10 @@ class NodeSTDProc(Thread):
 
     def run(self):
         while not self._stop_event.is_set():
+            global NODE_IS_RUNNING
+            global NODE_LOCK
             output = self.process.stdout.readline().decode('utf-8')
             if self.process.poll() is not None:
-                global NODE_IS_RUNNING
-                global NODE_LOCK
                 NODE_LOCK.acquire_write()
                 NODE_IS_RUNNING = False
                 NODE_LOCK.release_write()
@@ -68,8 +68,6 @@ class NodeSTDProc(Thread):
                 try:
                     output_json = json.loads(output)
                     if output_json['type'] == 'done':
-                        global NODE_IS_RUNNING
-                        global NODE_LOCK
                         NODE_LOCK.acquire_write()
                         NODE_IS_RUNNING = False
                         NODE_LOCK.release_write()
