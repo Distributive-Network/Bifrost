@@ -19,7 +19,7 @@ class Npm():
             self.run(['npm', 'init', '--yes'])
             self.run(['npm', 'install', 
                       'git+https://github.com/Kings-Distributed-Systems/npy-js.git', 'git+https://github.com/bungabear/mmap.js', 'nodeshm'])
-    
+
     def run(self, cmd):
         process = Popen(cmd, cwd = self.cwd, stdout = subprocess.PIPE)
         while True:
@@ -30,10 +30,10 @@ class Npm():
                 print(output.strip())
         returnCode = process.poll()
         return returnCode
-    
+
     def install(self,*args):
         self.run(['npm', 'install', *args])
-    
+
     def uninstall(self, *args):
         self.run(['npm', 'uninstall', *args])
 
@@ -51,11 +51,16 @@ class NodeSTDProc(Thread):
 
     def stop(self):
         self._stop_event.set()
-    
+
     def run(self):
         while not self._stop_event.is_set():
             output = self.process.stdout.readline().decode('utf-8')
             if self.process.poll() is not None:
+                global NODE_IS_RUNNING
+                global NODE_LOCK
+                NODE_LOCK.acquire_write()
+                NODE_IS_RUNNING = False
+                NODE_LOCK.release_write()
                 break
             if output == '':
                 continue
@@ -83,25 +88,25 @@ class Node():
         self.cwd = cwd
         self.serializer_custom_funcs = {}
         self.deserializer_custom_funcs = {}
-        self.replFile = os.path.dirname(os.path.realpath(__file__)) + '/js/main.js'
+        self.replFile = os.path.dirname(os.path.realpath(__file__)) + '/main.js'
         self.vs = VariableSync()
         self.init_process()
 
 
     def init_process(self):
-        self.process = Popen(['node', 
-                              '--max-old-space-size=10000', 
-                              self.replFile, 
+        self.process = Popen(['node',
+                              '--max-old-space-size=10000',
+                              self.replFile,
                               self.vs.SHARED_MEMORY_NAME], cwd=self.cwd,stdin=subprocess.PIPE,
                               stdout=subprocess.PIPE)
         self.nstdproc = NodeSTDProc(self.process)
-    
+
     def register_custom_serializer(self, func, var_type):
         if var_type is not str:
             var_type = str(var_type)
         self.serializer_custom_funcs[var_type] = func
         return
-    
+
     def register_custom_deserializer(self, func, var_type):
         if var_type is not str:
             var_type = str(var_type)
@@ -166,7 +171,7 @@ class Node():
             NODE_LOCK.release_write()
             return -1
         return 1
- 
+
     def cancel(self, restart=True):
         try:
             os.kill(self.process.pid, signal.SIGSTOP)
@@ -179,7 +184,7 @@ class Node():
             print(e)
         if restart:
             self.init_process()
-    
+
     def clear(self):
         self.cancel()
 
@@ -193,10 +198,16 @@ def onEnd():
     global memName
     global node
 
-    if hasattr(node, 'process'):
-        os.kill(node.process.pid, signal.SIGSTOP)
-    if hasattr(node, 'nstdproc'):
-        node.nstdproc.stop()
+    try:
+        if hasattr(node, 'process'):
+            os.kill(node.process.pid, signal.SIGSTOP)
+    except:
+        print("Could not kill process. May already be dead.")
+    try:
+        if hasattr(node, 'nstdproc'):
+            node.nstdproc.stop()
+    except:
+        print("Could not stop nstdproc. May already be dead.")
 
     posix_ipc.unlink_shared_memory(memName)
     print("Memory map has been destroyed")
