@@ -145,6 +145,7 @@ class Node():
                 NODE_IS_RUNNING = False
                 NODE_LOCK.release_write()
                 print("Process was interrupted.")
+                raise KeyboardInterrupt
         new_vars = self.vs.syncfrom(self.deserializer_custom_funcs, warn=False)
         for key in new_vars.keys():
             vars[key] = new_vars[key]
