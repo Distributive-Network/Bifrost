@@ -1,6 +1,6 @@
 from .py_nodejs import node, npm
 import warnings
-from IPython.core.magic import (Magics, magics_class, cell_magic)
+from IPython.core.magic import (Magics, magics_class, cell_magic, line_magic)
 from IPython.display import display, HTML
 from IPython.core.error import TryNext
 
