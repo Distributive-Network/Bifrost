@@ -1,4 +1,5 @@
 import setuptools
+from setuptools import find_packages
 
 
 with open("./README.md", "r") as fh:
@@ -13,11 +14,12 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Kings-Distributed-Systems/Bifrost",
-    packages=["bifrost"],
+    packages=find_packages(),
     package_data={
-        "": ["*.js","js/*.js"]
+        '': ['*.js','*.json']
     },
     include_package_data=False,
+    zip_safe=False,
     classifiers=[
         "Programming Language :: Python :: 3"
     ],

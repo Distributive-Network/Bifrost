@@ -4,6 +4,7 @@ const utils     = require('./utils');
 const shm       = require('nodeshm');
 const mmap      = require('mmap.js');
 const npy       = require('npy-js');
+const XXHash    = require('xxhash');
 const args      = process.argv;
 const deepEqual = require('./deepEqual.js').deepEqual;
 const SHM_FILE_NAME = args[args.length-1];
@@ -25,7 +26,7 @@ class Evaluator{
         this.context['require']          = require;
         vm.createContext(this.context);
         console.log("VM context has been prepared.");
-
+        this.cache = {};
         this.fd = -1;
         let size= Math.floor( 0.75 * 1024*1024*1024 );
 
@@ -35,6 +36,22 @@ class Evaluator{
             mmap.MAP_SHARED, fd, 0);
         this.dontSync = Object.keys(this.context);
     }
+
+    inCache( key, val){
+      let results = { 'bool': false, 'hash': '' };
+      results.hash = XXHash.hash64( val );
+
+      if (typeof this.cache[key] !== 'undefined'){
+        if (this.cache[key] === results.hash){
+          results.bool = true;
+        }
+      }
+      return results;
+    };
+
+    setCache( key, hsh){
+      this.cache[key] = hsh;
+    };
 
     syncTo(){
         let final_output = {};
@@ -48,17 +65,29 @@ class Evaluator{
                 if (typeof this.context[key] !== 'undefined'){
                     //if it is a dataArray, convert back to numpy!
                     if (typeof this.context[key].constructor !== 'undefined' && this.context[key].constructor.name === 'DataArray'){
-                        let abData = npy.unparseNumpyFile(this.context[key]).buffer;
-                        let data = Buffer.from(abData, 'binary').toString('base64');
-
-                        final_output[key] = {
-                            'type': 'numpy',
-                            'data': data
+                        let cacheResults = this.inCache( key, Buffer.concat( [ this.context[key].typedArray.buffer, 
+                                        Buffer.from( this.context[key].shape ) ] ) );
+                        if (cacheResults.bool){
+                          continue;
+                        }else{
+                          this.setCache( key, cacheResults.hash );
+                          let abData = npy.unparseNumpyFile(this.context[key]).buffer;
+                          let data = Buffer.from(abData, 'binary').toString('base64');
+                          final_output[key] = {
+                              'type': 'numpy',
+                              'data': data
+                          };
                         };
                     }else{
                         let val = JSON.stringify(this.context[key]);
                         if (deepEqual(JSON.parse(val), this.context[key])){
-                          final_output[key] = this.context[key]; 
+                          let cacheResults = this.inCache( key, Buffer.from(val) );
+                          if (cacheResults.bool){
+                            continue;
+                          }else{
+                            this.setCache( key, cacheResults.hash );
+                            final_output[key] = this.context[key]; 
+                          }
                         }
                     }
                 }

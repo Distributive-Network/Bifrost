@@ -1,6 +1,6 @@
 from .py_nodejs import node, npm
 import warnings
-from IPython.core.magic import (Magics, magics_class, cell_magic)
+from IPython.core.magic import (Magics, magics_class, cell_magic, line_magic)
 from IPython.display import display, HTML
 from IPython.core.error import TryNext
 
@@ -17,10 +17,23 @@ class BifrostMagics(Magics):
     @cell_magic
     def node(self, line, cell):
         #look at get_ipython().user_ns <- it returns a dict of namespace in user space
-        vars_to_sync = { k: self.shell.user_ns[k] for k in self.shell.user_ns.keys() if '_' not in k and k not in RESERVED }
+        vars_to_sync = { k: self.shell.user_ns[k] for k in self.shell.user_ns.keys() if not k.startswith('_') and k not in RESERVED }
+        try:
+            vars_to_sync = self._node.run(cell, vars = vars_to_sync)
+        except KeyboardInterrupt:
+            return 
+        for key in vars_to_sync.keys():
+            self.shell.user_ns[key] = vars_to_sync[key]
+        return
 
-        vars_to_sync = self._node.run(cell, vars = vars_to_sync)
-
+    @line_magic
+    def run_node(self, line):
+        #look at get_ipython().user_ns <- it returns a dict of namespace in user space
+        vars_to_sync = { k: self.shell.user_ns[k] for k in self.shell.user_ns.keys() if not k.startswith('_') and k not in RESERVED }
+        try:
+            vars_to_sync = self._node.run(line, vars = vars_to_sync)
+        except KeyboardInterrupt:
+            return 
         for key in vars_to_sync.keys():
             self.shell.user_ns[key] = vars_to_sync[key]
         return

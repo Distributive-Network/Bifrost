@@ -53,14 +53,14 @@ class VariableSync():
         for var_name in keys:
             var = var_dict[var_name]
             var_type = type(var)
-            #try:
-            #    b, hsh = self.inCache(var_name, var, var_type)
-            #    if b:
-            #        continue
-            #    else:
-            #        self.setCache(var_name, hsh)
-            #except Exception as e:
-            #    pass
+            try:
+                b, hsh = self.inCache(var_name, var, var_type)
+                if b:
+                    continue
+                else:
+                    self.setCache(var_name, hsh)
+            except Exception as e:
+                pass
             if var_type == np.ndarray:
                 outBytes = BytesIO()
                 np.save(outBytes, var, allow_pickle=False)
@@ -94,7 +94,7 @@ class VariableSync():
                     continue
 
         return final_output
-    
+
     def unparse_variables(self, var_dict, custom_funcs, warn=False):
         final_output = {}
         for var_name in list(var_dict.keys()):
@@ -121,8 +121,6 @@ class VariableSync():
                 final_output[var_name] = var_dict[var_name]
         return final_output
 
-        
-    
 
     def syncto(self, var_dict, custom_funcs=None, warn = False):
         for key in list(var_dict.keys()):
@@ -139,7 +137,7 @@ class VariableSync():
             print("Could not write final bytes due to : ")
             print(e)
         return final_output
-    
+
     def syncfrom(self, custom_funcs=None, warn=False):
         self.mapFile.seek(0)
         byte_lines = self.mapFile.readline()
