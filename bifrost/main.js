@@ -63,7 +63,6 @@ class Evaluator{
         allVarsToSync = Array.from(allVarsToSync);
 
         for (let key of allVarsToSync){
-            console.log("key: ", key);
             try{
                 if (typeof this.context[key] !== 'undefined'){
                     //if it is a dataArray, convert back to numpy!
@@ -95,7 +94,7 @@ class Evaluator{
                     }
                 }
             }catch(err){
-                console.log(err);
+                // console.log(err);
                 continue;
             }
         }
