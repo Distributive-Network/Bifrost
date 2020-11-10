@@ -5,6 +5,7 @@ const shm       = require('nodeshm');
 const mmap      = require('mmap.js');
 const npy       = require('npy-js');
 const XXHash    = require('xxhash');
+const crypto    = require('crypto');
 const args      = process.argv;
 const deepEqual = require('./deepEqual.js').deepEqual;
 const SHM_FILE_NAME = args[args.length-1];
@@ -35,11 +36,12 @@ class Evaluator{
         this.mm= mmap.alloc(size, mmap.PROT_READ | mmap.PROT_WRITE,
             mmap.MAP_SHARED, fd, 0);
         this.dontSync = Object.keys(this.context);
+        this.seed = crypto.randomBytes(8); 
     }
 
     inCache( key, val){
-      let results = { 'bool': false, 'hash': '' };
-      results.hash = XXHash.hash64( val );
+      let results = { 'bool': false, 'hash': '' }; 
+      results.hash = XXHash.hash64( val , this.seed);
 
       if (typeof this.cache[key] !== 'undefined'){
         if (this.cache[key] === results.hash){
@@ -61,6 +63,7 @@ class Evaluator{
         allVarsToSync = Array.from(allVarsToSync);
 
         for (let key of allVarsToSync){
+            console.log("key: ", key);
             try{
                 if (typeof this.context[key] !== 'undefined'){
                     //if it is a dataArray, convert back to numpy!
@@ -92,6 +95,7 @@ class Evaluator{
                     }
                 }
             }catch(err){
+                console.log(err);
                 continue;
             }
         }

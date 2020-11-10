@@ -61,21 +61,35 @@ def check_equals(in_vals, out_vals):
 
 
 
-parameter_space = {
-    "activation": ['linear','relu','selu','sigmoid','softmax', 'tanh'],
-    "optimizer": ['SGD','Adagrad','Adadelta','Adam','Adamax','RMSprop'],
-    "num_layers": [1, 2, 3, 4, 5, 6],
-    "num_units": [1, 2, 4, 8, 16, 32],
-    "lr": [1, 0.1, 0.01, 0.001, 0.0001, 0.00001],
-}
-vals = {'parameter_space': parameter_space}
+#parameter_space = {
+#    "activation": ['linear','relu','selu','sigmoid','softmax', 'tanh'],
+#    "optimizer": ['SGD','Adagrad','Adadelta','Adam','Adamax','RMSprop'],
+#    "num_layers": [1, 2, 3, 4, 5, 6],
+#    "num_units": [1, 2, 4, 8, 16, 32],
+#    "lr": [1, 0.1, 0.01, 0.001, 0.0001, 0.00001],
+#}
+#vals = {'parameter_space': parameter_space}
+#print(vals)
+#
+#
+#for i in range(5):
+#    start = time.time()
+#    out_vals = node.run("""
+#    console.log(parameter_space);
+#    """, vals)
+#    end = time.time()
+#    print("Took: ", end - start, " seconds")
+
+
+
+
+vals = node.run("""
+
+console.log(a);
+
+a['value'] = 0.0;
+
+
+""",{'a': {'hello': 'world'}})
+
 print(vals)
-
-
-for i in range(5):
-    start = time.time()
-    out_vals = node.run("""
-    console.log(parameter_space);
-    """, vals)
-    end = time.time()
-    print("Took: ", end - start, " seconds")
