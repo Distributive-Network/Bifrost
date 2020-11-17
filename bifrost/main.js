@@ -67,8 +67,13 @@ class Evaluator{
                 if (typeof this.context[key] !== 'undefined'){
                     //if it is a dataArray, convert back to numpy!
                     if (typeof this.context[key].constructor !== 'undefined' && this.context[key].constructor.name === 'DataArray'){
-                        let cacheResults = this.inCache( key, Buffer.concat( [ this.context[key].typedArray.buffer, 
-                                        Buffer.from( this.context[key].shape ) ] ) );
+                        let toCheck = Buffer.concat([
+                          Buffer.from(this.context[key].typedArray.buffer),
+                          Buffer.from(this.context[key].shape)
+                        ]);
+
+
+                        let cacheResults = this.inCache( key, toCheck );
                         if (cacheResults.bool){
                           continue;
                         }else{
