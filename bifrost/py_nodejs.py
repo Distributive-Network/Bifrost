@@ -37,8 +37,8 @@ class Npm():
     def uninstall(self, *args):
         self.run(['npm', 'uninstall', *args])
 
-    def list_modules(self):
-        self.run(['npm', 'list'])
+    def list_modules(self, *args):
+        self.run(['npm', 'list', *args])
 
 
 class NodeSTDProc(Thread):
