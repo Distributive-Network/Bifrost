@@ -2,6 +2,12 @@ import sys, os
 
 
 def isnotebook():
+    """
+    A function that checks to see if we are in a notebook or not.
+    This is necessary so that we knowe whether ipython specific functions
+    are available or not. If they are available, we'd like to use them.
+
+    """
     try:
         shell = get_ipython().__class__.__name__
         if shell == 'ZMQInteractiveShell':
@@ -11,7 +17,7 @@ def isnotebook():
         elif shell == 'TerminalInteractiveShell':
             return False  # Terminal running IPython
         else:
-            return False  # Other type (?)
+            return False  # Other type (Unknown ipython kernel....)
     except NameError:
         return False      # Probably standard Python interpreter
 

@@ -24,7 +24,12 @@ function _atob (string) {
     return result;
 }
   
-
+/**
+ * strtoab  Turns a string to an array buffer
+ *
+ * @param {ArrayBuffer} ab - The array buffer.
+ * @returns {String} - string
+ */
 function abtostr(ab){
     var ui8 = new Uint8Array(ab);
     const mss = 9999;
@@ -40,7 +45,7 @@ function abtostr(ab){
 /**
  * strtoab  Turns a string to an array buffer
  *
- * @param {string} str - The string to serialize
+ * @param {string} str - The string to convert to an arraybuffer.
  * @returns {ArrayBuffer} - The array buffer.
  */
 function strtoab(str){

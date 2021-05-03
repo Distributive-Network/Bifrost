@@ -11,13 +11,19 @@ const deepEqual = require('./deepEqual.js').deepEqual;
 const SHM_FILE_NAME = args[args.length-1];
 
 
-
+// Begin by piping stderr into stdout
 process.stderr.pipe(process.stdout);
 
 
 
 console.log("Beginning Node Process");
 
+/**
+ * Evaluator class is the main class meant to evaluate any node script given
+ * using some node context.
+ * 
+ * It also holds references to the mmap'ed buffer
+ */
 class Evaluator{
     constructor(){
         this.context                     = global;
@@ -39,6 +45,13 @@ class Evaluator{
         this.seed = crypto.randomBytes(8); 
     }
 
+    /**
+     * Check if some variable is in cache
+     * 
+     * @param {string} key 
+     * @param {any} val 
+     * @returns 
+     */
     inCache( key, val){
       let results = { 'bool': false, 'hash': '' }; 
       results.hash = XXHash.hash64( val , this.seed);
@@ -51,10 +64,20 @@ class Evaluator{
       return results;
     };
 
+    /**
+     * Set some hash in the cache.
+     * 
+     * @param {string} key 
+     * @param {string} hsh 
+     */
     setCache( key, hsh){
       this.cache[key] = hsh;
     };
 
+    /**
+     * Sync to the python process from the node process
+     * Using the mmap buffer.
+     */
     syncTo(){
         let final_output = {};
         let allVarsToSync = Object.keys(this.context).filter(x=> !this.dontSync.includes(x)); //all variables that are not in the default context;
@@ -118,7 +141,9 @@ class Evaluator{
 
 
 
-
+    /**
+     * Sync from the python process into the node process.
+     */
     syncFrom(){
         var buffToParse = this.mm.slice(0, this.mm.indexOf('\n')); 
         var jsonVars    = JSON.parse(buffToParse.toString('utf-8'));
@@ -135,6 +160,9 @@ class Evaluator{
         this.toSync = Object.keys(jsonVars);
     }
 
+    //evaluate some script in the given context.
+    //Note that we await in order to allow for scripts which end in a promise
+    //to fully complete
     async evaluate(script){
         await vm.runInContext(script, this.context);
         //console.log("Done evaluating");
@@ -143,8 +171,17 @@ class Evaluator{
 
 const evaluator = new Evaluator();
 
-
+//Modify the input stream.
 let inputStream = new stream.Transform();
+/**
+ * Modify the input stream so that when this process
+ * Get's something on stdin, we do the following:
+ * 1. sync from the python process.
+ * 2. Parse the script
+ * 3. Evaluate the script
+ * 4. Sync back to the python process.
+ * 5. Tell the python process we are done.
+ */
 inputStream._transform = async function(chunk, encoding, done){
     evaluator.syncFrom();
     try{

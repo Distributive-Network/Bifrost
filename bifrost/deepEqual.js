@@ -1,3 +1,8 @@
+/**
+ * Helper on the node side to do a deep equals check 
+ * As sometimes js will not compare things deeply enough.
+ */
+
 var Util = {
   /**
    * The iteration cache which will store iterated nodes

@@ -7,13 +7,20 @@ import numpy as np
 
 
 class VariableSync():
+    '''
+    Helper library to synchronize variables between python and node
+    '''
     def __init__(self):
         self.variables = []
+        #max size experimentally was 3/4 of 1gb
+        #Likely some problem the mmap/shm_open library used
         self.size = int(math.floor( 0.75 *(1024*1024*1024) ))
+        #Set some arbitrary name for the file
         self.SHARED_MEMORY_NAME = "/bifrost_shared_memory" + str(uuid.uuid4())
         self.memory = posix_ipc.SharedMemory(self.SHARED_MEMORY_NAME, posix_ipc.O_CREX,
                                         size=self.size)
 
+        #map the file to memory
         self.mapFile = mmap.mmap(self.memory.fd, self.memory.size)
 
         self.memory.close_fd()
@@ -21,6 +28,9 @@ class VariableSync():
         print("Memory map has been established")
 
     def __del__(self):
+        '''
+        If this variable is deleted, we should manage it appropriately
+        '''
         try:
             self.mapFile.close()
             posix_ipc.unlink_shared_memory(self.SHARED_MEMORY_NAME)
@@ -31,9 +41,15 @@ class VariableSync():
         return
 
     def setCache(self, key, hsh):
+        '''
+        Set the cache using a hash.
+        '''
         self.cache[key] = hsh
 
     def inCache(self, key, val, var_type):
+        '''
+        Check if variable is in cache by hashing 
+        '''
         hsh = ''
         if var_type == np.ndarray:
             arr_bytes = bytes(val.data)
@@ -46,9 +62,13 @@ class VariableSync():
 
 
     def clearCache(self):
+        '''Empty the cache'''
         self.cache = {}
 
     def parse_variables(self, var_dict, keys, custom_funcs, warn=False):
+        '''
+        Parse variables into a JSON serializable dictionary.
+        '''
         final_output = {}
         for var_name in keys:
             var = var_dict[var_name]
@@ -62,6 +82,7 @@ class VariableSync():
             except Exception as e:
                 pass
             if var_type == np.ndarray:
+                #Numpy is a special case and requires some managing to get data into a buffer
                 outBytes = BytesIO()
                 np.save(outBytes, var, allow_pickle=False)
                 outBytes.seek(0)
@@ -96,6 +117,9 @@ class VariableSync():
         return final_output
 
     def unparse_variables(self, var_dict, custom_funcs, warn=False):
+        '''
+        Reverse work of parse_variables by deserializaing JSON
+        '''
         final_output = {}
         for var_name in list(var_dict.keys()):
             var = var_dict[var_name]
@@ -123,6 +147,9 @@ class VariableSync():
 
 
     def syncto(self, var_dict, custom_funcs=None, warn = False):
+        '''
+        Sync our variables into the node context
+        '''
         for key in list(var_dict.keys()):
             if key.startswith('_'):
                 var_dict.pop(key, None)
@@ -139,6 +166,9 @@ class VariableSync():
         return final_output
 
     def syncfrom(self, custom_funcs=None, warn=False):
+        '''
+        Sync from the node context into the current python process.
+        '''
         self.mapFile.seek(0)
         byte_lines = self.mapFile.readline()
         final_str = byte_lines.decode()

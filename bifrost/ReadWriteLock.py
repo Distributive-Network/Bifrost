@@ -3,6 +3,9 @@ import threading
 
 
 class ReadWriteLock:
+    '''
+    A simple ReadWrite Lock
+    '''
 
     def __init__(self):
         self._read_ready = threading.Condition(threading.Lock())

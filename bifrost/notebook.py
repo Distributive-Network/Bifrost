@@ -9,6 +9,12 @@ RESERVED = ['true', 'false', 'self', 'this', 'In', 'Out']
 
 @magics_class
 class BifrostMagics(Magics):
+    '''
+    The BifrostMagics Class is responsible for managing bifrost when called
+    using one of the ipython magics. That is to say `%%node`, `%%run_node`
+    are managed using this class.
+
+    '''
     def __init__(self, shell, node):
         super(BifrostMagics,self).__init__(shell=shell)
         self.shell = shell
@@ -16,6 +22,11 @@ class BifrostMagics(Magics):
 
     @cell_magic
     def node(self, line, cell):
+        '''
+        `%%node` is a cell magic that sync variables between python and node,
+        executes the contents of the cell in the node process and syncs the python
+        and node process once more.
+        '''
         #look at get_ipython().user_ns <- it returns a dict of namespace in user space
         vars_to_sync = { k: self.shell.user_ns[k] for k in self.shell.user_ns.keys() if not k.startswith('_') and k not in RESERVED }
         try:
@@ -28,6 +39,11 @@ class BifrostMagics(Magics):
 
     @line_magic
     def run_node(self, line):
+        '''
+        `%%run_node` is a line magic that sync variables between python and node,
+        executes the contents of the line in the node process and syncs the python
+        and node process once more.
+        '''
         #look at get_ipython().user_ns <- it returns a dict of namespace in user space
         vars_to_sync = { k: self.shell.user_ns[k] for k in self.shell.user_ns.keys() if not k.startswith('_') and k not in RESERVED }
         try:
@@ -40,6 +56,9 @@ class BifrostMagics(Magics):
 
 
 def shutdown_hook(ipython):
+    '''
+    This is a hook that will execute when ipython closes.
+    '''
     node.cancel(restart=False)
     raise TryNext
 
