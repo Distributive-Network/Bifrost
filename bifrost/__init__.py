@@ -356,9 +356,9 @@ def dcp_deploy(
         else:
             data_pickled = json.dumps( input_data )
 
-        #data_encoded = codecs.encode( data_pickled, 'base64' ).decode()
+        #data_pickled = codecs.encode( data_pickled, 'base64' ).decode()
 
-        return data_encoded
+        return data_pickled
 
     job_arguments = _pickle_jar(job_arguments)
 
