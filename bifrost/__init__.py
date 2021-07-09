@@ -319,7 +319,7 @@ def nodejs_job(
 
         for (let i = 0; i < dcp_packages.length; i++) {
 
-            jobRequires.push(dcp_packages[i];);
+            jobRequires.push(dcp_packages[i]);
         }
 
         jobOutput = await dcpPost(jobData, jobFunction, jobParameters, jobMultiplier, jobLocal, jobRequires);
