@@ -6,6 +6,7 @@ import contextlib
 
 import cloudpickle
 import codecs
+import json
 
 def isnotebook():
     """
