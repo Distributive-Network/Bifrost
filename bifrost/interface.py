@@ -1,37 +1,10 @@
-import sys
-import os
+from bifrost import node, npm
 
 import io
 import contextlib
 
 import cloudpickle
 import codecs
-
-def isnotebook():
-    """
-    A function that checks to see if we are in a notebook or not.
-    This is necessary so that we knowe whether ipython specific functions
-    are available or not. If they are available, we'd like to use them.
-
-    """
-    try:
-        shell = get_ipython().__class__.__name__
-        if shell == 'ZMQInteractiveShell':
-            return True   # Jupyter notebook or qtconsole
-        elif shell == 'Shell':
-            return True
-        elif shell == 'TerminalInteractiveShell':
-            return False  # Terminal running IPython
-        else:
-            return False  # Other type (Unknown ipython kernel....)
-    except NameError:
-        return False      # Probably standard Python interpreter
-
-
-if isnotebook():
-    from .notebook import npm, node
-else:
-    from .py_nodejs import npm, node
 
 def dcp_install(job_scheduler = 'https://scheduler.distributed.computer'):
 
@@ -90,72 +63,24 @@ def dcp_wallet():
 
     return True
 
-def python_job(
-        job_data,
-        job_multiplier,
-        job_local,
-        job_input,
-        job_functions,
-        job_modules,
-        job_packages):
+def dcp_run(job_data, job_multiplier, job_local, job_input, job_functions, job_modules, job_packages, job_imports):
 
     run_parameters = {
         'dcp_data': job_data,
         'dcp_multiplier': job_multiplier,
         'dcp_local': job_local,
-        'dcp_parameters': job_input,
-        'dcp_functions': job_functions,
-        'dcp_modules': job_modules,
-        'dcp_packages': job_packages
-    }
-
-    python_output = node.run("""
-
-        jobRequires.push(
-            'aitf-compress/pako',
-            'aitf-shard-loader/shard-loader',
-            'aitf-pyodide/pyodide',
-            'aitf-cloudpickle/cloudpickle'
-        );
-
-        for (let i = 0; i < dcp_packages.length; i++) {
-
-            let packageName = dcp_packages[i];
-            jobRequires.push('aitf-' + packageName + '/' + packageName);
-        }
-
-        jobOutput = 0;
-
-    """, run_parameters)
-
-    job_output = node_output['jobOutput']
-    
-    return job_output
-
-def nodejs_job(
-        job_data,
-        job_multiplier,
-        job_local,
-        job_input,
-        job_functions,
-        job_modules,
-        job_packages):
-
-    run_parameters = {
-        'dcp_data': job_data,
-        'dcp_multiplier': job_multiplier,
-        'dcp_local': job_local,
-        'dcp_parameters': job_input,
-        'dcp_functions': job_functions,
-        'dcp_modules': job_modules,
-        'dcp_packages': job_packages
+        'python_parameters': job_input,
+        'python_functions': job_functions,
+        'python_modules': job_modules,
+        'python_packages': job_packages,
+        'python_imports': job_imports
     }
 
     node_output = node.run("""
 
     (async function(){
 
-        async function dcpPost(myData, myFunction, myParameters, myMultiplier, myLocal, myRequires) {
+        async function dcpPost(myData, myFunction, myParameters, myMultiplier, myLocal) {
 
             const jobStartTime = Date.now();
 
@@ -169,7 +94,10 @@ def nodejs_job(
 
             job.public.name = 'AITF : Bifrost -> Pyodide';
             
-            job.requires(myRequires);
+            job.requires([
+                'aitf-compress/pako',
+                'aitf-shard-loader/shard-loader',
+            ]);
 
             let jobFunctions = {
                 accepted: () => {},
@@ -315,21 +243,14 @@ def nodejs_job(
         let jobLocal = dcp_local;
 
         let jobParameters = [
-            dcp_parameters,
-            dcp_functions,
-            dcp_modules,
-            dcp_packages,
-            dcp_imports
+            python_parameters,
+            python_functions,
+            python_modules,
+            python_packages,
+            python_imports
         ];
 
-        let jobRequires = [];
-
-        for (let i = 0; i < dcp_packages.length; i++) {
-
-            jobRequires.push(dcp_packages[i];);
-        }
-
-        jobOutput = await dcpPost(jobData, jobFunction, jobParameters, jobMultiplier, jobLocal, jobRequires);
+        jobOutput = await dcpPost(jobData, jobFunction, jobParameters, jobMultiplier, jobLocal);
 
     })();
 
@@ -347,7 +268,7 @@ def dcp_deploy(
         dcp_packages = [],
         dcp_multiplier = 1,
         dcp_local = 0,
-        dcp_python = False):
+        dcp_python = True):
 
     job_slices = dcp_slices
     job_functions = dcp_functions
@@ -405,21 +326,9 @@ def dcp_deploy(
     for i in range(job_multiplier):
         job_input.extend(job_slices)
 
-    random.shuffle(job_input)
+    dcp_wallet()
 
-    self.wallet()
-
-    if job_python:
-        job_results = False
-    else:
-        job_results = nodejs_job(
-                job_input,
-                job_multiplier,
-                job_local,
-                job_arguments,
-                job_functions,
-                job_modules,
-                job_packages)
+    job_results = dcp_run(job_input, job_multiplier, job_local, job_arguments, job_functions, job_modules, job_packages, job_imports)
 
     for results_index, results_slice in enumerate(job_results):
 
