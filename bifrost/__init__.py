@@ -134,20 +134,18 @@ def python_job(
 
 def nodejs_job(
         job_data,
+        job_function,
         job_multiplier,
         job_local,
         job_input,
-        job_functions,
-        job_modules,
         job_packages):
 
     run_parameters = {
         'dcp_data': job_data,
+        'dcp_function': job_function,
         'dcp_multiplier': job_multiplier,
         'dcp_local': job_local,
         'dcp_parameters': job_input,
-        'dcp_functions': job_functions,
-        'dcp_modules': job_modules,
         'dcp_packages': job_packages
     }
 
@@ -167,7 +165,7 @@ def nodejs_job(
 
             let job = compute.for(myData, myFunction, myParameters);
 
-            job.public.name = 'AITF : Bifrost -> Pyodide';
+            job.public.name = 'AITF : Deployed From Python';
             
             job.requires(myRequires);
 
@@ -277,7 +275,7 @@ def nodejs_job(
             return finalResults;
         }
 
-        let jobFunction = `async function(sliceData, sliceParameters, sliceFunctions, sliceModules, slicePackages, sliceImports) {
+        let jobFunction = `async function(sliceData, sliceParameters) {
 
           try {
 
@@ -287,13 +285,13 @@ def nodejs_job(
 
             await console.log('Starting worker function for slice ' + sliceData.index + ' at ' + startTime + '...');
 
-            let shardLoader = await require('shard-loader');
+            let sliceFunction = ${dcp_function};
+
+            let sliceOutput = await sliceFunction(sliceData.data, sliceParameters);
 
             progress(1);
 
             const stopTime = ((Date.now() - startTime) / 1000).toFixed(2);
-
-            let sliceOutput = sliceData.index ** 5;
 
             return {
                 output: sliceOutput,
@@ -314,13 +312,7 @@ def nodejs_job(
         let jobMultiplier = dcp_multiplier;
         let jobLocal = dcp_local;
 
-        let jobParameters = [
-            dcp_parameters,
-            dcp_functions,
-            dcp_modules,
-            dcp_packages,
-            dcp_imports
-        ];
+        let jobParameters = dcp_parameters;
 
         let jobRequires = [];
 
@@ -341,38 +333,20 @@ def nodejs_job(
 
 def dcp_deploy(
         dcp_slices,
-        dcp_functions = {},
-        dcp_arguments = {},
-        dcp_imports = [],
+        dcp_function,
+        dcp_arguments = [],
         dcp_packages = [],
         dcp_multiplier = 1,
         dcp_local = 0,
         dcp_python = False):
 
     job_slices = dcp_slices
-    job_functions = dcp_functions
+    job_function = dcp_function
     job_arguments = dcp_arguments
-    job_imports = dcp_imports
     job_packages = dcp_packages
     job_multiplier = dcp_multiplier
     job_local = dcp_local
     job_python = dcp_python
-
-    def _module_writer(module_name):
-
-        if job_python:
-            module_extension = '.py'
-        else:
-            module_extension = '.js'
-
-        module_filename = module_name + module_extension
-
-        with open(module_filename, 'rb') as module:
-            module_data = module.read()
-
-        module_encoded = codecs.encode( module_data, 'base64' ).decode()
-
-        return module_encoded
 
     def _pickle_jar(input_data):
 
@@ -381,16 +355,11 @@ def dcp_deploy(
         else:
             data_pickled = json.dumps( input_data )
 
-        data_encoded = codecs.encode( data_pickled, 'base64' ).decode()
+        #data_encoded = codecs.encode( data_pickled, 'base64' ).decode()
 
         return data_encoded
 
-    job_modules = {}
-    for module_name in job_imports:
-        job_modules[module_name] = _module_writer(module_name)
-
     job_arguments = _pickle_jar(job_arguments)
-    job_functions = _pickle_jar(job_functions)
 
     for block_index, block_slice in enumerate(job_slices):
 
@@ -405,25 +374,22 @@ def dcp_deploy(
     for i in range(job_multiplier):
         job_input.extend(job_slices)
 
-    random.shuffle(job_input)
-
-    self.wallet()
+    #random.shuffle(job_input)
 
     if job_python:
         job_results = False
     else:
         job_results = nodejs_job(
                 job_input,
+                job_function,
                 job_multiplier,
                 job_local,
                 job_arguments,
-                job_functions,
-                job_modules,
                 job_packages)
 
     for results_index, results_slice in enumerate(job_results):
 
-        results_slice = codecs.decode( results_slice.encode(), 'base64' )
+        #results_slice = codecs.decode( results_slice.encode(), 'base64' )
 
         if job_python:
             results_slice = cloudpickle.loads( results_slice )
