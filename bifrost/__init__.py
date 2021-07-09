@@ -360,11 +360,11 @@ def dcp_deploy(
 
         return data_pickled
 
-    job_arguments = _pickle_jar(job_arguments)
+    #job_arguments = _pickle_jar(job_arguments)
 
     for block_index, block_slice in enumerate(job_slices):
 
-        block_slice = _pickle_jar(block_slice)
+        #block_slice = _pickle_jar(block_slice)
 
         job_slices[block_index] = {
             'index': block_index,
@@ -392,10 +392,10 @@ def dcp_deploy(
 
         #results_slice = codecs.decode( results_slice.encode(), 'base64' )
 
-        if job_python:
-            results_slice = cloudpickle.loads( results_slice )
-        else:
-            results_slice = json.loads( results_slice )
+        #if job_python:
+        #    results_slice = cloudpickle.loads( results_slice )
+        #else:
+        #    results_slice = json.loads( results_slice )
 
         job_results[results_index] = results_slice
 
