@@ -114,7 +114,7 @@ _data_unpickled = None
 
 """
 
-def dcp_install(job_scheduler = 'https://scheduler.distributed.computer'):
+def install(job_scheduler = 'https://scheduler.distributed.computer'):
 
     def _npm_checker(package_name):
 
@@ -161,7 +161,7 @@ def dcp_install(job_scheduler = 'https://scheduler.distributed.computer'):
 
     return True
 
-def dcp_wallet():
+def wallet():
 
     wallet_output = node.run("""
 
@@ -795,7 +795,7 @@ def nodejs_job(
     
     return job_output
 
-def dcp_deploy(
+def deploy(
         job_slices,
         job_function,
         job_arguments = [],

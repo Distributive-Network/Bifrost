@@ -139,7 +139,8 @@ def nodejs_job(
         job_multiplier,
         job_local,
         job_input,
-        job_packages):
+        job_packages,
+        job_groups):
 
     run_parameters = {
         'dcp_data': job_data,
@@ -147,14 +148,15 @@ def nodejs_job(
         'dcp_multiplier': job_multiplier,
         'dcp_local': job_local,
         'dcp_parameters': job_input,
-        'dcp_packages': job_packages
+        'dcp_packages': job_packages,
+        'dcp_groups': job_groups
     }
 
     node_output = node.run("""
 
     (async function(){
 
-        async function dcpPost(myData, myFunction, myParameters, myMultiplier, myLocal, myRequires) {
+        async function dcpPost(myData, myFunction, myParameters, myMultiplier, myLocal, myRequires, myGroups) {
 
             const jobStartTime = Date.now();
 
@@ -170,6 +172,8 @@ def nodejs_job(
             
             job.requires(myRequires);
 
+            if (myGroups.length > 0) job.computeGroups = myGroups;
+            
             let jobFunctions = {
                 accepted: () => {},
                 console: () => {},
@@ -312,6 +316,7 @@ def nodejs_job(
         let jobData = dcp_data;
         let jobMultiplier = dcp_multiplier;
         let jobLocal = dcp_local;
+        let jobGroups = dcp_groups;
 
         let jobParameters = dcp_parameters;
 
@@ -322,7 +327,7 @@ def nodejs_job(
             jobRequires.push(dcp_packages[i]);
         }
 
-        jobOutput = await dcpPost(jobData, jobFunction, jobParameters, jobMultiplier, jobLocal, jobRequires);
+        jobOutput = await dcpPost(jobData, jobFunction, jobParameters, jobMultiplier, jobLocal, jobRequires, jobGroups);
 
     })();
 
@@ -337,6 +342,7 @@ def dcp_deploy(
         dcp_function,
         dcp_arguments = [],
         dcp_packages = [],
+        dcp_groups = [],
         dcp_multiplier = 1,
         dcp_local = 0,
         dcp_python = False):
@@ -348,7 +354,8 @@ def dcp_deploy(
     job_multiplier = dcp_multiplier
     job_local = dcp_local
     job_python = dcp_python
-
+    job_groups = dcp_groups
+    
     def _pickle_jar(input_data):
 
         if job_python:
@@ -386,7 +393,8 @@ def dcp_deploy(
                 job_multiplier,
                 job_local,
                 job_arguments,
-                job_packages)
+                job_packages,
+                job_groups)
 
     for results_index, results_slice in enumerate(job_results):
 
