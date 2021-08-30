@@ -1,11 +1,8 @@
-from .py_nodejs import node, npm
-import warnings
 from IPython.core.magic import (Magics, magics_class, cell_magic, line_magic)
 from IPython.display import display, HTML
 from IPython.core.error import TryNext
 
 RESERVED = ['true', 'false', 'self', 'this', 'In', 'Out']
-
 
 @magics_class
 class BifrostMagics(Magics):
@@ -13,7 +10,6 @@ class BifrostMagics(Magics):
     The BifrostMagics Class is responsible for managing bifrost when called
     using one of the ipython magics. That is to say `%%node`, `%%run_node`
     are managed using this class.
-
     '''
     def __init__(self, shell, node):
         super(BifrostMagics,self).__init__(shell=shell)
@@ -53,24 +49,3 @@ class BifrostMagics(Magics):
         for key in vars_to_sync.keys():
             self.shell.user_ns[key] = vars_to_sync[key]
         return
-
-
-def shutdown_hook(ipython):
-    '''
-    This is a hook that will execute when ipython closes.
-    '''
-    node.cancel(restart=False)
-    raise TryNext
-
-
-try:
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        ip = get_ipython()
-        magics = BifrostMagics(ip, node)
-        ip.register_magics(magics)
-
-        ip.set_hook('shutdown_hook', shutdown_hook)
-except Exception as e:
-    print(e)
-    raise EnvironmentError("Environment is not as was expected")

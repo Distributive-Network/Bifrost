@@ -1,20 +1,22 @@
 const stream    = require('stream');
 const vm        = require('vm');
-const utils     = require('./utils');
+
 const shm       = require('nodeshm');
 const mmap      = require('mmap.js');
-const npy       = require('npy-js');
+
 const XXHash    = require('xxhash');
 const crypto    = require('crypto');
-const args      = process.argv;
-const deepEqual = require('./deepEqual.js').deepEqual;
-const SHM_FILE_NAME = args[args.length-1];
 
+const deepEqual = require('./deepEqual.js').deepEqual;
+const npy       = require('./npy-js');
+const utils     = require('./utils');
+
+const args      = process.argv;
+
+const SHM_FILE_NAME = args[args.length-1];
 
 // Begin by piping stderr into stdout
 process.stderr.pipe(process.stdout);
-
-
 
 console.log("Beginning Node Process");
 
@@ -139,8 +141,6 @@ class Evaluator{
 
     }
 
-
-
     /**
      * Sync from the python process into the node process.
      */
@@ -197,6 +197,5 @@ inputStream._transform = async function(chunk, encoding, done){
     this.push(chunk);
     done();
 }
-
 
 process.stdin.pipe(inputStream);

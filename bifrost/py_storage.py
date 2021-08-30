@@ -5,7 +5,6 @@ from io import BytesIO
 import base64, uuid
 import numpy as np
 
-
 class VariableSync():
     '''
     Helper library to synchronize variables between python and node
@@ -17,8 +16,7 @@ class VariableSync():
         self.size = int(math.floor( 0.75 *(1024*1024*1024) ))
         #Set some arbitrary name for the file
         self.SHARED_MEMORY_NAME = "/bifrost_shared_memory" + str(uuid.uuid4())
-        self.memory = posix_ipc.SharedMemory(self.SHARED_MEMORY_NAME, posix_ipc.O_CREX,
-                                        size=self.size)
+        self.memory = posix_ipc.SharedMemory(self.SHARED_MEMORY_NAME, posix_ipc.O_CREX,size=self.size)
 
         #map the file to memory
         self.mapFile = mmap.mmap(self.memory.fd, self.memory.size)
@@ -59,7 +57,6 @@ class VariableSync():
         if key in self.cache and hsh == self.cache[key]:
             return True, hsh
         return False, hsh
-
 
     def clearCache(self):
         '''Empty the cache'''

@@ -1,7 +1,5 @@
 import threading
 
-
-
 class ReadWriteLock:
     '''
     A simple ReadWrite Lock
