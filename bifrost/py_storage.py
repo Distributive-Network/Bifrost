@@ -1,9 +1,22 @@
-import math, json, sys, hashlib, posix_ipc, mmap
-import xxhash
-from tempfile import TemporaryFile
+# MODULES
+
+# python standard library
+import base64
+import hashlib
+import json
+import math
+import mmap
+import sys
+import uuid
 from io import BytesIO
-import base64, uuid
+from tempfile import TemporaryFile
+
+# pypi modules
+import posix_ipc
+import xxhash
 import numpy as np
+
+# PROGRAM
 
 class VariableSync():
     '''

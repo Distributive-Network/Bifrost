@@ -1,12 +1,22 @@
-from .py_storage import *
-from .ReadWriteLock import ReadWriteLock
-import time, posix_ipc
+# MODULES
+
+# python standard library
+import os
+import signal
+import socket
+import subprocess
+import sys
+import time
+import threading
+
+# pypi modules
 import numpy as np
-import os, sys, socket
-import subprocess, signal
-from threading import Thread, Event, Lock
-from subprocess import call, Popen, PIPE
-import atexit
+
+# local modules
+from .py_storage import VariableSync
+from .ReadWriteLock import ReadWriteLock
+
+# PROGRAM
 
 #Simple python global read write lock
 NODE_LOCK       = ReadWriteLock()
@@ -19,10 +29,12 @@ class Npm():
     '''
     def __init__(self, cwd = os.getcwd()):
         self.cwd = cwd
-        if not (os.path.exists(cwd + '/node_modules/npy-js') and os.path.exists(cwd + '/node_modules/mmap.js') and os.path.exists(cwd + '/node_modules/xxhash') and os.path.exists(cwd + '/node_modules/nodeshm') ):
+        if not (os.path.exists(cwd + '/node_modules/mmap.js') and os.path.exists(cwd + '/node_modules/xxhash') and os.path.exists(cwd + '/node_modules/nodeshm') ):
             self.run(['npm', 'init', '--yes'])
             self.run(['npm', 'install', 
-                      'git+https://github.com/Kings-Distributed-Systems/npy-js.git', 'git+https://github.com/bungabear/mmap.js', 'nodeshm', 'xxhash'])
+                      'git+https://github.com/bungabear/mmap.js',
+                      'nodeshm',
+                      'xxhash'])
 
     def run(self, cmd):
         '''
@@ -32,7 +44,7 @@ class Npm():
 
         Also helpful to block until command completes.
         '''
-        process = Popen(cmd, cwd = self.cwd, stdout = subprocess.PIPE)
+        process = subprocess.Popen(cmd, cwd = self.cwd, stdout = subprocess.PIPE)
         while True:
             output = process.stdout.readline().decode('utf-8')
             if output == '' and process.poll() is not None:
@@ -51,8 +63,7 @@ class Npm():
     def list_modules(self, *args):
         self.run(['npm', 'list', *args])
 
-
-class NodeSTDProc(Thread):
+class NodeSTDProc(threading.Thread):
     '''
     Helper class that is run in another thread from the main thread.
     This runs in the background collecting information from the node
@@ -64,7 +75,7 @@ class NodeSTDProc(Thread):
     def __init__(self, process):
         super(NodeSTDProc, self).__init__()
         self.process     = process
-        self._stop_event = Event()
+        self._stop_event = threading.Event()
         self.daemon      = True
         self.start()
 
@@ -110,11 +121,7 @@ class NodeSTDProc(Thread):
                     #otherwise print out the json
                     if (output and len(output.strip()) > 0):
                         print(output.strip())
-                    continue 
-
-
-
-
+                    continue
 
 class Node():
     '''
@@ -135,14 +142,14 @@ class Node():
     def init_process(self):
         '''
         Initialize the process by running node with a larger
-        max-old-space-size and with all the important information
+        max-old-space-size and with all the necessary information
         regarding the shared memory name and the repl file.
         '''
         env = os.environ
         #make sure to add the current path to the node_path
         env["NODE_PATH"] = self.cwd + '/node_modules'
         #ready the node process
-        self.process = Popen(['node',
+        self.process = subprocess.Popen(['node',
                               '--max-old-space-size=32000',
                               self.replFile,
                               self.vs.SHARED_MEMORY_NAME], cwd=self.cwd,stdin=subprocess.PIPE,
@@ -273,32 +280,4 @@ class Node():
 
     def clear(self):
         self.cancel()
-
-
-npm = Npm()
-node = Node()
-memName = node.vs.SHARED_MEMORY_NAME
-
-#When python exists please do the following
-@atexit.register
-def onEnd():
-    global memName
-    global node
-
-    #Clean up everything.... Include shm file and mmap stuff.
-    try:
-        if hasattr(node, 'process'):
-            os.kill(node.process.pid, signal.SIGSTOP)
-    except:
-        print("Could not kill process. May already be dead.")
-    try:
-        if hasattr(node, 'nstdproc'):
-            node.nstdproc.stop()
-    except:
-        print("Could not stop nstdproc. May already be dead.")
-
-    posix_ipc.unlink_shared_memory(memName)
-    print("Memory map has been destroyed")
-
-
 

@@ -15,7 +15,6 @@
 
 /** @type {*} */
 const { writeFileSync, readFileSync, existsSync } = require('fs');
-//const nj = require('numjs');
 
 /**
  *
@@ -32,7 +31,6 @@ const asciiToDataView = (ascii)=>{
   }
   return dv;
 };
-
 
 /**
  * 
@@ -53,8 +51,6 @@ const dataViewToAscii = (dv)=>{
   return out;
 };
 
-
-
 /**
  * Convert an arrayBuffer to a buffer by using a uint8arr as an intermediate
  * 
@@ -69,7 +65,6 @@ const arrayBufferToBuffer = (ab)=>{
   }
   return buf;
 };
-
 
 /**
  *
@@ -110,7 +105,6 @@ const write = (filename,ab)=>{
   writeFileSync( filename, buf );
   return;
 };
-
 
 /**
  *
@@ -159,7 +153,6 @@ const dtypeTypedMap = {
   '|u1': 'uint8'
 };
 
-
 /**
  * buildDataArray Builds a DataArray out of a typed array and a shape. 
  *
@@ -206,15 +199,13 @@ function buildDataArray(typedArray, shape=[]){
   };
 };
 
-
-
 /**
  *
- * The data array class containes the typed array of the numpy file and can be converted
- * to a shaped array by using the nj.array property. It also contains information about the dtype
- * and the shape. 
+ * The data array class contains the typed array of the numpy file.
+ * It also contains information about the dtype and the shape. 
  * 
- * It is important that the shape and the datatypes are not changed. If they are, the header is incorrect and must be fixed.
+ * It is critical that the shape and the datatypes are not changed.
+ * If they are, the header is incorrect and must be fixed.
  *
  * @class DataArray
  * @param {ArrayBuffer} arrayBuffer - The arraybuffer containing the data of the numpy array
@@ -233,20 +224,7 @@ class DataArray {
     this.typedArray = dtypeTypedArrayMap[dtype](arrayBuffer);
     this.shape = shape;
   };
-
-//  /**
-//   * Returns an unflattened javascript array representation of this numpy array.
-//   * @return {Array} 
-//   * @memberof DataArray
-//   */
-//  toArray(){
-//    if (!this.array){
-//      this.array = nj.array(Array.prototype.slice.call(this.typedArray)).reshape(this.shape).tolist();
-//    }
-//    return this.array;
-//  };
 };
-
 
 /**
  *
@@ -286,7 +264,6 @@ const unparseNumpyFile = (dataArray)=>{
   let dtype = getKeyByValue(dtypeTypedMap, dataArray.dtype);
   let shape = dataArray.shape;
 
-
   const byte0 = 0x93; //1
   totalLengthOfDV += 1;
   const magicStr = asciiToDataView("NUMPY"); // 5
@@ -325,7 +302,6 @@ const unparseNumpyFile = (dataArray)=>{
 
   return dv;
 };
-
 
 /**
  *
@@ -393,15 +369,11 @@ const parseNumpyFile= (ab)=>{
   }
 
   if (!(dtype in dtypeTypedArrayMap)){
-    throw Error(`Unknown dtype "${dtype}". Either invalid or requires javascript implementation.`);
+    throw Error(`Unknown dtype "${dtype}". Either invalid or needs javascript implementation.`);
   }
 
   return new DataArray(ab.slice(pos, pos+bytesLeft), dtype, shape, headerPy);
 };
-
-
-
-
 
 exports.buildDataArray = buildDataArray;
 exports.parseNumpyFile = parseNumpyFile;

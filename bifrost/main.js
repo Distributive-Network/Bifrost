@@ -1,24 +1,30 @@
+// MODULES
+
+// node built-in modules
+const crypto    = require('crypto');
 const stream    = require('stream');
 const vm        = require('vm');
 
-const shm       = require('nodeshm');
+// local modules
+const deepEqual = require('./jsDeepEqual').deepEqual;
+const npy       = require('./jsNpy');
+const utils     = require('./jsUtils');
+
+// npm modules
 const mmap      = require('mmap.js');
-
+const shm       = require('nodeshm');
 const XXHash    = require('xxhash');
-const crypto    = require('crypto');
 
-const deepEqual = require('./deepEqual.js').deepEqual;
-const npy       = require('./npy-js');
-const utils     = require('./utils');
+// PROGRAM
 
+// set up arguments
 const args      = process.argv;
-
 const SHM_FILE_NAME = args[args.length-1];
 
 // Begin by piping stderr into stdout
 process.stderr.pipe(process.stdout);
 
-console.log("Beginning Node Process");
+console.log('Beginning Node Process');
 
 /**
  * Evaluator class is the main class meant to evaluate any node script given
@@ -34,7 +40,7 @@ class Evaluator{
         this.context['buildDataArray']   = npy.buildDataArray;
         this.context['require']          = require;
         vm.createContext(this.context);
-        console.log("VM context has been prepared.");
+        console.log('VM context has been prepared.');
         this.cache = {};
         this.fd = -1;
         let size= Math.floor( 0.75 * 1024*1024*1024 );
@@ -165,7 +171,6 @@ class Evaluator{
     //to fully complete
     async evaluate(script){
         await vm.runInContext(script, this.context);
-        //console.log("Done evaluating");
     }
 }
 
@@ -190,7 +195,7 @@ inputStream._transform = async function(chunk, encoding, done){
         await evaluator.evaluate(script);
 
     }catch(err){
-        console.log("Error occured during script running/parsing: ", err);
+        console.log('Error occured during script running/parsing: ', err);
     }
     evaluator.syncTo();
     console.log('{"type": "done"}')

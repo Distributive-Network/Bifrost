@@ -1,9 +1,26 @@
-import sys
-import os
+# MODULES
 
+# python standard library
+import atexit
+import os
+import signal
+import sys
 import warnings
 
-from .py_nodejs import npm, node
+# pypi modules
+import posix_ipc
+
+# local modules
+from .py_ced import CrazyEddieDrive
+from .py_nodejs import Npm, Node
+from .notebook import BifrostMagics
+
+# PROGRAM
+
+npm = Npm()
+node = Node()
+
+memName = node.vs.SHARED_MEMORY_NAME
 
 def isnotebook():
     """
@@ -25,14 +42,18 @@ def isnotebook():
         else:
             return False  # Other type (Unknown ipython kernel....)
 
-def shutdown_hook(ipython):
-    '''
-    This is a hook that will execute when ipython closes.
-    '''
-    node.cancel(restart=False)
-    raise TryNext
-
 if isnotebook():
+
+    # ipython modules
+    from IPython.core.error import TryNext
+    from IPython.display import display, HTML
+
+    def shutdown_hook(ipython):
+        '''
+        This is a hook that will execute when ipython closes.
+        '''
+        node.cancel(restart=False)
+        raise TryNext
 
     try:
         with warnings.catch_warnings():
@@ -44,3 +65,32 @@ if isnotebook():
     except Exception as e:
         print(e)
         raise EnvironmentError("Environment is not as was expected")
+
+#When python exists please do the following
+@atexit.register
+def onEnd():
+
+    #Clean up everything.... Include shm file and mmap stuff.
+    try:
+        if hasattr(node, 'process'):
+            os.kill(node.process.pid, signal.SIGSTOP)
+    except:
+        print("Could not kill process. May already be dead.")
+    try:
+        if hasattr(node, 'nstdproc'):
+            node.nstdproc.stop()
+    except:
+        print("Could not stop nstdproc. May already be dead.")
+
+    posix_ipc.unlink_shared_memory(memName)
+    print("Memory map has been destroyed")
+
+#TODO: restructure Bifrost as class
+#TODO: restructure CrazyEddieDrive as subclass of Bifrost
+
+# set up our DCP bridge interface
+ced = CrazyEddieDrive(npm, node, 'https://scheduler.distributed.computer')
+
+dcp_install = ced.dcp_install
+dcp_wallet = ced.dcp_wallet
+dcp_deploy = ced.dcp_deploy

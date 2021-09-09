@@ -1,6 +1,9 @@
-import setuptools
-from setuptools import find_packages
+# MODULES
 
+# pypi modules
+import setuptools
+
+# PROGRAM
 
 with open("./README.md", "r") as fh:
     long_description = fh.read()
@@ -14,7 +17,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Kings-Distributed-Systems/Bifrost",
-    packages=find_packages(),
+    packages=setuptools.find_packages(),
     package_data={
         '': ['*.js','*.json']
     },
@@ -24,12 +27,10 @@ setuptools.setup(
         "Programming Language :: Python :: 3"
     ],
     install_requires=[
+        "cloudpickle",
         "numpy",
         "posix_ipc",
         "xxhash"
     ],
     python='>=3.6'
-
-
-
 )
