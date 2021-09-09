@@ -6,9 +6,9 @@ const stream    = require('stream');
 const vm        = require('vm');
 
 // local modules
-const deepEqual = require('./jsDeepEqual').deepEqual;
-const npy       = require('./jsNpy');
-const utils     = require('./jsUtils');
+const deepEqual = require('./deepEqual').deepEqual;
+const npy       = require('./npy-js');
+const utils     = require('./utils');
 
 // npm modules
 const mmap      = require('mmap.js');
