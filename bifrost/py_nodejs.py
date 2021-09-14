@@ -19,10 +19,13 @@ class Npm():
     '''
     def __init__(self, cwd = os.getcwd()):
         self.cwd = cwd
-        if not (os.path.exists(cwd + '/node_modules/xxhash') ):
+        if not ( ( os.path.exists(cwd + '/node_modules/xxhash') ) and ( os.path.exists(cwd + '/node_modules/nan') ) and ( os.path.exists(cwd + '/node_modules/mmap-io') ) and ( os.path.exists(cwd + '/node_modules/shmmap') ) ):
             self.run(['npm', 'init', '--yes'])
             self.run(['npm', 'install', 
-                      'xxhash'])
+                      'xxhash',
+                      'nan',
+                      'mmap-io',
+                      'shmmap'])
 
     def run(self, cmd):
         '''

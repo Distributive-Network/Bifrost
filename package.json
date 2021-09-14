@@ -9,8 +9,9 @@
   "license": "ISC",
   "dependencies": {
     "dcp-client": "^4.1.11",
-    "shmmap": "1.0.0",
-    "nan": "^2.14.0"
+    "nan": "^2.14.0",
+    "mmap-io": "1.1.7",
+    "shmmap": "1.0.0"
   },
   "description": "An SHM/memmap based python and node communication/evaluation tool."
 }
