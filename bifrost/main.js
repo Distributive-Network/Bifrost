@@ -12,8 +12,11 @@ const utils     = require('./utils');
 
 // npm modules
 const mmap      = require('mmap.js');
-const shm       = require('nodeshm');
+//const shm       = require('nodeshm');
+//const shm       = require('shmmap');
 const XXHash    = require('xxhash');
+
+const shm = require('../build/Release/shmjs.node');
 
 // PROGRAM
 
@@ -45,7 +48,7 @@ class Evaluator{
         this.fd = -1;
         let size= Math.floor( 0.75 * 1024*1024*1024 );
 
-        let fd = shm.shm_open(SHM_FILE_NAME, shm.O_RDWR, 600);
+        let fd = shm.open(SHM_FILE_NAME, shm.O_RDWR, 600);
 
         this.mm= mmap.alloc(size, mmap.PROT_READ | mmap.PROT_WRITE,
             mmap.MAP_SHARED, fd, 0);

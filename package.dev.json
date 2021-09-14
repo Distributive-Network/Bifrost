@@ -10,7 +10,7 @@
   "dependencies": {
     "dcp-client": "^4.1.11",
     "mmap.js": "git+https://github.com/bungabear/mmap.js.git",
-    "nan": "^2.14.0"
+    "shmmap": "file:../shmmap.js"
   },
   "description": "An SHM/memmap based python and node communication/evaluation tool."
 }

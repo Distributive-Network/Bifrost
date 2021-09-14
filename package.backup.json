@@ -8,9 +8,10 @@
   "author": "Kings Distributed Systems",
   "license": "ISC",
   "dependencies": {
-    "dcp-client": "^4.1.11",
+    "dcp-client": "^4.1.9",
     "mmap.js": "git+https://github.com/bungabear/mmap.js.git",
-    "nan": "^2.14.0"
+    "nodeshm": "^0.1.1"
   },
+  "devDependencies": {},
   "description": "An SHM/memmap based python and node communication/evaluation tool."
 }
