@@ -16,7 +16,7 @@ setuptools.setup(
     description="Python to JS intercommunication and execution",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/Kings-Distributed-Systems/Bifrost",
+    url="https://github.com/Kings-Distributed-Systems/Bifrost@restructure",
     packages=setuptools.find_packages(),
     package_data={
         '': ['*.js','*.json']
