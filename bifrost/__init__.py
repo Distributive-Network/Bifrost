@@ -89,7 +89,7 @@ def onEnd():
 #TODO: restructure CrazyEddieDrive as subclass of Bifrost
 
 # set up our DCP bridge interface
-ced = CrazyEddieDrive(npm, node, 'https://scheduler.distributed.computer')
+ced = CrazyEddieDrive(npm, node)
 
 dcp_install = ced.dcp_install
 dcp_wallet = ced.dcp_wallet
