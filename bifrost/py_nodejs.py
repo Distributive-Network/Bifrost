@@ -19,10 +19,10 @@ class Npm():
     '''
     def __init__(self, cwd = os.getcwd()):
         self.cwd = cwd
-        if not (os.path.exists(cwd + '/node_modules/mmap.js') and os.path.exists(cwd + '/node_modules/xxhash') ):
+        if not (os.path.exists(cwd + '/node_modules/xxhash') ):
             self.run(['npm', 'init', '--yes'])
             self.run(['npm', 'install', 
-                      'git+https://github.com/bungabear/mmap.js', 'xxhash'])
+                      'xxhash'])
 
     def run(self, cmd):
         '''

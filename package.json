@@ -9,7 +9,7 @@
   "license": "ISC",
   "dependencies": {
     "dcp-client": "^4.1.11",
-    "mmap.js": "git+https://github.com/bungabear/mmap.js.git",
+    "shmmap": "1.0.0",
     "nan": "^2.14.0"
   },
   "description": "An SHM/memmap based python and node communication/evaluation tool."
