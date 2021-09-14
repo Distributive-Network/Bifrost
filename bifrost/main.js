@@ -3,7 +3,7 @@ const vm        = require('vm');
 const utils     = require('./utils');
 //const shm       = require('../build/Release/shmjs.node');
 const shm       = require('shmmap');
-//const mmap      = require('mmap.js');
+const mmap      = require('mmap.js');
 const npy       = require('./npy-js');
 const XXHash    = require('xxhash');
 const crypto    = require('crypto');
@@ -38,12 +38,12 @@ class Evaluator{
         this.fd = -1;
         let size= Math.floor( 0.75 * 1024*1024*1024 );
 
-        //let fd = shm.open(SHM_FILE_NAME, shm.O_RDWR, 600);
+        let fd = shm.open(SHM_FILE_NAME, shm.O_RDWR, 600);
 
-        //this.mm= mmap.alloc(size, mmap.PROT_READ | mmap.PROT_WRITE,
-        //    mmap.MAP_SHARED, fd, 0);
+        this.mm= mmap.alloc(size, mmap.PROT_READ | mmap.PROT_WRITE,
+            mmap.MAP_SHARED, fd, 0);
 
-        this.mm= shm.read_write(SHM_FILE_NAME, size);
+        //this.mm= shm.read_write(SHM_FILE_NAME, size);
         this.dontSync = Object.keys(this.context);
         this.seed = crypto.randomBytes(8); 
     }
