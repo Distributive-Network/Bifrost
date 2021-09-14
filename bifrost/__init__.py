@@ -13,7 +13,6 @@ import posix_ipc
 # local modules
 from .py_ced import CrazyEddieDrive
 from .py_nodejs import Npm, Node
-from .notebook import BifrostMagics
 
 # PROGRAM
 
@@ -47,6 +46,9 @@ if isnotebook():
     # ipython modules
     from IPython.core.error import TryNext
     from IPython.display import display, HTML
+
+    # local modules
+    from .notebook import BifrostMagics
 
     def shutdown_hook(ipython):
         '''
