@@ -1,1 +1,0 @@
-cmd_Release/obj.target/shmjs.node := g++ -shared -pthread -rdynamic -m64  -Wl,-soname=shmjs.node -o Release/obj.target/shmjs.node -Wl,--start-group Release/obj.target/shmjs/bifrost/shmjs.o -Wl,--end-group 
