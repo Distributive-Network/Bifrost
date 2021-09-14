@@ -18,12 +18,11 @@ import cloudpickle
 
 class CrazyEddieDrive():
 
-    def __init__(self, npm, node, scheduler):
+    def __init__(self, npm, node):
         self.npm = npm
         self.node = node
-        self.scheduler = scheduler
 
-    def dcp_install(self, job_scheduler = self.scheduler):
+    def dcp_install(self, job_scheduler = 'https://scheduler.distributed.computer'):
 
         def _npm_checker(package_name):
 
