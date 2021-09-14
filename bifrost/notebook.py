@@ -41,7 +41,7 @@ class BifrostMagics(Magics):
         '''
         `%%node` is a cell magic that sync variables between python and node
         '''
-        bifrost_sync(self, cell)
+        self.bifrost_sync(self, cell)
         return
 
     @line_magic
@@ -49,5 +49,5 @@ class BifrostMagics(Magics):
         '''
         `%%run_node` is a line magic that sync variables between python and node
         '''
-        bifrost_sync(self, line)
+        self.bifrost_sync(self, line)
         return
