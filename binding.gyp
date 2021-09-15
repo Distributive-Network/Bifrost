@@ -3,7 +3,7 @@
     {
       "target_name": "shmjs",
       "sources": [
-        "src/shmjs.cpp"
+        "shmjs.cpp"
       ],
       "include_dirs": [
         "<!(node -e \"require('nan')\")"
