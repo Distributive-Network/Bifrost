@@ -1,7 +1,7 @@
 {
   "name": "bifrost",
-  "version": "0.3.0",
-  "main": "index.js",
+  "version": "0.5.1",
+  "main": "./build/Release/shmjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,6 +10,7 @@
   "dependencies": {
     "dcp-client": "^4.1.11",
     "mmap.js": "git+https://github.com/bungabear/mmap.js.git",
+    "shmmap": "git+https://github.com/chris-c-mcintyre/shmmap.js.git",
     "nan": "^2.14.0"
   },
   "description": "An SHM/memmap based python and node communication/evaluation tool."

@@ -16,7 +16,7 @@ const mmap      = require('mmap.js');
 //const shm       = require('shmmap');
 const XXHash    = require('xxhash');
 
-const shm = require('../build/Release/shmjs.node');
+const shm = require('../build/Release/shmjs');
 
 // PROGRAM
 

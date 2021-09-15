@@ -10,10 +10,10 @@ with open("./README.md", "r") as fh:
 
 setuptools.setup(
     name="Bifrost",
-    version="0.0.1",
+    version="0.5.1",
     author="Hamada Gasmallah",
     author_email="hamada@kingsds.network",
-    description="Python to JS intercommunication and execution",
+    description="Python to JS intercommunication and execution (restructure branch)",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Kings-Distributed-Systems/Bifrost@restructure",
