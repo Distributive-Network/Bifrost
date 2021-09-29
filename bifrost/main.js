@@ -155,7 +155,7 @@ class Evaluator{
             let obj = jsonVars[key];
             if (obj['type'] == 'numpy' && typeof obj['data'] === 'string'){
                 let data = obj['data'];
-                let abData = Buffer.from(data, 'base64').buffer;
+                let abData = utils.strtoab(data);
                 const npArr = npy.parseNumpyFile(abData);
                 obj = npArr;
             }
