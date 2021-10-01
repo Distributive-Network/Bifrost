@@ -126,31 +126,31 @@ const read = (filename) => {
 //map the numpy datatype to the typed array
 /** @type {dtypeTypedArrayMap} */
 const dtypeTypedArrayMap = {
-  '<f8': s => new Float64Array(s),
-  '<f4': s => new Float32Array(s),
-  '<i8': s => new BigInt64Array(s),
-  '<i4': s => new Int32Array(s),
-  '<i2': s => new Int16Array(s),
-  '<i1': s => new Int8Array(s),
-  '|u8': s => new BigUint64Array(s),
-  '|u4': s => new Uint32Array(s),
-  '|u2': s => new Uint16Array(s),
-  '|u1': s => new Uint8Array(s),
+  'f8': s => new Float64Array(s),
+  'f4': s => new Float32Array(s),
+  'i8': s => new BigInt64Array(s),
+  'i4': s => new Int32Array(s),
+  'i2': s => new Int16Array(s),
+  'i1': s => new Int8Array(s),
+  'u8': s => new BigUint64Array(s),
+  'u4': s => new Uint32Array(s),
+  'u2': s => new Uint16Array(s),
+  'u1': s => new Uint8Array(s),
 };
 
 //map the datatypes to the string rep 
 /** @type {dtypeTypedMap} */
 const dtypeTypedMap = {
-  '<f8': 'float64', 
-  '<f4': 'float32',
-  '<i8': 'int64'  ,
-  '<i4': 'int32'  ,
-  '<i2': 'int16'  ,
-  '<i1': 'int8'   ,
-  '|u8': 'uint64' ,
-  '|u4': 'uint32' ,
-  '|u2': 'uint16' ,
-  '|u1': 'uint8'
+  'f8': 'float64', 
+  'f4': 'float32',
+  'i8': 'int64'  ,
+  'i4': 'int32'  ,
+  'i2': 'int16'  ,
+  'i1': 'int8'   ,
+  'u8': 'uint64' ,
+  'u4': 'uint32' ,
+  'u2': 'uint16' ,
+  'u1': 'uint8'
 };
 
 /**
@@ -180,7 +180,10 @@ function buildDataArray(typedArray, shape=[]){
         throw new TypeError(`Argument passed is a typedarray for which we have no construction....`);
       }
 
-      let descr = Object.keys(dtypeTypedMap)[ind];
+      let dtype = Object.keys(dtypeTypedMap)[ind];
+      let byteorder = (dtype[dtype.length-1] == '1') ? '|' : '=';
+      let descr = byteorder + dtype;
+
       let strShape = '(';
       for (let i = 0; i < shape.length-1; i++){
         strShape += shape[i] + ', ';
@@ -358,7 +361,7 @@ const parseNumpyFile= (ab)=>{
 
   const { shape, fortran_order, descr } = header;
 
-  const dtype = descr;
+  const dtype = descr.slice(1);
 
   if (fortran_order){
     throw Error("NPY Parse error. No implementation for fortran_order type");
