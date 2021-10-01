@@ -1,7 +1,6 @@
 from .py_storage import *
 from .ReadWriteLock import ReadWriteLock
 import time, posix_ipc
-import numpy as np
 import os, sys, socket
 import subprocess, signal
 from threading import Thread, Event, Lock
