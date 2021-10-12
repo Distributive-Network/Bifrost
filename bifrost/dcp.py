@@ -827,7 +827,7 @@ def job_deploy(
 
     return _final_results
 
-Class Job:
+class Job:
 
     def __init__(self, input_set, work_function, work_arguments = []):
 
@@ -851,7 +851,7 @@ Class Job:
 
         self.results = job_deploy(self.input_set, self.work_function, self.work_arguments, self.requires, self.compute_groups, self.local_cores)
 
-Class Compute:
+class Compute:
 
     def __init__(self, scheduler_url = 'https://scheduler.distributed.computer'):
 
@@ -863,7 +863,7 @@ Class Compute:
 
         return job
 
-Class Dcp:
+class Dcp:
 
     def __init__(self):
 
