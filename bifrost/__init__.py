@@ -1,5 +1,6 @@
 import sys, os
 
+import .dcp
 
 def isnotebook():
     """
@@ -23,12 +24,8 @@ def isnotebook():
 
 
 if isnotebook():
-    from .notebook import npm, node
+    from .notebook import npm, node, dcp
 else:
-    from .py_nodejs import npm, node
-
-
-
-
+    from .py_nodejs import npm, node, dcp
 
 
