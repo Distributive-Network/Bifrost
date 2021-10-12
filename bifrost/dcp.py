@@ -811,6 +811,7 @@ def job_deploy(
         _job_functions,
         _job_packages,
         _job_groups,
+        _job_public,
         #_job_modules,
         #_job_imports,
         _job_multiplier,
