@@ -854,28 +854,18 @@ class Job:
 
         self.local_cores = local_cores
 
-        self.results = job_deploy(self.input_set, self.work_function, self.work_arguments, self.requires, self.compute_groups, self.public, self.local_cores)
-
-class Compute:
+        self.results = job_deploy(self.input_set, self.work_function, self.work_arguments, self.requires, self.compute_groups, self.public, self.local_cores)        
+    
+class Dcp:
 
     def __init__(self, scheduler_url = 'https://scheduler.distributed.computer'):
-
+        
         self.scheduler = scheduler_url
-
+        
     def compute_for(input_set, work_function, work_arguments = []):
 
         job = Job(input_set, work_function, work_arguments)
 
         return job
-    
-    self['for'] = compute_for
-
-class Dcp:
-
-    def __init__(self):
-
-        compute = Compute()
-
-        self.compute = compute
 
 dcp = Dcp()
