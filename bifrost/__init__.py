@@ -1,7 +1,5 @@
 import sys, os
 
-from .dcp import dcp
-
 def isnotebook():
     """
     A function that checks to see if we are in a notebook or not.
@@ -24,8 +22,8 @@ def isnotebook():
 
 
 if isnotebook():
-    from .notebook import npm, node, dcp
+    from .notebook import npm, node
 else:
-    from .py_nodejs import npm, node, dcp
+    from .py_nodejs import npm, node
 
-
+from .dcp import dcp
