@@ -857,11 +857,13 @@ class Compute:
 
         self.scheduler = scheduler_url
 
-    def for(input_set, work_function, work_arguments = []):
+    def compute_for(input_set, work_function, work_arguments = []):
 
         job = Job(input_set, work_function, work_arguments)
 
         return job
+    
+    self.for = compute_for
 
 class Dcp:
 
