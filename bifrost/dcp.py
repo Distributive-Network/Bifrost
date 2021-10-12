@@ -227,12 +227,6 @@ def dcp_run(
 
             let job = compute.for(inputSet, workFunction, sharedArguments);
 
-            //job.computeGroups=[{joinKey: 'lakehead-edge', joinSecret: 'WdhoyVrtdXwFZuynzbTNP3WzNvspV61GMbHP7GINZv4KMQzGeW'}];
-            //job.computeGroups=[{joinKey: 'soscip-edge', joinSecret: 'da9c1c90-d424-11eb-9147-47da37455484'}];
-            //job.computeGroups=[{joinKey: 'anu-edge', joinSecret: 'idMMZpFPu6'}];
-            //job.computeGroups=[{joinKey: 'chris', joinSecret: 'aristrocrats'}];
-            //job.computeGroups=[{joinKey: 'aitf', joinSecret: '9YDEXdihud'}];
-
             job.computeGroups = dcp_groups;
 
             job.public.name = 'Bifrost Deployment';
