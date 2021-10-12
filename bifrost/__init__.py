@@ -1,6 +1,6 @@
 import sys, os
 
-import .dcp
+from .dcp import dcp
 
 def isnotebook():
     """
