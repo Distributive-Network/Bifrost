@@ -187,7 +187,7 @@ def dcp_run(
         'dcp_public': _job_public,
         'python_init_worker': _dcp_init_worker,
         'python_compute_worker': _dcp_compute_worker,
-        'python_parameters': _job_input,
+        'python_parameters': _job_arguments,
         'python_functions': _job_functions,
         'python_packages': _job_packages,
         'python_modules': _job_modules,
