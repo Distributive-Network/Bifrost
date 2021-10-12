@@ -169,6 +169,7 @@ def dcp_run(
     _job_functions,
     _job_packages,
     _job_groups,
+    _job_public,
     _job_multiplier,
     _job_local,
     _job_modules = [],
@@ -183,6 +184,7 @@ def dcp_run(
         'dcp_multiplier': _job_multiplier,
         'dcp_local': _job_local,
         'dcp_groups': _job_groups,
+        'dcp_public': _job_public,
         'python_init_worker': _dcp_init_worker,
         'python_compute_worker': _dcp_compute_worker,
         'python_parameters': _job_input,
@@ -229,7 +231,7 @@ def dcp_run(
 
             job.computeGroups = dcp_groups;
 
-            job.public.name = 'Bifrost Deployment';
+            job.public.name = dcp_public;
 
             //job.debug = true;
 
@@ -741,6 +743,7 @@ def job_deploy(
         _dcp_arguments = {},
         _dcp_packages = [],
         _dcp_groups = [],
+        _dcp_public = { 'name': 'Bifrost Deployment'},
         #_dcp_imports = [],
         _dcp_local = 0,
         _dcp_multiplier = 1):
@@ -751,6 +754,7 @@ def job_deploy(
     _job_packages = _dcp_packages
     _job_groups = _dcp_groups
     #_job_imports = _dcp_imports
+    _job_public = _dcp_public
     _job_local = _dcp_local
     _job_multiplier = _dcp_multiplier
 
@@ -840,16 +844,17 @@ class Job:
         self.compute_groups = []
         self.requires = []
         self.requirements = {}
-
+        self.public = { 'name': 'Bifrost Deployment' }
+        
     def exec(self):
 
-        self.results = job_deploy(self.input_set, self.work_function, self.work_arguments, self.requires, self.compute_groups)
+        self.results = job_deploy(self.input_set, self.work_function, self.work_arguments, self.requires, self.compute_groups, self.public)
 
     def local_exec(self, local_cores):
 
         self.local_cores = local_cores
 
-        self.results = job_deploy(self.input_set, self.work_function, self.work_arguments, self.requires, self.compute_groups, self.local_cores)
+        self.results = job_deploy(self.input_set, self.work_function, self.work_arguments, self.requires, self.compute_groups, self.public, self.local_cores)
 
 class Compute:
 
@@ -863,7 +868,7 @@ class Compute:
 
         return job
     
-    self.for = compute_for
+    self['for'] = compute_for
 
 class Dcp:
 
