@@ -210,7 +210,7 @@ def dcp_run(
                                 let percentComputed = ((jobTimings.length / jobResults.length) * 100).toFixed(2);
                                 console.log('Computed: ' + percentComputed + '%');
                                 
-                                console.log('Result: ' + myResult.result);
+                                console.log('Result :', myResult.result);
                             }
 
                             let emptyIndexArray = jobResults.filter(thisResult => thisResult.length == 0);
@@ -636,7 +636,7 @@ def job_deploy(
         _dcp_imports = [],
         _dcp_public = { 'name': 'Bifrost Deployment'},
         _dcp_local = 0,
-        _dcp_multiplier = 3):
+        _dcp_multiplier = 1):
 
     _job_slices = _dcp_slices
     _job_function = _dcp_function
@@ -745,19 +745,22 @@ class Job:
         self.requires = []
         self.requirements = {}
         self.public = { 'name': 'Bifrost Deployment' }
+        self.multiplier = 1
         
         # bifrost internal job properties
         self.python_imports = []
         
     def exec(self):
 
-        self.results = job_deploy(self.input_set, self.work_function, self.work_arguments, self.requires, self.compute_groups, self.python_imports, self.public)
+        self.local_cores = local_cores = 0
+        
+        self.results = job_deploy(self.input_set, self.work_function, self.work_arguments, self.requires, self.compute_groups, self.python_imports, self.public, self.local_cores, self.multiplier)
 
     def local_exec(self, local_cores):
 
         self.local_cores = local_cores
 
-        self.results = job_deploy(self.input_set, self.work_function, self.work_arguments, self.requires, self.compute_groups, self.python_imports, self.public, self.local_cores)        
+        self.results = job_deploy(self.input_set, self.work_function, self.work_arguments, self.requires, self.compute_groups, self.python_imports, self.public, self.local_cores, self.multiplier)
     
 class Dcp:
 
