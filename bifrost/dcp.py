@@ -96,11 +96,11 @@ def dcp_run(
     _job_function,
     _job_packages,
     _job_groups,
+    _job_imports,
+    _job_modules,
     _job_public,
     _job_multiplier,
     _job_local,
-    _job_modules = [],
-    _job_imports = [],
 ):
 
     global _dcp_init_worker
@@ -631,8 +631,8 @@ def job_deploy(
         _dcp_arguments = {},
         _dcp_packages = [],
         _dcp_groups = [],
-        _dcp_public = { 'name': 'Bifrost Deployment'},
         _dcp_imports = [],
+        _dcp_public = { 'name': 'Bifrost Deployment'},
         _dcp_local = 0,
         _dcp_multiplier = 1):
 
@@ -708,9 +708,9 @@ def job_deploy(
         _job_function,
         _job_packages,
         _job_groups,
-        _job_public,
-        _job_modules,
         _job_imports,
+        _job_modules,
+        _job_public,
         _job_multiplier,
         _job_local,
     )
