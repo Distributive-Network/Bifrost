@@ -148,7 +148,7 @@ def dcp_run(
 
             job.computeGroups = dcp_groups;
 
-            job.public.name = dcp_public;
+            job.public = dcp_public;
 
             //job.debug = true;
 
