@@ -209,6 +209,8 @@ def dcp_run(
 
                                 let percentComputed = ((jobTimings.length / jobResults.length) * 100).toFixed(2);
                                 console.log('Computed: ' + percentComputed + '%');
+                                
+                                console.log('Result: ' + myResult.result);
                             }
 
                             let emptyIndexArray = jobResults.filter(thisResult => thisResult.length == 0);
@@ -232,9 +234,9 @@ def dcp_run(
                     }
 
                     job.on('accepted', jobFunctions.accepted);
-                    job.on('complete', jobFunctions.complete);
-                    job.on('console', jobFunctions.console);
-                    job.on('error', jobFunctions.error);
+                    //job.on('complete', jobFunctions.complete);
+                    //job.on('console', jobFunctions.console);
+                    //job.on('error', jobFunctions.error);
                     job.on('result', jobFunctions.result);
                     job.on('readystatechange', jobFunctions.readystatechange);
 
@@ -283,18 +285,18 @@ def dcp_run(
             }
 
             job.removeEventListener('accepted', jobFunctions.accepted);
-            job.removeEventListener('complete', jobFunctions.complete);
-            job.removeEventListener('console', jobFunctions.console);
-            job.removeEventListener('error', jobFunctions.error);
+            //job.removeEventListener('complete', jobFunctions.complete);
+            //job.removeEventListener('console', jobFunctions.console);
+            //job.removeEventListener('error', jobFunctions.error);
             job.removeEventListener('result', jobFunctions.result);
             job.removeEventListener('readystatechange', jobFunctions.readystatechange);
 
-            const averageSliceTime = finalTimings.reduce((a, b) => a + b) / finalOutputs.length;
+            //const averageSliceTime = finalTimings.reduce((a, b) => a + b) / finalOutputs.length;
             const totalJobTime = Date.now() - jobStartTime;
 
             console.log('Total Elapsed Job Time: ' + (totalJobTime / 1000).toFixed(2) + ' s');
-            console.log('Mean Elapsed Worker Time Per Slice: ' + averageSliceTime + ' s');
-            console.log('Mean Elapsed Client Time Per Unique Slice: ' + ((totalJobTime / 1000) / finalOutputs.length).toFixed(2) + ' s');
+            //console.log('Mean Elapsed Worker Time Per Slice: ' + averageSliceTime + ' s');
+            //console.log('Mean Elapsed Client Time Per Unique Slice: ' + ((totalJobTime / 1000) / finalOutputs.length).toFixed(2) + ' s');
             
             return finalOutputs;
         }
@@ -634,7 +636,7 @@ def job_deploy(
         _dcp_imports = [],
         _dcp_public = { 'name': 'Bifrost Deployment'},
         _dcp_local = 0,
-        _dcp_multiplier = 1):
+        _dcp_multiplier = 3):
 
     _job_slices = _dcp_slices
     _job_function = _dcp_function
