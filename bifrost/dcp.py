@@ -80,13 +80,13 @@ y_train = np.asarray(list(y_train.items()), dtype = y_dtype)
 
 _output_function = locals()[input_function]
 
-_output_data = _output_function(
+output_data = _output_function(
     _data_unpickled,
     all_train_features,
     y_train,)
 
-_output_data_pickled = cloudpickle.dumps( _output_data )
-output_data_encoded = codecs.encode( _output_data_pickled, 'base64' ).decode()
+#_output_data_pickled = cloudpickle.dumps( _output_data )
+#output_data_encoded = codecs.encode( _output_data_pickled, 'base64' ).decode()
 
 """
 
@@ -585,7 +585,7 @@ def dcp_run(
             progress(1);
 
             return {
-                output: pyodide.globals.get('output_data_encoded'),
+                output: pyodide.globals.get('output_data'),
                 index: pythonData.index,
                 elapsed: stopTime
             };
@@ -717,19 +717,21 @@ def job_deploy(
         _job_local,
     )
 
-    _final_results = []
+    return _job_results
 
-    for _results_index, _results_slice in enumerate(_job_results):
+    #_final_results = []
 
-        _results_slice_decoded = codecs.decode( _results_slice.encode(), 'base64' )
+    #for _results_index, _results_slice in enumerate(_job_results):
 
-        _results_slice_unpickled = cloudpickle.loads( _results_slice )
+        #_results_slice_decoded = codecs.decode( _results_slice.encode(), 'base64' )
 
-        _final_results[_results_index] = _results_slice_unpickled
+        #_results_slice_unpickled = cloudpickle.loads( _results_slice )
 
-    print(_final_results)
+        #_final_results[_results_index] = _results_slice_unpickled
 
-    return _final_results
+    #print(_final_results)
+
+    #return _final_results
 
 class Job:
 
