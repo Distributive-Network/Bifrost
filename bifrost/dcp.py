@@ -64,109 +64,36 @@ import cloudpickle
 _parameters_decoded = codecs.decode( input_parameters.encode(), 'base64' )
 _parameters_unpickled = cloudpickle.loads( _parameters_decoded )
 
-_functions_decoded = codecs.decode( input_functions.encode(), 'base64' )
-_functions_unpickled = cloudpickle.loads( _functions_decoded )
-
 _data_decoded = codecs.decode( input_data.encode(), 'base64' )
 _data_unpickled = cloudpickle.loads( _data_decoded )
 
-from numpy import asarray
+import numpy as np
 
-def naive_bayes_gs(params, all_train_features, y_train):
-    
-    from sklearn.naive_bayes import MultinomialNB
-    mnb_clf = MultinomialNB(**params)
+all_train_features = np.asarray(_parameters_unpickled['all_train_features'])
 
-    mnb_model = mnb_clf.fit(all_train_features, y_train)
-    mnb_score = mnb_model.score(all_train_features, y_train)
-    
-    print('~~> SCORE : ', mnb_score, ' ( PARAMS : ', params, ' )')
-    
-    return mnb_score
-
-def support_vector_gs(params, all_train_features, y_train):
-
-    from sklearn.svm import LinearSVC
-    svc_clf = LinearSVC(**params)
-
-    svc_model = svc_clf.fit(all_train_features, y_train)
-    svc_score = svc_model.score(all_train_features, y_train)
-    
-    print('~~> SCORE : ', svc_score, ' ( PARAMS : ', params, ' )')
-    
-    return svc_score
-
-def logistic_regression_gs(params, all_train_features, y_train):
-
-    from sklearn.linear_model import LogisticRegression
-    lrc_clf = LogisticRegression(**params)
-
-    lrc_model = lrc_clf.fit(all_train_features, y_train)
-    lrc_score = lrc_model.score(all_train_features, y_train)
-    
-    print('~~> SCORE : ', lrc_score, ' ( PARAMS : ', params, ' )')
-
-    return lrc_score
-
-def random_forest_gs(params, all_train_features, y_train):
-    
-    from sklearn.ensemble import RandomForestClassifier
-    rfc_clf = RandomForestClassifier(**params)
-    
-    rfc_model = rfc_clf.fit(all_train_features, y_train)
-    rfc_score= rfc_model.score(all_train_features, y_train)
-    
-    print('~~> SCORE : ', rfc_score, ' ( PARAMS : ', params, ' )')
-
-    return rfc_score
-
-_functions_local = {
-  'naive_bayes_gs': naive_bayes_gs,
-  'support_vector_gs': support_vector_gs,
-  'logistic_regression_gs': logistic_regression_gs,
-  'random_forest_gs': random_forest_gs,
-}
-_function_name = _data_unpickled['function']
-
-#_output_function = _functions_unpickled[_function_name]
-_output_function = _functions_local[_function_name]
-
-all_train_features = _parameters_unpickled['all_train_features']
-y_train = _parameters_unpickled['y_train']
-
-all_train_features = asarray(_parameters_unpickled['all_train_features'])
-#all_train_features = np.asarray(_parameters_unpickled['all_train_features'])
-
-y_train = _parameters_unpickled['y_train']
 y_names = ['id','Label']
 y_formats = ['int64','int64']
 y_dtype = dict(names = y_names, formats = y_formats)
-#y_train = np.asarray(list(y_train.items()), dtype = y_dtype)
-y_train = asarray(list(y_train.items()), dtype = y_dtype)
 
-##output_data = _output_function(
-##    _data_unpickled['params'],
-##    **_parameters_unpickled)
+y_train = _parameters_unpickled['y_train']
+y_train = np.asarray(list(y_train.items()), dtype = y_dtype)
 
-##output_data = _functions_unpickled['display_string'](
-##        _data_unpickled['input_index'],
-##        **_parameters_unpickled)
+_output_function = locals()[input_function]
 
 _output_data = _output_function(
-    _data_unpickled['params'],
+    _data_unpickled,
     all_train_features,
     y_train,)
 
 _output_data_pickled = cloudpickle.dumps( _output_data )
 output_data_encoded = codecs.encode( _output_data_pickled, 'base64' ).decode()
 
-#output_data = codecs.encode( cloudpickle.dumps( output_data ), 'base64' ).decode()
 """
 
 def dcp_run(
     _job_input,
     _job_arguments,
-    _job_functions,
+    _job_function,
     _job_packages,
     _job_groups,
     _job_public,
@@ -188,7 +115,7 @@ def dcp_run(
         'python_init_worker': _dcp_init_worker,
         'python_compute_worker': _dcp_compute_worker,
         'python_parameters': _job_arguments,
-        'python_functions': _job_functions,
+        'python_function': _job_function,
         'python_packages': _job_packages,
         'python_modules': _job_modules,
         'python_imports': _job_imports,
@@ -198,7 +125,7 @@ def dcp_run(
 
     (async function(){
 
-        async function dcpPost(myData, workFunction, myParameters, myMultiplier, myLocal) {
+        async function dcpPost(myData, workFunction, sharedArguments, myMultiplier, myLocal) {
 
             const jobStartTime = Date.now();
 
@@ -210,22 +137,12 @@ def dcp_run(
 
             let compute = await require('dcp/compute');
 
-            let inputSet = myData;//[];
-            /*
+            let inputSet = [];
             myData.forEach(x => {
               let myItem = Object.fromEntries(Object.entries(x));
               inputSet.push(myItem);
               return [];
             });
-            */
-            let sharedArguments = myParameters;//[];
-            /*
-            myParameters.forEach(x => {
-                let myItem = Object.fromEntries(Object.entries(x));
-                sharedArguments.push(myItem);
-                return [];
-            });
-            */
 
             let job = compute.for(inputSet, workFunction, sharedArguments);
 
@@ -237,18 +154,15 @@ def dcp_run(
 
             //job.requirements.discrete = true;
 
-            job.requires([
-                'aitf-compress/pako',
-                //'aitf-shard-loader-16/shard-loader',
-                //'aitf-python-loader-16/shard-loader',
-                //'aitf-cache-loader-16/shard-loader',
-                'aitf-pyodide-16/pyodide',
-                'aitf-cloudpickle-16/cloudpickle',
-                'aitf-numpy-16/numpy',
-                'aitf-scipy-16/scipy',
-                'aitf-joblib-16/joblib',
-                'aitf-scikit-learn-16/scikit-learn',
-            ]);
+            // set module requirements for python job
+            job.requires('aitf-compress/pako');
+            job.requires('aitf-pyodide-16/pyodide');
+            job.requires('aitf-cloudpickle-16/cloudpickle');
+            for (let i = 0; i < python_packages.length; i++) {
+              let thisPackageName = python_packages[i];
+              let thisPackagePath = 'aitf-' + thisPackageName + '-16/' + thisPackageName;
+              job.requires(thisPackagePath);
+            }
 
             let jobFunctions = {
                 accepted: () => {},
@@ -341,8 +255,6 @@ def dcp_run(
                 });
             }
 
-            await console.log('!!! JS dcpPost :: promise defined');
-
             let finalResults = await dcpPromise();
 
             let finalOutputs;
@@ -370,18 +282,12 @@ def dcp_run(
                 }
             }
 
-            await console.log('!!! JS dcpPost :: promise returned');
-
-            await console.log(finalOutputs);
-
             job.removeEventListener('accepted', jobFunctions.accepted);
             job.removeEventListener('complete', jobFunctions.complete);
             job.removeEventListener('console', jobFunctions.console);
             job.removeEventListener('error', jobFunctions.error);
             job.removeEventListener('result', jobFunctions.result);
             job.removeEventListener('readystatechange', jobFunctions.readystatechange);
-
-            //job = null;
 
             const averageSliceTime = finalTimings.reduce((a, b) => a + b) / finalOutputs.length;
             const totalJobTime = Date.now() - jobStartTime;
@@ -392,24 +298,8 @@ def dcp_run(
             
             return finalOutputs;
         }
-
-
-        let jobFunction_test = `async function(pythonData, pythonParameters, pythonFunctions, pythonModules, pythonPackages, pythonImports) {
-
-            progress();
-
-            await console.log(pythonData);
-
-            await console.log(pythonPackages);
-
-            return {
-                output: pythonData,
-                index: pythonPackages.length,
-                elapsed: 0
-            };
-        }`;
         
-        let jobFunction = `async function(pythonData, pythonParameters, pythonFunctions, pythonModules, pythonPackages, pythonImports, pythonInitWorker, pythonComputeWorker) {
+        let jobFunction = `async function(pythonData, pythonParameters, pythonFunction, pythonModules, pythonPackages, pythonImports, pythonInitWorker, pythonComputeWorker) {
 
         const providePackageFile = async function providePackageFile(packageNameArray) {
 
@@ -671,9 +561,11 @@ def dcp_run(
 
             await pyodide.runPythonAsync(pythonInitWorker);
 
+            await pyodide.runPythonAsync(pythonFunction[1]); //function.code
+            
             pyodide.globals.set('input_data', pythonData.data);
             pyodide.globals.set('input_parameters', pythonParameters);
-            pyodide.globals.set('input_functions', pythonFunctions);
+            pyodide.globals.set('input_function', pythonFunction[0]); //function.name
 
             await pyodide.runPythonAsync(pythonComputeWorker);
 
@@ -682,7 +574,7 @@ def dcp_run(
             const stopTime = ((Date.now() - startTime) / 1000).toFixed(2);
             
             pythonParameters = [];
-            pythonFunctions = [];
+            pythonFunction = [];
             pythonModules = [];
             pythonPackages = [];
             pythonImports = [];
@@ -698,8 +590,6 @@ def dcp_run(
 
         } catch (e) {
 
-            console.log(e);
-
             throw(e);
         }
     }`;
@@ -710,7 +600,7 @@ def dcp_run(
 
         let jobParameters = [
             python_parameters,
-            python_functions,
+            python_function,
             python_modules,
             python_packages,
             python_imports,
@@ -725,8 +615,6 @@ def dcp_run(
         } catch (e) {
 
             await console.log('CAUGHT NODEJS ERROR : ' + e);
-
-            jobOutput = 'lol'
         }
 
     })();
@@ -739,21 +627,21 @@ def dcp_run(
 
 def job_deploy(
         _dcp_slices,
-        _dcp_functions = {},
+        _dcp_function,
         _dcp_arguments = {},
         _dcp_packages = [],
         _dcp_groups = [],
         _dcp_public = { 'name': 'Bifrost Deployment'},
-        #_dcp_imports = [],
+        _dcp_imports = [],
         _dcp_local = 0,
         _dcp_multiplier = 1):
 
     _job_slices = _dcp_slices
-    _job_functions = _dcp_functions
+    _job_function = _dcp_function
     _job_arguments = _dcp_arguments
     _job_packages = _dcp_packages
     _job_groups = _dcp_groups
-    #_job_imports = _dcp_imports
+    _job_imports = _dcp_imports
     _job_public = _dcp_public
     _job_local = _dcp_local
     _job_multiplier = _dcp_multiplier
@@ -763,6 +651,15 @@ def job_deploy(
         _data_encoded = codecs.encode( _input_data, 'base64' ).decode()
 
         return _data_encoded
+
+    def _function_writer(_function):
+
+        import inspect
+
+        _function_name = _function.__name__
+        _function_code = inspect.getsource(_function)
+
+        return [_function_name, _function_code]
 
     def _module_writer(_module_name):
 
@@ -782,13 +679,13 @@ def job_deploy(
 
         return _data_encoded
 
-    #_job_modules = {}
-    #for _module_name in _job_imports:
-    #    _job_modules[_module_name] = _module_writer(_module_name)
+    _job_modules = {}
+    for _module_name in _job_imports:
+        _job_modules[_module_name] = _module_writer(_module_name)
 
     _job_arguments = _pickle_jar(_job_arguments)
 
-    _job_functions = _pickle_jar(_job_functions)
+    _job_function = _function_writer(_job_function)
 
     for _block_index, _block_slice in enumerate(_job_slices):
 
@@ -808,12 +705,12 @@ def job_deploy(
     _job_results = dcp_run(
         _job_input,
         _job_arguments,
-        _job_functions,
+        _job_function,
         _job_packages,
         _job_groups,
         _job_public,
-        #_job_modules,
-        #_job_imports,
+        _job_modules,
+        _job_imports,
         _job_multiplier,
         _job_local,
     )
@@ -847,15 +744,18 @@ class Job:
         self.requirements = {}
         self.public = { 'name': 'Bifrost Deployment' }
         
+        # bifrost internal job properties
+        self.python_imports = []
+        
     def exec(self):
 
-        self.results = job_deploy(self.input_set, self.work_function, self.work_arguments, self.requires, self.compute_groups, self.public)
+        self.results = job_deploy(self.input_set, self.work_function, self.work_arguments, self.requires, self.compute_groups, self.python_imports, self.public)
 
     def local_exec(self, local_cores):
 
         self.local_cores = local_cores
 
-        self.results = job_deploy(self.input_set, self.work_function, self.work_arguments, self.requires, self.compute_groups, self.public, self.local_cores)        
+        self.results = job_deploy(self.input_set, self.work_function, self.work_arguments, self.requires, self.compute_groups, self.python_imports, self.public, self.local_cores)        
     
 class Dcp:
 
