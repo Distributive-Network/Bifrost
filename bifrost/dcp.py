@@ -265,7 +265,7 @@ def dcp_run(
             if (myMultiplier > 1) {
 
                 finalOutputs = finalResults;
-                finalTimings = myTimings;
+                finalTimings = jobTimings;
 
             } else {
 
