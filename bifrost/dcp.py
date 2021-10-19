@@ -665,10 +665,10 @@ def job_deploy(
 
         _block_slice_pickled = _pickle_jar(_block_slice)
 
-        _job_slices_pickled[_block_index] = {
+        _job_slices_pickled.append({
             'index': _block_index,
-            'data': _block_slice_pickled }
-
+            'data': _block_slice_pickled })
+        
     _job_input = []
     for i in range(_job_multiplier):
         _job_input.extend(_job_slices_pickled)
