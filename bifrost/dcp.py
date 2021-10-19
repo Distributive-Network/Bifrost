@@ -217,7 +217,7 @@ def dcp_run(
 
                             console.log('Unique Slices Remaining : ' + emptyIndexArray.length);
 
-                            if ((emptyIndexArray.length == 0) && (myMultiplier > 1)) {
+                            if (emptyIndexArray.length == 0) {
 
                                 resolve(jobResults);
                             }
@@ -234,9 +234,9 @@ def dcp_run(
                     }
 
                     job.on('accepted', jobFunctions.accepted);
-                    //job.on('complete', jobFunctions.complete);
+                    job.on('complete', jobFunctions.complete);
                     //job.on('console', jobFunctions.console);
-                    //job.on('error', jobFunctions.error);
+                    job.on('error', jobFunctions.error);
                     job.on('result', jobFunctions.result);
                     job.on('readystatechange', jobFunctions.readystatechange);
 
@@ -246,59 +246,30 @@ def dcp_run(
 
                         execResults = job.localExec(myLocal);
 
-                        resolve(execResults);
-
                     } else {
 
                         execResults = job.exec();
-
-                        resolve(execResults);
                     }
                 });
             }
 
             let finalResults = await dcpPromise();
 
-            let finalOutputs;
-            let finalTimings;
-
-            if (myMultiplier > 1) {
-
-                finalOutputs = finalResults;
-                finalTimings = jobTimings;
-
-            } else {
-
-                finalResults = await Array.from(finalResults);
-
-                let finalOutputs = [...Array(finalResults.length)].map(x => []);
-                let finalTimings = [];
-
-                for (let i = 0; i < finalResults.length; i++) {
-
-                    let thisResult = finalResults[i];
-
-                    let outputIndex = thisResult.index;
-                    finalOutputs[outputIndex] = thisResult.output;
-                    finalTimings.push(parseInt(thisResult.elapsed, 10));
-                }
-            }
-
             job.removeEventListener('accepted', jobFunctions.accepted);
-            //job.removeEventListener('complete', jobFunctions.complete);
+            job.removeEventListener('complete', jobFunctions.complete);
             //job.removeEventListener('console', jobFunctions.console);
-            //job.removeEventListener('error', jobFunctions.error);
+            job.removeEventListener('error', jobFunctions.error);
             job.removeEventListener('result', jobFunctions.result);
             job.removeEventListener('readystatechange', jobFunctions.readystatechange);
 
-            //const averageSliceTime = finalTimings.reduce((a, b) => a + b) / finalOutputs.length;
+            const averageSliceTime = jobTimings.reduce((a, b) => a + b) / finalResults.length;
             const totalJobTime = Date.now() - jobStartTime;
 
             console.log('Total Elapsed Job Time: ' + (totalJobTime / 1000).toFixed(2) + ' s');
-            //console.log('Mean Elapsed Worker Time Per Slice: ' + averageSliceTime + ' s');
-            //console.log('Mean Elapsed Client Time Per Unique Slice: ' + ((totalJobTime / 1000) / finalOutputs.length).toFixed(2) + ' s');
+            console.log('Mean Elapsed Worker Time Per Slice: ' + averageSliceTime + ' s');
+            console.log('Mean Elapsed Client Time Per Unique Slice: ' + ((totalJobTime / 1000) / finalResults.length).toFixed(2) + ' s');
             
-            return finalOutputs;
+            return finalResults;
         }
         
         let jobFunction = `async function(pythonData, pythonParameters, pythonFunction, pythonModules, pythonPackages, pythonImports, pythonInitWorker, pythonComputeWorker) {
@@ -689,18 +660,18 @@ def job_deploy(
 
     _job_function = _function_writer(_job_function)
 
+    _job_slices_pickled = []
     for _block_index, _block_slice in enumerate(_job_slices):
 
-        _block_slice = _pickle_jar(_block_slice)
+        _block_slice_pickled = _pickle_jar(_block_slice)
 
-        _job_slices[_block_index] = {
+        _job_slices_pickled[_block_index] = {
             'index': _block_index,
-            'data': _block_slice }
+            'data': _block_slice_pickled }
 
     _job_input = []
-
     for i in range(_job_multiplier):
-        _job_input.extend(_job_slices)
+        _job_input.extend(_job_slices_pickled)
 
     #random.shuffle(_job_input)
 
