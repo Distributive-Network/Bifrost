@@ -167,6 +167,13 @@ def dcp_run(
               let thisPackagePath = 'aitf-' + thisPackageName + '-16/' + thisPackageName;
               job.requires(thisPackagePath);
             }
+            
+            //set module requirements for data sharding if present
+            if ( (sharedArguments[0].dcpDataAddress) && (sharedArguments[0].packageNames)) {
+                let dataRequiresAddress = sharedArguments[0].dcpDataAddress;
+                let dataRequiresPath = dataRequiresAddress + '/' + dataRequiresAddress + '.js';
+                job.requires(dataRequiresPath);
+            }
 
             let jobFunctions = {
                 accepted: () => {},
