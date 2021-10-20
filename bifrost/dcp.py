@@ -123,9 +123,9 @@ def dcp_run(
         'python_imports': _job_imports,
     }
 
-    _node_output = node.run("""
+    node_output = node.run("""
 
-    var jobOutput;
+    var jobOutput = [];
         
     (async function(){
 
@@ -620,23 +620,15 @@ def dcp_run(
             python_init_worker,
             python_compute_worker
         ];
-
-        try {
-
-            jobOutput = await dcpPost(jobData, jobFunction, jobParameters, jobMultiplier, jobLocal);
-
-        } catch (e) {
-
-            jobOutput = e;
-        }
-
+        
+        jobOutput = await dcpPost(jobData, jobFunction, jobParameters, jobMultiplier, jobLocal);
     })();
 
     """, _run_parameters)
 
-    _job_output = _node_output['jobOutput']
+    job_output = node_output['jobOutput']
     
-    return _job_output
+    return job_output
 
 def job_deploy(
         _dcp_slices,
