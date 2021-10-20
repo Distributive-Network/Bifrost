@@ -125,6 +125,8 @@ def dcp_run(
 
     _node_output = node.run("""
 
+    var jobOutput;
+        
     (async function(){
 
         async function dcpPost(myData, workFunction, sharedArguments, myMultiplier, myLocal) {
@@ -618,7 +620,7 @@ def dcp_run(
 
         } catch (e) {
 
-            await console.log('CAUGHT NODEJS ERROR : ' + e);
+            jobOutput = e;
         }
 
     })();
