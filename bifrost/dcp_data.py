@@ -76,6 +76,10 @@ let dcpDataPublish = async function dataPublish(
   datasetShards
 ) {
 
+  const fs = require('fs');
+  const process = require('process');
+  const pako = require('pako');
+
   if (!fs.existsSync('out')) fs.mkdirSync('out');
 
   const packageDirectory = 'out/' + packageName;
