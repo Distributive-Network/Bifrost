@@ -2,6 +2,74 @@ from bifrost import node, npm
 
 node.run("""
 
+const loadString = `
+
+    const loadShards = async function loadShards(packageName) {
+
+      pako = require('pako');
+
+      try {
+
+        async function _requirePackage(myPackageName) {
+
+            const thisPackage = await require(myPackageName);
+
+            return thisPackage.SHARD_DATA;
+        }
+
+        async function _loadBinary(base64String) {
+
+            let binaryString = await atob(base64String);
+            
+            const binaryLength = binaryString.length;
+
+            let binaryArray = new Uint8Array(binaryLength);
+            for(let i = 0; i < binaryLength; i++) {
+              binaryArray[i] = binaryString.charCodeAt(i);
+            }
+            return binaryArray;
+        }
+
+        const shardName = NAME + '-' + packageName;
+        const shardPath = NAME + '/' + shardName;
+
+        await new Promise((resolve, reject) => {
+
+            try {
+
+                module.provide([shardPath], () => {
+
+                    resolve();
+                });
+
+            } catch(error) {
+
+                reject(error);
+            }
+        });
+
+        let shardData = await _requirePackage(shardName);
+
+        shardData = await _loadBinary(shardData);
+
+        shardData = await pako.inflate(shardData, { to: 'string' });
+
+        shardData = await JSON.parse(shardData);
+
+        progress();
+
+        return shardData;
+
+      } catch (e) {
+
+        throw(e);
+      }
+  };
+
+  exports.load = loadShards;
+
+`;
+
 let dcpDataPublish = async function dataPublish(
   datasetArray,
   packageName,
