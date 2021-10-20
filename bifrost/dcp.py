@@ -709,7 +709,7 @@ def job_deploy(
 
     #random.shuffle(_job_input)
 
-    _job_results = dcp_run(
+    job_results = dcp_run(
         _job_input,
         _job_arguments,
         _job_function,
@@ -723,11 +723,11 @@ def job_deploy(
         _job_shards
     )
 
-    return _job_results
+    return job_results
 
     #_final_results = []
 
-    #for _results_index, _results_slice in enumerate(_job_results):
+    #for _results_index, _results_slice in enumerate(job_results):
 
         #_results_slice_decoded = codecs.decode( _results_slice.encode(), 'base64' )
 
@@ -767,12 +767,19 @@ class Job:
             from .dcp_data import dcp_data_publish
             
         self.results = job_deploy(self.input_set, self.work_function, self.work_arguments, self.requires, self.compute_groups, self.python_imports, self.public, self.local_cores, self.multiplier, self.shards)
+        
+        return self.results
 
     def local_exec(self, local_cores):
 
         self.local_cores = local_cores
+        
+        if (self.shards > 0):
+            from .dcp_data import dcp_data_publish
 
-        self.results = job_deploy(self.input_set, self.work_function, self.work_arguments, self.requires, self.compute_groups, self.python_imports, self.public, self.local_cores, self.multiplier, self.shards)
+        self.results = job_deploy(self.input_set, self.work_function, self.work_arguments, self.requires, self.compute_groups, self.python_imports, self.public, self.local_cores, self.multiplier, self.shards)        
+
+        return self.results
     
 class Dcp:
 
