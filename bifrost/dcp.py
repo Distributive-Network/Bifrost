@@ -108,7 +108,7 @@ def dcp_run(
     global _dcp_compute_worker
 
     _run_parameters = {
-        'dcp_data': _job_input,
+        'dcp_input': _job_input,
         'dcp_multiplier': _job_multiplier,
         'dcp_local': _job_local,
         'dcp_groups': _job_groups,
@@ -591,7 +591,7 @@ def dcp_run(
         }
     }`;
 
-        let jobData = dcp_data;
+        let jobData = dcp_input;
         let jobMultiplier = dcp_multiplier;
         let jobLocal = dcp_local;
 
@@ -762,6 +762,9 @@ class Job:
 
         self.local_cores = 0
         
+        if (self.shards > 0):
+            from .dcp_data import dcp_data_publish
+            
         self.results = job_deploy(self.input_set, self.work_function, self.work_arguments, self.requires, self.compute_groups, self.python_imports, self.public, self.local_cores, self.multiplier, self.shards)
 
     def local_exec(self, local_cores):
