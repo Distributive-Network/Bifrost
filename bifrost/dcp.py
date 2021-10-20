@@ -101,6 +101,7 @@ def dcp_run(
     _job_public,
     _job_multiplier,
     _job_local,
+    _job_shards
 ):
 
     global _dcp_init_worker
@@ -112,6 +113,7 @@ def dcp_run(
         'dcp_local': _job_local,
         'dcp_groups': _job_groups,
         'dcp_public': _job_public,
+        'dcp_shards': _job_shards,
         'python_init_worker': _dcp_init_worker,
         'python_compute_worker': _dcp_compute_worker,
         'python_parameters': _job_arguments,
@@ -535,6 +537,28 @@ def dcp_run(
             await pyodide.runPythonAsync(pythonInitWorker);
 
             await pyodide.runPythonAsync(pythonFunction[1]); //function.code
+
+            if ( (pythonParameters.dcpDataAddress) && (pythonParameters.dcpDataNames) ) {
+                
+              if (!self.pythonArgsCache) {
+              
+                let loaderPath = pythonParameters.dcpDataAddress;
+                let shardLoader = await require(loaderPath + '.js');
+
+                self.pythonArgsCache = [];
+                for (let i = 0; i < pythonParameters.dcpDataNames.length; i++) {
+
+                    let shardPath = pythonParameters.dcpDataNames[i];
+
+                    let thisShard = await shardLoader.load(shardPath);
+
+                    self.pythonArgsCache.push(thisShard);
+                }
+                self.pythonArgsCache = self.pythonArgsCache.join('');
+              }
+              
+              pythonParameters = self.pythonArgsCache;
+            }
             
             pyodide.globals.set('input_data', pythonData.data);
             pyodide.globals.set('input_parameters', pythonParameters);
@@ -571,6 +595,13 @@ def dcp_run(
         let jobMultiplier = dcp_multiplier;
         let jobLocal = dcp_local;
 
+        if (dcp_shards > 0) {
+          let randomAddress = require('crypto').randomBytes(25).toString('hex');
+          let packageAddress = 'bifrost-argument-' + randomAddress;
+          let packageNames = await dcpDataPublish(python_parameters, packageAddress, dcp_shards);
+          python_parameters = { dcpDataShards: dcp_shards, dcpDataAddress: packageAddress, dcpDataNames: packageNames };
+        }
+        
         let jobParameters = [
             python_parameters,
             python_function,
@@ -607,7 +638,8 @@ def job_deploy(
         _dcp_imports = [],
         _dcp_public = { 'name': 'Bifrost Deployment'},
         _dcp_local = 0,
-        _dcp_multiplier = 1):
+        _dcp_multiplier = 1,
+        _dcp_shards = 0):
 
     _job_slices = _dcp_slices
     _job_function = _dcp_function
@@ -618,6 +650,7 @@ def job_deploy(
     _job_public = _dcp_public
     _job_local = _dcp_local
     _job_multiplier = _dcp_multiplier
+    _job_shards = _dcp_shards
 
     def _input_encoder(_input_data):
 
@@ -686,6 +719,7 @@ def job_deploy(
         _job_public,
         _job_multiplier,
         _job_local,
+        _job_shards
     )
 
     return _job_results
@@ -719,21 +753,22 @@ class Job:
         self.requirements = {}
         self.public = { 'name': 'Bifrost Deployment' }
         self.multiplier = 1
+        self.shards = 0
         
         # bifrost internal job properties
         self.python_imports = []
         
     def exec(self):
 
-        self.local_cores = local_cores = 0
+        self.local_cores = 0
         
-        self.results = job_deploy(self.input_set, self.work_function, self.work_arguments, self.requires, self.compute_groups, self.python_imports, self.public, self.local_cores, self.multiplier)
+        self.results = job_deploy(self.input_set, self.work_function, self.work_arguments, self.requires, self.compute_groups, self.python_imports, self.public, self.local_cores, self.multiplier, self.shards)
 
     def local_exec(self, local_cores):
 
         self.local_cores = local_cores
 
-        self.results = job_deploy(self.input_set, self.work_function, self.work_arguments, self.requires, self.compute_groups, self.python_imports, self.public, self.local_cores, self.multiplier)
+        self.results = job_deploy(self.input_set, self.work_function, self.work_arguments, self.requires, self.compute_groups, self.python_imports, self.public, self.local_cores, self.multiplier, self.shards)
     
 class Dcp:
 
