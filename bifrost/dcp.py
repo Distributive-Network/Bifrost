@@ -283,11 +283,9 @@ def dcp_run(
             return finalResults;
         }
         
-        let jobFunction = `async function(pythonData, pythonParameters, pythonFunction, pythonModules, pythonPackages, pythonImports, pythonInitWorker, pythonComputeWorker) {
+        let jobFunction = async function(pythonData, pythonParameters, pythonFunction, pythonModules, pythonPackages, pythonImports, pythonInitWorker, pythonComputeWorker) {
         
-        let pythonLoaderLocal = {};
-
-        pythonLoaderLocal.providePackageFile = async function _providePackageFile(packageNameArray) {
+        async function _providePackageFile(packageNameArray) {
 
             return await new Promise((resolve, reject) => {
 
@@ -303,120 +301,118 @@ def dcp_run(
                     reject(myError);
                 };
             });
-        };
+        }
 
-        pythonLoaderLocal.getShardCount = async function _getShardCount(packageName) {
+        async function _getShardCount(packageName) {
 
             const entryPath = 'aitf-' + packageName + '-16/' + packageName
 
-            await pythonLoaderLocal.providePackageFile([entryPath]);
+            await _providePackageFile([entryPath]);
 
             let shardEntry = await require(packageName);
             const shardCount = shardEntry.PACKAGE_SHARDS;
             shardEntry = null;
 
             return shardCount;
-        };
+        }
 
-        pythonLoaderLocal.downloadShards = async function _downloadShards(packageName) {
+        async function _downloadShards(packageName) {
 
             progress();
 
-            let shardCount = await pythonLoaderLocal.getShardCount(packageName);
+            let shardCount = await _getShardCount(packageName);
 
             for (let i = 0; i < shardCount; i++) {
 
                 const shardName = packageName + '-shard-' + i;
                 const shardPath = 'aitf-' + packageName + '-16/' + shardName;
 
-                await pythonLoaderLocal.providePackageFile([shardPath]);
+                await _providePackageFile([shardPath]);
 
                 progress();
             }
-        };
+        }
 
-        pythonLoaderLocal.decodeShards = async function _decodeShards(packageName) {
+        function _loadShardCount(packageName) {
 
-            let decodeFunctions = {};
+            let thisPackage = require(packageName);
+            const thisShardCount = thisPackage.PACKAGE_SHARDS;
+            thisPackage = null;
             
-            decodeFunctions.loadShardCount = function _loadShardCount(myPackageName) {
+            return thisShardCount;
+        }
+        
+        function _loadShardData(myShardName) {
 
-                let thisPackage = require(myPackageName);
-                const thisShardCount = thisPackage.PACKAGE_SHARDS;
-                thisPackage = null;
+            let thisPackage = require(myShardName);
+            const thisShardData = thisPackage.SHARD_DATA;
+            thisPackage = null;
+
+            return thisShardData;
+        }
+
+        function _loadBinary(base64String) {
+
+            let binaryString = atob(base64String);
+            const binaryLength = binaryString.length;
+
+            let binaryArray = new Uint8Array(binaryLength);
+            for(let i = 0; i < binaryLength; i++) {
+
+              binaryArray[i] = binaryString.charCodeAt(i);
+            }
+            binaryString = null;
+            base64String = null;
+
+            return binaryArray;
+        }
+        
+        function _inflateShards(myShardCount, packageName) {
+        
+            let decodePako = require('pako');
+
+            let packageInflator = new decodePako.Inflate();
+
+            for (let i = 0; i < myShardCount; i++) {
+
+                let thisShardName = packageName + '-shard-' + i;
+
+                let thisShardData = _loadShardData(thisShardName);
+                thisShardName = null;
                 
-                return thisShardCount;
+                const thisShardArray = _loadBinary(thisShardData);
+                thisShardData = null;
+
+                packageInflator.push(thisShardArray);
             }
+
+            const inflatorOutput = packageInflator.result;
+            packageInflator = null;
             
-            decodeFunctions.loadShardData = function _loadShardData(myShardName) {
-
-                let thisPackage = require(myShardName);
-                const thisShardData = thisPackage.SHARD_DATA;
-                thisPackage = null;
-
-                return thisShardData;
-            }
-
-            decodeFunctions.loadBinary = function _loadBinary(base64String) {
-
-                let binaryString = atob(base64String);
-                const binaryLength = binaryString.length;
-
-                let binaryArray = new Uint8Array(binaryLength);
-                for(let i = 0; i < binaryLength; i++) {
-
-                  binaryArray[i] = binaryString.charCodeAt(i);
-                }
-                binaryString = null;
-                base64String = null;
-
-                return binaryArray;
-            }
+            return inflatorOutput;            
+        }
+        
+        function _makeShardString(myStringShardData) {
             
-            decodeFunctions.inflateShards = function _inflateShards(myShardCount, myPackageName) {
-            
-                let decodePako = require('pako');
+            const stringCharLimit = 9999;
 
-                let packageInflator = new decodePako.Inflate();
-
-                for (let i = 0; i < myShardCount; i++) {
-
-                    let thisShardName = myPackageName + '-shard-' + i;
-
-                    let thisShardData = decodeFunctions.loadShardData(thisShardName);
-                    thisShardName = null;
-                    
-                    const thisShardArray = decodeFunctions.loadBinary(thisShardData);
-                    thisShardData = null;
-
-                    packageInflator.push(thisShardArray);
-                }
-
-                const inflatorOutput = packageInflator.result;
-                packageInflator = null;
-                
-                return inflatorOutput;            
+            let myInflateString = '';
+            for (let j = 0; j < Math.ceil(myStringShardData.length / stringCharLimit); j++) {
+                let thisStringSlice = myStringShardData.slice( (j * stringCharLimit), (j + 1) * stringCharLimit );
+            	myInflateString += String.fromCharCode.apply( null, new Uint16Array( thisStringSlice ) );
+                thisStringSlice = null;
             }
+            myStringShardData = null;
             
-            decodeFunctions.makeShardString = function _makeShardString(myStringShardData) {
-                
-                const stringCharLimit = 9999;
+            return myInflateString;
+        }
 
-                let myInflateString = '';
-                for (let j = 0; j < Math.ceil(myStringShardData.length / stringCharLimit); j++) {
-                    let thisStringSlice = myStringShardData.slice( (j * stringCharLimit), (j + 1) * stringCharLimit );
-                	myInflateString += String.fromCharCode.apply( null, new Uint16Array( thisStringSlice ) );
-                    thisStringSlice = null;
-                }
-                myStringShardData = null;
-                
-                return myInflateString;
-            }
+        async function _decodeShards(packageName) {
 
             progress();
 
-            let shardCount = decodeFunctions.loadShardCount(packageName);
-            let inflatedShards = decodeFunctions.inflateShards(shardCount, packageName);
+            let shardCount = _loadShardCount(packageName);
+            let inflatedShards = _inflateShards(shardCount, packageName);
             
             progress();
             
@@ -428,7 +424,7 @@ def dcp_run(
                 const shardStart = i * stringChunkLength;
 
                 let stringShardData = inflatedShards.slice(shardStart, shardStart + stringChunkLength);
-                let inflateString = decodeFunctions.makeShardString(stringShardData);
+                let inflateString = _makeShardString(stringShardData);
                 stringShardData = null;
 
                 packageString = packageString + inflateString;
@@ -437,149 +433,114 @@ def dcp_run(
             inflatedShards = null;
             
             progress();
-            
-            for (key in decodeFunctions) {
-                if (decodeFunctions.hasOwnProperty(key)) {
-                    decodeFunctions[key] = null;
-                }
-            }
-            decodeFunctions = null;
 
-            eval(packageString);
-            if (packageName == 'pyodide') {
-                await languagePluginLoader;
-                self.pyodide._module.checkABI = () => { return true };
-            }
-            packageString = null;
-        };
-
-        pythonLoaderLocal.deshardPackage = async function _deshardPackage(packageName, newPackage = true) {
-            
-            if (newPackage) await pythonLoaderLocal.downloadShards(packageName);
-            
-            //TODO: only initialize previously loaded packages if they rely on CLAPACK or _srotg
-            //if (newPackage || (packageName != 'pyodide')) await pythonLoaderLocal.decodeShards(packageName);
-            
-            await pythonLoaderLocal.decodeShards(packageName);
-        };
-
-        pythonLoaderLocal.setupPython = function _setupPython(packageList = []) {
-
-            self.loadedPyodidePackages = {};
-
-            pythonLoaderLocal.deshardPackage('pyodide');
-
-            progress();
-
-            pythonLoaderLocal.deshardPackage('cloudpickle');
-
-            progress();
-
-            for (i = 0; i < packageList.length; i++) {
-
-                pythonLoaderLocal.deshardPackage(packageList[i]);
-
-                progress();
-            }
-        };
-
-        try {
-
-            const startTime = Date.now();
-
-            progress(0);
-
-            let downloadPyodide = (typeof pyodide == 'undefined');
-            await pythonLoaderLocal.deshardPackage('pyodide', downloadPyodide);
-            self.loadedPyodidePackages = downloadPyodide ? {} : self.loadedPyodidePackages;
-
-            progress();
-
-            let downloadCloudpickle = !(self.loadedPyodidePackages.hasOwnProperty('cloudpickle'));
-            await pythonLoaderLocal.deshardPackage('cloudpickle', downloadCloudpickle);
-            self.loadedPyodidePackages['cloudpickle'] = true;
-
-            progress();
-
-            let pythonPackageCount = pythonPackages.length;
-
-            for (i = 0; i < pythonPackageCount; i++) {
-
-                let packageName = pythonPackages[i];
-
-                let downloadPackage = !(self.loadedPyodidePackages.hasOwnProperty(packageName));
-                await pythonLoaderLocal.deshardPackage(packageName, downloadPackage);
-                self.loadedPyodidePackages[packageName] = true;
-
-                progress();
-            }
-            
-            for (key in pythonLoaderLocal) {
-                if (pythonLoaderLocal.hasOwnProperty(key)) {
-                    pythonLoaderLocal[key] = null;
-                }
-            }
-            pythonLoaderLocal = null;
-
-            pyodide.globals.set('input_imports', pythonImports);
-            pyodide.globals.set('input_modules', pythonModules);
-
-            await pyodide.runPythonAsync(pythonInitWorker);
-
-            await pyodide.runPythonAsync(pythonFunction[1]); //function.code
-
-            if ( (pythonParameters.dcpDataAddress) && (pythonParameters.dcpDataNames) ) {
-                
-              if (!self.pythonArgsCache) {
-              
-                let loaderPath = pythonParameters.dcpDataAddress;
-                let shardLoader = await require(loaderPath + '.js');
-
-                self.pythonArgsCache = [];
-                for (let i = 0; i < pythonParameters.dcpDataNames.length; i++) {
-
-                    let shardPath = pythonParameters.dcpDataNames[i];
-
-                    let thisShard = await shardLoader.load(shardPath);
-
-                    self.pythonArgsCache.push(thisShard);
-                }
-                self.pythonArgsCache = self.pythonArgsCache.join('');
-              }
-              
-              pythonParameters = self.pythonArgsCache;
-            }
-            
-            pyodide.globals.set('input_data', pythonData.data);
-            pyodide.globals.set('input_parameters', pythonParameters);
-            pyodide.globals.set('input_function', pythonFunction[0]); //function.name
-
-            await pyodide.runPythonAsync(pythonComputeWorker);
-
-            progress();
-
-            const stopTime = ((Date.now() - startTime) / 1000).toFixed(2);
-            
-            pythonParameters = [];
-            pythonFunction = [];
-            pythonModules = [];
-            pythonPackages = [];
-            pythonImports = [];
-            pythonData.data = [];
-            
-            progress(1);
-
-            return {
-                output: pyodide.globals.get('output_data'),
-                index: pythonData.index,
-                elapsed: stopTime
-            };
-
-        } catch (e) {
-
-            throw(e);
+            return packageString;
         }
-    }`;
+
+        const startTime = Date.now();
+
+        progress(0);
+
+        let downloadPyodide = (typeof pyodide == 'undefined');
+        if (downloadPyodide) await _downloadShards('pyodide');
+        self.loadedPyodidePackages = downloadPyodide ? {} : self.loadedPyodidePackages;
+        let pyodideString = await _decodeShards('pyodide');
+        eval('' + pyodideString);
+        pyodideString = null;
+
+        await languagePluginLoader;
+        self.pyodide._module.checkABI = () => { return true };
+
+        progress();
+
+        let downloadCloudpickle = !(self.loadedPyodidePackages.hasOwnProperty('cloudpickle'));
+        if (downloadCloudpickle) await _downloadShards('cloudpickle');
+        self.loadedPyodidePackages['cloudpickle'] = true;
+        let cloudString = await _decodeShards('cloudpickle');
+        eval('' + cloudString);
+        cloudString = null;
+
+        progress();
+
+        let pythonPackageCount = pythonPackages.length;
+        for (i = 0; i < pythonPackageCount; i++) {
+
+            let myPackageName = pythonPackages[i];
+
+            let downloadPackage = !(self.loadedPyodidePackages.hasOwnProperty(myPackageName));
+            if (downloadPackage) await _downloadShards('' + myPackageName);
+            self.loadedPyodidePackages[myPackageName] = true;
+            let myPackageString = await _decodeShards('' + myPackageName);
+            eval('' + myPackageString);
+            myPackageString = null;
+        }
+
+        progress();
+
+        _providePackageFile = null;
+        _getShardCount = null;
+        _downloadShards = null;
+        _loadShardCount = null;
+        _loadShardData = null;
+        _loadBinary = null;
+        _inflateShards = null;
+        _makeShardString = null;
+        _decodeShards = null;
+
+        pyodide.globals.set('input_imports', pythonImports);
+        pyodide.globals.set('input_modules', pythonModules);
+
+        await pyodide.runPythonAsync(pythonInitWorker);
+
+        await pyodide.runPythonAsync(pythonFunction[1]); //function.code
+
+        if ( (pythonParameters.dcpDataAddress) && (pythonParameters.dcpDataNames) ) {
+            
+          if (!self.pythonArgsCache) {
+          
+            let loaderPath = pythonParameters.dcpDataAddress;
+            let shardLoader = await require(loaderPath + '.js');
+
+            self.pythonArgsCache = [];
+            for (let i = 0; i < pythonParameters.dcpDataNames.length; i++) {
+
+                let shardPath = pythonParameters.dcpDataNames[i];
+
+                let thisShard = await shardLoader.load(shardPath);
+
+                self.pythonArgsCache.push(thisShard);
+            }
+            self.pythonArgsCache = self.pythonArgsCache.join('');
+          }
+          
+          pythonParameters = self.pythonArgsCache;
+        }
+        
+        pyodide.globals.set('input_data', pythonData.data);
+        pyodide.globals.set('input_parameters', pythonParameters);
+        pyodide.globals.set('input_function', pythonFunction[0]); //function.name
+
+        await pyodide.runPythonAsync(pythonComputeWorker);
+
+        progress();
+
+        const stopTime = ((Date.now() - startTime) / 1000).toFixed(2);
+        
+        pythonParameters = [];
+        pythonFunction = [];
+        pythonModules = [];
+        pythonPackages = [];
+        pythonImports = [];
+        pythonData.data = [];
+        
+        progress(1);
+
+        return {
+            output: pyodide.globals.get('output_data'),
+            index: pythonData.index,
+            elapsed: stopTime
+        };
+    };
 
         let jobData = dcp_input;
         let jobMultiplier = dcp_multiplier;
