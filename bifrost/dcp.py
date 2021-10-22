@@ -287,7 +287,7 @@ def dcp_run(
         
         let pythonLoaderLocal = {};
 
-        pythonLoaderLocal.providePackageFile = async function providePackageFile(packageNameArray) {
+        pythonLoaderLocal.providePackageFile = async function _providePackageFile(packageNameArray) {
 
             return await new Promise((resolve, reject) => {
 
@@ -305,7 +305,7 @@ def dcp_run(
             });
         };
 
-        pythonLoaderLocal.getShardCount = async function getShardCount(packageName) {
+        pythonLoaderLocal.getShardCount = async function _getShardCount(packageName) {
 
             const entryPath = 'aitf-' + packageName + '-16/' + packageName
 
@@ -318,7 +318,7 @@ def dcp_run(
             return shardCount;
         };
 
-        pythonLoaderLocal.downloadShards = async function downloadShards(packageName) {
+        pythonLoaderLocal.downloadShards = async function _downloadShards(packageName) {
 
             progress();
 
@@ -335,7 +335,7 @@ def dcp_run(
             }
         };
 
-        pythonLoaderLocal.decodeShards = async function decodeShards(packageName) {
+        pythonLoaderLocal.decodeShards = async function _decodeShards(packageName) {
 
             let decodeFunctions = {};
             
@@ -405,30 +405,30 @@ def dcp_run(
                 
                 return inflatorOutput;            
             }
-
-            progress();
-
-            let shardCount = _loadShardCount(packageName);
-            let inflatedShards = _inflateShards(shardCount, packageName);
-            
-            progress();
-            
-            const stringChunkLength = Math.ceil(inflatedShards.length / shardCount);
             
             decodeFunctions.makeShardString = function _makeShardString(myStringShardData) {
                 
                 const stringCharLimit = 9999;
 
-                const inflateString = '';
+                let myInflateString = '';
                 for (let j = 0; j < Math.ceil(myStringShardData.length / stringCharLimit); j++) {
                     let thisStringSlice = myStringShardData.slice( (j * stringCharLimit), (j + 1) * stringCharLimit );
-                	inflateString += String.fromCharCode.apply( null, new Uint16Array( thisStringSlice ) );
+                	myInflateString += String.fromCharCode.apply( null, new Uint16Array( thisStringSlice ) );
                     thisStringSlice = null;
                 }
                 myStringShardData = null;
                 
-                return inflateString;
+                return myInflateString;
             }
+
+            progress();
+
+            let shardCount = decodeFunctions.loadShardCount(packageName);
+            let inflatedShards = decodeFunctions.inflateShards(shardCount, packageName);
+            
+            progress();
+            
+            const stringChunkLength = Math.ceil(inflatedShards.length / shardCount);
             
             let finalString = '';
             for (let i = 0; i < shardCount; i++) {
@@ -456,7 +456,7 @@ def dcp_run(
             return finalString;
         };
 
-        pythonLoaderLocal.initializePyodide = async function initializePyodide(packageString) {
+        pythonLoaderLocal.initializePyodide = async function _initializePyodide(packageString) {
 
             eval(packageString);
             packageString = null;
@@ -465,7 +465,7 @@ def dcp_run(
             self.pyodide._module.checkABI = () => { return true };
         };
 
-        pythonLoaderLocal.initializePackage = async function initializePackage(packageString) {
+        pythonLoaderLocal.initializePackage = async function _initializePackage(packageString) {
 
             let packageFunction = new Function(packageString);
             packageString = null;
@@ -475,7 +475,7 @@ def dcp_run(
             return true;
         };
 
-        pythonLoaderLocal.deshardPackage = async function deshardPackage(packageName, newPackage = true) {
+        pythonLoaderLocal.deshardPackage = async function _deshardPackage(packageName, newPackage = true) {
 
             //TODO: only initialize previously loaded packages if they rely on CLAPACK or _srotg
             
@@ -493,7 +493,7 @@ def dcp_run(
             packageString = null;
         };
 
-        pythonLoaderLocal.setupPython = function setupPython(packageList = []) {
+        pythonLoaderLocal.setupPython = function _setupPython(packageList = []) {
 
             self.loadedPyodidePackages = {};
 
