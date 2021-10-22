@@ -337,7 +337,9 @@ def dcp_run(
 
         pythonLoaderLocal.decodeShards = async function decodeShards(packageName) {
 
-            function _loadShardCount(myPackageName) {
+            let decodeFunctions = {};
+            
+            decodeFunctions.loadShardCount = function _loadShardCount(myPackageName) {
 
                 let thisPackage = require(myPackageName);
                 const thisShardCount = thisPackage.PACKAGE_SHARDS;
@@ -346,7 +348,7 @@ def dcp_run(
                 return thisShardCount;
             }
             
-            function _loadShardData(myShardName) {
+            decodeFunctions.loadShardData = function _loadShardData(myShardName) {
 
                 let thisPackage = require(myShardName);
                 const thisShardData = thisPackage.SHARD_DATA;
@@ -355,7 +357,7 @@ def dcp_run(
                 return thisShardData;
             }
 
-            function _loadBinary(base64String) {
+            decodeFunctions.loadBinary = function _loadBinary(base64String) {
 
                 let binaryString = atob(base64String);
                 const binaryLength = binaryString.length;
@@ -371,7 +373,7 @@ def dcp_run(
                 return binaryArray;
             }
             
-            function _combineStringArray(myStringArray) {
+            decodeFunctions.combineStringArray = function _combineStringArray(myStringArray) {
             
                 const combinedString = myStringArray.join('');
                 myStringArray = null;
@@ -379,7 +381,7 @@ def dcp_run(
                 return combinedString;
             }
             
-            function _inflateShards(myShardCount, myPackageName) {
+            decodeFunctions.inflateShards = function _inflateShards(myShardCount, myPackageName) {
             
                 let decodePako = require('pako');
 
@@ -389,10 +391,10 @@ def dcp_run(
 
                     let thisShardName = myPackageName + '-shard-' + i;
 
-                    let thisShardData = _loadShardData(thisShardName);
+                    let thisShardData = decodeFunctions.loadShardData(thisShardName);
                     thisShardName = null;
                     
-                    const thisShardArray = _loadBinary(thisShardData);
+                    const thisShardArray = decodeFunctions.loadBinary(thisShardData);
                     thisShardData = null;
 
                     packageInflator.push(thisShardArray);
@@ -413,33 +415,43 @@ def dcp_run(
             
             const stringChunkLength = Math.ceil(inflatedShards.length / shardCount);
             
-            let inflateArray = new Array(shardCount);
+            decodeFunctions.makeShardString = function _makeShardString(myStringShardData) {
+                
+                const stringCharLimit = 9999;
+
+                const inflateString = '';
+                for (let j = 0; j < Math.ceil(myStringShardData.length / stringCharLimit); j++) {
+                    let thisStringSlice = myStringShardData.slice( (j * stringCharLimit), (j + 1) * stringCharLimit );
+                	inflateString += String.fromCharCode.apply( null, new Uint16Array( thisStringSlice ) );
+                    thisStringSlice = null;
+                }
+                myStringShardData = null;
+                
+                return inflateString;
+            }
+            
+            let finalString = '';
             for (let i = 0; i < shardCount; i++) {
 
                 const shardStart = i * stringChunkLength;
 
                 let stringShardData = inflatedShards.slice(shardStart, shardStart + stringChunkLength);
-                
-                const stringCharLimit = 9999;
-
-                let inflateString = '';
-                for (let j = 0; j < Math.ceil(stringShardData.length / stringCharLimit); j++) {
-
-                    let stringSlice = stringShardData.slice( (j * stringCharLimit), (j + 1) * stringCharLimit );
-                    
-                	inflateString += String.fromCharCode.apply( null, new Uint16Array( stringSlice ) );
-                    stringSlice = null;
-                }
+                let inflateString = decodeFunctions.makeShardString(stringShardData);
                 stringShardData = null;
 
-                inflateArray[i] = inflateString;
+                finalString = finalString + inflateString;
+                inflateString = null;
             }
             inflatedShards = null;
             
             progress();
-
-            const finalString = _combineStringArray(inflateArray);
-            inflateArray = null;
+            
+            for (key in decodeFunctions) {
+                if (decodeFunctions.hasOwnProperty(key)) {
+                    decodeFunctions[key] = null;
+                }
+            }
+            decodeFunctions = null;
 
             return finalString;
         };
@@ -532,6 +544,11 @@ def dcp_run(
                 progress();
             }
             
+            for (key in pythonLoaderLocal) {
+                if (pythonLoaderLocal.hasOwnProperty(key)) {
+                    pythonLoaderLocal[key] = null;
+                }
+            }
             pythonLoaderLocal = null;
 
             pyodide.globals.set('input_imports', pythonImports);
