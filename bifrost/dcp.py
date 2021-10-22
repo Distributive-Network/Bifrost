@@ -444,11 +444,6 @@ def dcp_run(
                 }
             }
             decodeFunctions = null;
-            if (_loadShardCount) _loadShardCount = null;
-            if (_loadShardData) _loadShardData = null;
-            if (_loadBinary) _loadBinary = null;
-            if (_inflateShards) _inflateShards = null;
-            if (_makeShardString) _makeShardString = null;
 
             return finalString;
         };
@@ -545,14 +540,6 @@ def dcp_run(
                 }
             }
             pythonLoaderLocal = null;
-            if (_providePackageFile) _providePackageFile = null;
-            if (_getShardCount) _getShardCount = null;
-            if (_downloadShards) _downloadShards = null;
-            if (_decodeShards) _decodeShards = null;
-            if (_initializePyodide) _initializePyodide = null;
-            if (_initializePackage) _initializePackage = null;
-            if (_deshardPackage) _deshardPackage = null;
-            if (_setupPython) _setupPython = null;
 
             pyodide.globals.set('input_imports', pythonImports);
             pyodide.globals.set('input_modules', pythonModules);
