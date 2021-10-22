@@ -373,14 +373,6 @@ def dcp_run(
                 return binaryArray;
             }
             
-            decodeFunctions.combineStringArray = function _combineStringArray(myStringArray) {
-            
-                const combinedString = myStringArray.join('');
-                myStringArray = null;
-                
-                return combinedString;
-            }
-            
             decodeFunctions.inflateShards = function _inflateShards(myShardCount, myPackageName) {
             
                 let decodePako = require('pako');
@@ -452,45 +444,48 @@ def dcp_run(
                 }
             }
             decodeFunctions = null;
+            if (_loadShardCount) _loadShardCount = null;
+            if (_loadShardData) _loadShardData = null;
+            if (_loadBinary) _loadBinary = null;
+            if (_inflateShards) _inflateShards = null;
+            if (_makeShardString) _makeShardString = null;
 
             return finalString;
         };
 
-        pythonLoaderLocal.initializePyodide = async function _initializePyodide(packageString) {
+        pythonLoaderLocal.initializePyodide = async function _initializePyodide() {
 
-            eval(packageString);
+            let packageString = await pythonLoaderLocal.decodeShards('pyodide');
+            let pyodideReturn = eval(packageString);
             packageString = null;
 
             await languagePluginLoader;
             self.pyodide._module.checkABI = () => { return true };
+            pyodideReturn = null;
         };
 
-        pythonLoaderLocal.initializePackage = async function _initializePackage(packageString) {
+        pythonLoaderLocal.initializePackage = async function _initializePackage(packageName) {
 
+            let packageString = await pythonLoaderLocal.decodeShards(packageName);
             let packageFunction = new Function(packageString);
             packageString = null;
 
             await packageFunction();
-
-            return true;
+            packageFunction = null;
         };
 
-        pythonLoaderLocal.deshardPackage = async function _deshardPackage(packageName, newPackage = true) {
-
-            //TODO: only initialize previously loaded packages if they rely on CLAPACK or _srotg
+        pythonLoaderLocal.deshardPackage = function _deshardPackage(packageName, newPackage = true) {
             
             if (newPackage) {
-                await pythonLoaderLocal.downloadShards(packageName);
+                pythonLoaderLocal.downloadShards(packageName);
             }
-
-            let packageString = await pythonLoaderLocal.decodeShards(packageName);
-
+            
+            //TODO: only initialize previously loaded packages if they rely on CLAPACK or _srotg
             if (packageName == 'pyodide') {
-                await pythonLoaderLocal.initializePyodide(packageString);
+                pythonLoaderLocal.initializePyodide();
             } else {
-                await pythonLoaderLocal.initializePackage(packageString);
+                pythonLoaderLocal.initializePackage('pyodide');
             }
-            packageString = null;
         };
 
         pythonLoaderLocal.setupPython = function _setupPython(packageList = []) {
@@ -550,6 +545,14 @@ def dcp_run(
                 }
             }
             pythonLoaderLocal = null;
+            if (_providePackageFile) _providePackageFile = null;
+            if (_getShardCount) _getShardCount = null;
+            if (_downloadShards) _downloadShards = null;
+            if (_decodeShards) _decodeShards = null;
+            if (_initializePyodide) _initializePyodide = null;
+            if (_initializePackage) _initializePackage = null;
+            if (_deshardPackage) _deshardPackage = null;
+            if (_setupPython) _setupPython = null;
 
             pyodide.globals.set('input_imports', pythonImports);
             pyodide.globals.set('input_modules', pythonModules);
