@@ -459,7 +459,7 @@ def dcp_run(
             
             //TODO: only initialize previously loaded packages if they rely on CLAPACK or _srotg
             // currently re-initializing all python packages that are not the core pyodide package
-            if (newPackage && (packageName != 'pyodide')) await pythonLoaderLocal.decodeShards(packageName);
+            if (newPackage || (packageName != 'pyodide')) await pythonLoaderLocal.decodeShards(packageName);
         };
 
         pythonLoaderLocal.setupPython = function _setupPython(packageList = []) {
