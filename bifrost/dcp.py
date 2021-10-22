@@ -446,7 +446,7 @@ def dcp_run(
             decodeFunctions = null;
 
             eval(packageString);
-            if (packageName == 'pyodide) {
+            if (packageName == 'pyodide') {
                 await languagePluginLoader;
                 self.pyodide._module.checkABI = () => { return true };
             }
