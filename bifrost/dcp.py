@@ -479,7 +479,7 @@ def dcp_run(
             if (packageName == 'pyodide') {
                 pythonLoaderLocal.initializePyodide();
             } else {
-                pythonLoaderLocal.initializePackage('pyodide');
+                pythonLoaderLocal.initializePackage(packageName);
             }
         };
 
