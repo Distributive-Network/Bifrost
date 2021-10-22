@@ -469,17 +469,15 @@ def dcp_run(
             packageFunction = null;
         };
 
-        pythonLoaderLocal.deshardPackage = function _deshardPackage(packageName, newPackage = true) {
+        pythonLoaderLocal.deshardPackage = async function _deshardPackage(packageName, newPackage = true) {
             
-            if (newPackage) {
-                pythonLoaderLocal.downloadShards(packageName);
-            }
+            if (newPackage) await pythonLoaderLocal.downloadShards(packageName);
             
             //TODO: only initialize previously loaded packages if they rely on CLAPACK or _srotg
             if (packageName == 'pyodide') {
-                pythonLoaderLocal.initializePyodide();
+                await pythonLoaderLocal.initializePyodide();
             } else {
-                pythonLoaderLocal.initializePackage(packageName);
+                await pythonLoaderLocal.initializePackage(packageName);
             }
         };
 
