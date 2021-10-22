@@ -422,7 +422,7 @@ def dcp_run(
             
             const stringChunkLength = Math.ceil(inflatedShards.length / shardCount);
             
-            let finalString = '';
+            let packageString = '';
             for (let i = 0; i < shardCount; i++) {
 
                 const shardStart = i * stringChunkLength;
@@ -431,7 +431,7 @@ def dcp_run(
                 let inflateString = decodeFunctions.makeShardString(stringShardData);
                 stringShardData = null;
 
-                finalString = finalString + inflateString;
+                packageString = packageString + inflateString;
                 inflateString = null;
             }
             inflatedShards = null;
@@ -445,28 +445,12 @@ def dcp_run(
             }
             decodeFunctions = null;
 
-            return finalString;
-        };
-
-        pythonLoaderLocal.initializePyodide = async function _initializePyodide() {
-
-            let packageString = await pythonLoaderLocal.decodeShards('pyodide');
-            let pyodideReturn = eval(packageString);
+            eval(packageString);
+            if (packageName == 'pyodide) {
+                await languagePluginLoader;
+                self.pyodide._module.checkABI = () => { return true };
+            }
             packageString = null;
-
-            await languagePluginLoader;
-            self.pyodide._module.checkABI = () => { return true };
-            pyodideReturn = null;
-        };
-
-        pythonLoaderLocal.initializePackage = async function _initializePackage(packageName) {
-
-            let packageString = await pythonLoaderLocal.decodeShards(packageName);
-            let packageFunction = new Function(packageString);
-            packageString = null;
-
-            await packageFunction();
-            packageFunction = null;
         };
 
         pythonLoaderLocal.deshardPackage = async function _deshardPackage(packageName, newPackage = true) {
@@ -474,11 +458,7 @@ def dcp_run(
             if (newPackage) await pythonLoaderLocal.downloadShards(packageName);
             
             //TODO: only initialize previously loaded packages if they rely on CLAPACK or _srotg
-            if (packageName == 'pyodide') {
-                await pythonLoaderLocal.initializePyodide();
-            } else {
-                await pythonLoaderLocal.initializePackage(packageName);
-            }
+            await pythonLoaderLocal.decodeShards(packageName);
         };
 
         pythonLoaderLocal.setupPython = function _setupPython(packageList = []) {
