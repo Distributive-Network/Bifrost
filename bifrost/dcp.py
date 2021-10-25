@@ -80,10 +80,18 @@ y_train = np.asarray(list(y_train.items()), dtype = y_dtype)
 
 _output_function = locals()[input_function]
 
+import time
+
+function_start = time.time()
+
 output_data = _output_function(
     _data_unpickled,
     all_train_features,
     y_train,)
+    
+function_stop = time.time()
+
+function_time = function_start - function_stop
 
 #_output_data_pickled = cloudpickle.dumps( _output_data )
 #output_data_encoded = codecs.encode( _output_data_pickled, 'base64' ).decode()
@@ -132,6 +140,7 @@ def dcp_run(
         async function dcpPost(myData, workFunction, sharedArguments, myMultiplier, myLocal) {
 
             const jobStartTime = Date.now();
+            let jobDeployTime;
 
             let jobResults = [...Array(myData.length / myMultiplier)].map(x => []);
 
@@ -191,6 +200,8 @@ def dcp_run(
                     jobFunctions.accepted = function onJobAccepted() {
 
                         console.log('Accepted: ' + job.id);
+                        
+                        jobDeployTime = Date.now();
                     }
 
                     jobFunctions.complete = function onJobConsole(myEvent) {
@@ -200,7 +211,7 @@ def dcp_run(
 
                     jobFunctions.console = function onJobConsole(myConsole) {
 
-                        console.log(myConsole.sliceNumber + ' : ' + myConsole.level, ' : ' + myConsole.message);
+                        //console.log(myConsole.sliceNumber + ' : ' + myConsole.level, ' : ' + myConsole.message);
                     }
 
                     jobFunctions.error = function onJobError(myError) {
@@ -213,10 +224,17 @@ def dcp_run(
                         if (myResult.result.hasOwnProperty('output')) {
 
                             if (jobResults[myResult.result.index].length == 0) {
+                            
+                                let sliceReturnTime = Date.now();
+                                let sliceTotalTime = sliceReturnTime - jobDeployTime;
+                                let sliceNetworkTime = sliceTotalTime - myResult.result.timings.sandbox;
 
+                                myResult.result.timings.total = sliceTotalTime;
+                                myResult.result.timings.network = sliceNetworkTime;
+                                
                                 jobResults[myResult.result.index] = myResult.result.output;
 
-                                jobTimings.push(parseInt(myResult.result.elapsed, 10));
+                                jobTimings.push(myResult.result.timings);
 
                                 let percentComputed = ((jobTimings.length / jobResults.length) * 100).toFixed(2);
                                 console.log('Computed: ' + percentComputed + '%');
@@ -273,18 +291,37 @@ def dcp_run(
             job.removeEventListener('result', jobFunctions.result);
             job.removeEventListener('readystatechange', jobFunctions.readystatechange);
 
-            const averageSliceTime = jobTimings.reduce((a, b) => a + b) / finalResults.length;
+            for (let i = 0; i < jobTimings.length; i++) {
+            
+                jobTimings[i].total = parseInt(jobTimings[i].total, 10);
+                jobTimings[i].sandbox = parseInt(jobTimings[i].sandbox, 10);
+                jobTimings[i].setup = parseInt(jobTimings[i].setup, 10);
+                jobTimings[i].python = parseInt(jobTimings[i].python, 10);
+                jobTimings[i].network = parseInt(jobTimings[i].network, 10);
+            }
+
+            const averageSliceTime = jobTimings.reduce((a, b) => a.total + b.total) / finalResults.length;
+            const averageSandboxTime = jobTimings.reduce((a, b) => a.sandbox + b.sandbox) / finalResults.length;
+            const averageSetupTime = jobTimings.reduce((a, b) => a.setup + b.setup) / finalResults.length;
+            const averagePythonTime = jobTimings.reduce((a, b) => a.python + b.python) / finalResults.length;
+            const averageNetworkTime = jobTimings.reduce((a, b) => a.network + b.network) / finalResults.length;
             const totalJobTime = Date.now() - jobStartTime;
 
             console.log('Total Elapsed Job Time: ' + (totalJobTime / 1000).toFixed(2) + ' s');
-            console.log('Mean Elapsed Worker Time Per Slice: ' + averageSliceTime + ' s');
             console.log('Mean Elapsed Client Time Per Unique Slice: ' + ((totalJobTime / 1000) / finalResults.length).toFixed(2) + ' s');
+            console.log('Mean Elapsed Worker Time Per Slice: ' + averageSliceTime + ' s');
+            console.log('-> Network Time: ' + averageNetworkTime + ' s )');
+            console.log('-> Sandbox Time: ' + averageSandboxTime + ' s )');
+            console.log('---> Pyodide Setup: ' + averageSetupTime + ' s )');
+            console.log('---> Python Function: ' + averagePythonTime + ' s )');
             
             return finalResults;
         }
         
         let jobFunction = `async function(pythonData, pythonParameters, pythonFunction, pythonModules, pythonPackages, pythonImports, pythonInitWorker, pythonComputeWorker) {
         
+        const startTime = Date.now();
+            
         let pythonLoaderLocal = {};
 
         pythonLoaderLocal.providePackageFile = async function _providePackageFile(packageNameArray) {
@@ -485,8 +522,6 @@ def dcp_run(
 
         try {
 
-            const startTime = Date.now();
-
             progress(0);
 
             let downloadPyodide = (typeof pyodide == 'undefined');
@@ -555,10 +590,6 @@ def dcp_run(
             pyodide.globals.set('input_function', pythonFunction[0]); //function.name
 
             await pyodide.runPythonAsync(pythonComputeWorker);
-
-            progress();
-
-            const stopTime = ((Date.now() - startTime) / 1000).toFixed(2);
             
             pythonParameters = [];
             pythonFunction = [];
@@ -566,13 +597,23 @@ def dcp_run(
             pythonPackages = [];
             pythonImports = [];
             pythonData.data = [];
+
+            progress();
+            
+            let sliceTime = ((Date.now() - startTime) / 1000);
+            let pythonTime = pyodide.globals.get('function_time');
+            let setupTime = sliceTime - pythonTime;
             
             progress(1);
 
             return {
                 output: pyodide.globals.get('output_data'),
                 index: pythonData.index,
-                elapsed: stopTime
+                timings: {
+                    sandbox: sliceTime.toFixed(2),
+                    setup: setupTime.toFixed(2),
+                    python: pythonTime.toFixed(2)
+                }
             };
 
         } catch (e) {
