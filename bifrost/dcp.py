@@ -91,7 +91,7 @@ output_data = _output_function(
     
 function_stop = time.time()
 
-function_time = function_start - function_stop
+function_time = function_stop - function_start
 
 #_output_data_pickled = cloudpickle.dumps( _output_data )
 #output_data_encoded = codecs.encode( _output_data_pickled, 'base64' ).decode()
@@ -226,11 +226,11 @@ def dcp_run(
                             if (jobResults[myResult.result.index].length == 0) {
                             
                                 let sliceReturnTime = Date.now();
-                                let sliceTotalTime = sliceReturnTime - jobDeployTime;
+                                let sliceTotalTime = (sliceReturnTime - jobDeployTime) / 1000;
                                 let sliceNetworkTime = sliceTotalTime - myResult.result.timings.sandbox;
 
-                                myResult.result.timings.total = sliceTotalTime;
-                                myResult.result.timings.network = sliceNetworkTime;
+                                myResult.result.timings.total = sliceTotalTime.toFixed(2);
+                                myResult.result.timings.network = sliceNetworkTime.toFixed(2);
                                 
                                 jobResults[myResult.result.index] = myResult.result.output;
 
