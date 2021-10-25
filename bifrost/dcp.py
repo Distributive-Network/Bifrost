@@ -291,29 +291,38 @@ def dcp_run(
             job.removeEventListener('result', jobFunctions.result);
             job.removeEventListener('readystatechange', jobFunctions.readystatechange);
 
+            let finalTimings = {
+                total: 0,
+                sandbox: 0,
+                setup: 0,
+                python: 0,
+                network: 0,
+            }
+            
             for (let i = 0; i < jobTimings.length; i++) {
             
-                jobTimings[i].total = parseInt(jobTimings[i].total, 10);
-                jobTimings[i].sandbox = parseInt(jobTimings[i].sandbox, 10);
-                jobTimings[i].setup = parseInt(jobTimings[i].setup, 10);
-                jobTimings[i].python = parseInt(jobTimings[i].python, 10);
-                jobTimings[i].network = parseInt(jobTimings[i].network, 10);
+                finalTimings.total = finalTimings.total + parseInt(jobTimings[i].total, 10);
+                finalTimings.sandbox = finalTimings.sandbox + parseInt(jobTimings[i].sandbox, 10);
+                finalTimings.setup = finalTimings.setup + parseInt(jobTimings[i].setup, 10);
+                finalTimings.python = finalTimings.python + parseInt(jobTimings[i].python, 10);
+                finalTimings.network = finalTimings.network + parseInt(jobTimings[i].network, 10);
             }
 
-            const averageSliceTime = jobTimings.reduce((a, b) => a.total + b.total) / finalResults.length;
-            const averageSandboxTime = jobTimings.reduce((a, b) => a.sandbox + b.sandbox) / finalResults.length;
-            const averageSetupTime = jobTimings.reduce((a, b) => a.setup + b.setup) / finalResults.length;
-            const averagePythonTime = jobTimings.reduce((a, b) => a.python + b.python) / finalResults.length;
-            const averageNetworkTime = jobTimings.reduce((a, b) => a.network + b.network) / finalResults.length;
+            const averageSliceTime = finalTimings.total / finalResults.length;
+            const averageSandboxTime = finalTimings.sandbox / finalResults.length;
+            const averageSetupTime = finalTimings.setup / finalResults.length;
+            const averagePythonTime = finalTimings.python / finalResults.length;
+            const averageNetworkTime = finalTimings.network / finalResults.length;
+            
             const totalJobTime = Date.now() - jobStartTime;
 
             console.log('Total Elapsed Job Time: ' + (totalJobTime / 1000).toFixed(2) + ' s');
             console.log('Mean Elapsed Client Time Per Unique Slice: ' + ((totalJobTime / 1000) / finalResults.length).toFixed(2) + ' s');
-            console.log('Mean Elapsed Worker Time Per Slice: ' + averageSliceTime + ' s');
-            console.log('-> Network Time: ' + averageNetworkTime + ' s )');
-            console.log('-> Sandbox Time: ' + averageSandboxTime + ' s )');
-            console.log('---> Pyodide Setup: ' + averageSetupTime + ' s )');
-            console.log('---> Python Function: ' + averagePythonTime + ' s )');
+            console.log('Mean Elapsed Worker Time Per Slice: ' + averageSliceTime.toFixed(2) + ' s');
+            console.log('-> Network Time: ' + averageNetworkTime.toFixed(2) + ' s )');
+            console.log('-> Sandbox Time: ' + averageSandboxTime.toFixed(2) + ' s )');
+            console.log('---> Pyodide Setup: ' + averageSetupTime.toFixed(2) + ' s )');
+            console.log('---> Python Function: ' + averagePythonTime.toFixed(2) + ' s )');
             
             return finalResults;
         }
@@ -610,6 +619,8 @@ def dcp_run(
                 output: pyodide.globals.get('output_data'),
                 index: pythonData.index,
                 timings: {
+                    total: '',
+                    network: '',
                     sandbox: sliceTime.toFixed(2),
                     setup: setupTime.toFixed(2),
                     python: pythonTime.toFixed(2)
