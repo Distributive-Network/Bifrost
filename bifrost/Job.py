@@ -104,14 +104,14 @@ class Job:
 
     def __dcp_run(self):
 
-        work_function = self.__function_writer(self.work_function)
-
-        work_arguments_encoded = self.__pickle_jar(self.work_arguments)
-        work_arguments_encoded = self.__input_encoder(self.work_arguments)
-
-        python_modules = {}
-        for module_name in self.python_imports:
-            python_modules[module_name] = self.__module_writer(module_name)
+        if self.node_js == True:
+            work_arguments_encoded = self.__input_encoder(self.work_arguments)
+        else:
+            work_arguments_encoded = self.__pickle_jar(self.work_arguments)
+            work_function = self.__function_writer(self.work_function)
+            python_modules = {}
+            for module_name in self.python_imports:
+                python_modules[module_name] = self.__module_writer(module_name)
 
         input_set_encoded = []
         for slice_index, input_slice in enumerate(self.input_set):
@@ -140,6 +140,9 @@ class Job:
             'dcp_local': self.local_cores,
             'dcp_groups': self.compute_groups,
             'dcp_public': self.public,
+            'dcp_requirements': self.requirements,
+            'dcp_debug': self.debug,
+            'dcp_node_js': self.node_js,
             'python_init_worker': dcp_init_worker,
             'python_compute_worker': dcp_compute_worker,
             'python_parameters': work_arguments_encoded,
@@ -149,7 +152,7 @@ class Job:
             'python_imports': python_imports,
         }
 
-        node_output = node.run('./dcp.js', run_parameters)
+        node_output = node.run_file('deployJob.js', run_parameters)
 
         result_set = node_output['jobOutput']
 

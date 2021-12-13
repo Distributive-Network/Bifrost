@@ -27,19 +27,21 @@
 
         job.debug = dcp_debug;
 
-        job.requirements.discrete = dcp_discrete;
+        job.requirements = dcp_requirements;
 
         // set module requirements for python job
-        job.requires('aitf-compress/pako');
-        job.requires('aitf-pyodide-16/pyodide');
-        job.requires('aitf-cloudpickle-16/cloudpickle');
-
-        for (let i = 0; i < python_packages.length; i++)
+        if (dcp_node_js == false)
         {
-          let thisPackageName = python_packages[i];
-          let thisPackagePath = 'aitf-' + thisPackageName + '-16/' + thisPackageName;
-          job.requires(thisPackagePath);
+          for (let i = 0; i < python_packages.length; i++)
+          {
+            let thisPackageName = python_packages[i];
+            let thisPackagePath = 'aitf-' + thisPackageName + '-16/' + thisPackageName;
+            job.requires(thisPackagePath);
+          }
+          job.requires('aitf-pyodide-16/pyodide');
+          job.requires('aitf-cloudpickle-16/cloudpickle');
         }
+        job.requires('aitf-compress/pako');
 
         let jobFunctions = {
             accepted: () => {},

@@ -303,5 +303,3 @@ async function workFunction(
         throw(e);
     }
 }
-
-exports.workFunction = workFunction;
