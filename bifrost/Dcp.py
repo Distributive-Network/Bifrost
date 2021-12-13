@@ -8,12 +8,14 @@ class Dcp:
         self.interactive_js = False
 
     def compute_do(self, n, work_function, work_arguments = []): # n is a mandatory argument, in conflict with spec at docs.dcp.dev
-        job = Job(list(range(n)), work_function, work_arguments = work_arguments, self.scheduler)
+        job = Job(list(range(n)), work_function, work_arguments = work_arguments)
+        job.scheduler = self.scheduler
         job.range_object_input = True
         return job
 
     def compute_for(self, input_set, work_function, work_arguments = []):
-        job = Job(input_set, work_function, work_arguments = work_arguments, self.scheduler)
+        job = Job(input_set, work_function, work_arguments = work_arguments)
+        job.scheduler = self.scheduler
         return job
 
     class Url: # Temporary Implementation

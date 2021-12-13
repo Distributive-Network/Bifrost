@@ -6,7 +6,7 @@ import random
 
 class Job:
 
-    def __init__(self, input_set, work_function, work_arguments = [], scheduler = 'https://scheduler.distributed.computer'):
+    def __init__(self, input_set, work_function, work_arguments = []):
 
         # mandatory job arguments
         self.input_set = input_set
@@ -34,7 +34,7 @@ class Job:
             'link': False,
         }
         self.context_id = False # Not Used
-        self.scheduler = scheduler # TODO
+        self.scheduler = 'https://scheduler.distributed.computer' # TODO
         self.bank = False # Not Used
 
         # additional job properties
