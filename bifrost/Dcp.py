@@ -28,7 +28,7 @@ class Dcp:
 
         def __init__(self, url_list):
             remote_data_set = []
-            for (url_string in url_list):
+            for url_string in url_list:
                 url_object = Url(url_string)
                 remote_data_set.append(url_object)
             self.remote_data_set = remote_data_pattern
@@ -38,7 +38,7 @@ class Dcp:
 
         def __init__(self, url_string, url_count):
             remote_data_pattern = []
-            for (n in range(url_count)):
+            for n in range(url_count):
                 url_object = Url(url_string + str(n))
                 remote_data_pattern.append(url_object)
             self.remote_data_pattern = remote_data_pattern
