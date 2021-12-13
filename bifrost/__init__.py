@@ -26,4 +26,5 @@ if isnotebook():
 else:
     from .py_nodejs import npm, node
 
-from .dcp import dcp
+from .Dcp import Dcp
+dcp = Dcp()

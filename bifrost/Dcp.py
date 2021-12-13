@@ -5,9 +5,11 @@ class Dcp:
     def __init__(self, scheduler_url = 'https://scheduler.distributed.computer'):
         self.scheduler = scheduler_url
         self.market_rate = 0.0001465376
+        self.interactive_js = False
 
     def compute_do(self, n, work_function, work_arguments = []): # n is a mandatory argument, in conflict with spec at docs.dcp.dev
         job = Job(list(range(n)), work_function, work_arguments = work_arguments, self.scheduler)
+        job.range_object_input = True
         return job
 
     def compute_for(self, input_set, work_function, work_arguments = []):

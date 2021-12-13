@@ -1,3 +1,5 @@
+from .Work import Work
+
 import cloudpickle
 import codecs
 import random
@@ -65,6 +67,7 @@ class Job:
         self.python_imports = []
         self.nodejs = False
         self.shuffle = False
+        self.range_object_input = False
 
     def __input_encoder(input_data):
 
@@ -120,6 +123,46 @@ class Job:
             random.shuffle(job_input)
 
         return job_input
+
+    def dcp_run(
+        job_input,
+        job_arguments,
+        job_function,
+        job_packages,
+        job_groups,
+        job_imports,
+        job_modules,
+        job_public,
+        job_multiplier,
+        job_local,
+        job_nodejs,
+    ):
+
+        work = Work()
+
+        dcp_init_worker = work.dcp_init_worker
+        dcp_compute_worker = work.dcp_compute_worker
+
+        run_parameters = {
+            'dcp_data': job_input,
+            'dcp_multiplier': job_multiplier,
+            'dcp_local': job_local,
+            'dcp_groups': job_groups,
+            'dcp_public': job_public,
+            'python_init_worker': dcp_init_worker,
+            'python_compute_worker': dcp_compute_worker,
+            'python_parameters': job_arguments,
+            'python_function': job_function,
+            'python_packages': job_packages,
+            'python_modules': job_modules,
+            'python_imports': job_imports,
+        }
+
+        node_output = node.run('./dcp.js', run_parameters)
+
+        job_output = _node_output['jobOutput']
+        
+        return job_output
 
     def __js_deploy(self): # Under Construction
 
