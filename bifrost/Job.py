@@ -91,27 +91,27 @@ class Job:
         with open(module_filename, 'rb') as module:
             module_data = module.read()
 
-        module_encoded = __input_encoder( module_data )
+        module_encoded = self.__input_encoder( module_data )
 
         return module_encoded
 
     def __pickle_jar(self, input_data):
 
         data_pickled = cloudpickle.dumps( input_data )
-        data_encoded = __input_encoder( data_pickled )
+        data_encoded = self.__input_encoder( data_pickled )
 
         return data_encoded
 
     def __dcp_run(self):
 
-        work_function = __function_writer(self.work_function)
+        work_function = self.__function_writer(self.work_function)
 
-        work_arguments_encoded = __pickle_jar(self.work_arguments)
-        work_arguments_encoded = __input_encoder(self.work_arguments)
+        work_arguments_encoded = self.__pickle_jar(self.work_arguments)
+        work_arguments_encoded = self.__input_encoder(self.work_arguments)
 
         python_modules = {}
         for module_name in self.python_imports:
-            python_modules[module_name] = __module_writer(module_name)
+            python_modules[module_name] = self.__module_writer(module_name)
 
         input_set_encoded = []
         for slice_index, input_slice in enumerate(self.input_set):
@@ -121,9 +121,9 @@ class Job:
             }
             if (self.range_object_input == False):
                 if (self.node_js == False):
-                    input_slice_encoded = __pickle_jar(input_slice)
+                    input_slice_encoded = self.__pickle_jar(input_slice)
                 else:
-                    input_slice_encoded = __input_encoder(input_slice)
+                    input_slice_encoded = self.__input_encoder(input_slice)
                 slice_object['data'] = input_slice_encoded
             input_set_encoded.append(slice_object)
 
@@ -183,11 +183,11 @@ class Job:
             self.payment_account = payment_account
         if ( initial_slice_profile != False ):
             self.initial_slice_profile = initial_slice_profile     
-        self.results = __dcp_run(self)
+        self.results = self.__dcp_run(self)
 
     def local_exec(self, local_cores = 1):
         self.local_cores = local_cores
-        self.results = __dcp_run(self)
+        self.results = self.__dcp_run(self)
 
     def set_slice_payment_offer(self, slice_payment_offer):
         self.slice_payment_offer = slice_payment_offer
