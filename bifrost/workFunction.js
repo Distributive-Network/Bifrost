@@ -291,12 +291,13 @@ async function workFunction(
         
         progress(1);
 
-        return
-        {
+        let resultObject = {
             output: pyodide.globals.get('output_data'),
             index: pythonData.index,
-            elapsed: stopTime
+            elapsed: stopTime,
         };
+
+        return resultObject;        
     }
     catch (e)
     {
