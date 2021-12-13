@@ -15,12 +15,12 @@ class Job:
 
         # standard job properties
         self.requirements = { 'discrete': False }
-        self.initial_slice_profile = {} # Not Used
+        self.initial_slice_profile = False # Not Used
         self.slice_payment_offer = False # TODO
         self.payment_account = False # TODO
         self.requires = []
-        self.require_path = [] # Not Used
-        self.module_path = [] # Not Used
+        self.require_path = False # Not Used
+        self.module_path = False # Not Used
         self.collate_results = True
         self.status = { # Not Used
             'run_status': False,
@@ -69,13 +69,13 @@ class Job:
         self.shuffle = False
         self.range_object_input = False
 
-    def __input_encoder(input_data):
+    def __input_encoder(self, input_data):
 
         data_encoded = codecs.encode( input_data, 'base64' ).decode()
 
         return data_encoded
 
-    def __function_writer(function):
+    def __function_writer(self, function):
 
         import inspect
 
@@ -84,7 +84,7 @@ class Job:
 
         return [function_name, function_code]
 
-    def __module_writer(module_name):
+    def __module_writer(self, module_name):
 
         module_filename = module_name + '.py'
 
@@ -95,154 +95,72 @@ class Job:
 
         return module_encoded
 
-    def __pickle_jar(input_data):
+    def __pickle_jar(self, input_data):
 
         data_pickled = cloudpickle.dumps( input_data )
         data_encoded = __input_encoder( data_pickled )
 
         return data_encoded
 
-    def __dcp_run(self): # Under Construction
-
-        job_slices = _dcp_slices
-        job_function = _dcp_function
-        job_arguments = _dcp_arguments
-        job_packages = _dcp_packages
-        job_groups = _dcp_groups
-        job_imports = _dcp_imports
-        job_public = _dcp_public
-        job_local = _dcp_local
-        job_multiplier = _dcp_multiplier
-        job_nodejs = _dcp_nodejs
-                
-        job_input = []
-        for i in range(job_multiplier):
-            job_input.extend(job_slices_encoded)
-
-        if self.shuffle == True:
-            random.shuffle(job_input)
-
-        return job_input
-
-    def dcp_run(
-        job_input,
-        job_arguments,
-        job_function,
-        job_packages,
-        job_groups,
-        job_imports,
-        job_modules,
-        job_public,
-        job_multiplier,
-        job_local,
-        job_nodejs,
-    ):
+    def __dcp_run(self):
 
         work = Work()
 
         dcp_init_worker = work.dcp_init_worker
         dcp_compute_worker = work.dcp_compute_worker
 
+        work_function = __function_writer(self.work_function)
+
+        work_arguments_encoded = __pickle_jar(self.work_arguments)
+        work_arguments_encoded = __input_encoder(self.work_arguments)
+
+        python_modules = {}
+        for module_name in self.python_imports:
+            python_modules[module_name] = __module_writer(module_name)
+
+        input_set_encoded = []
+        for slice_index, input_slice in enumerate(self.input_set):
+            slice_object = {
+                'index': slice_index,
+                'data': False,
+            }
+            if (self.range_object_input == False):
+                if (self.node_js == False):
+                    input_slice_encoded = __pickle_jar(input_slice)
+                else:
+                    input_slice_encoded = __input_encoder(input_slice)
+                slice_object['data'] = input_slice_encoded
+            input_set_encoded.append(slice_object)
+
+        job_input = []
+        for i in range(self.job_multiplier):
+            job_input.extend(self.input_set_encoded)
+
+        if self.shuffle == True:
+            random.shuffle(job_input)
+
         run_parameters = {
             'dcp_data': job_input,
-            'dcp_multiplier': job_multiplier,
-            'dcp_local': job_local,
-            'dcp_groups': job_groups,
-            'dcp_public': job_public,
+            'dcp_multiplier': self.multiplier,
+            'dcp_local': self.local_cores,
+            'dcp_groups': self.compute_groups,
+            'dcp_public': self.public,
             'python_init_worker': dcp_init_worker,
             'python_compute_worker': dcp_compute_worker,
-            'python_parameters': job_arguments,
-            'python_function': job_function,
-            'python_packages': job_packages,
-            'python_modules': job_modules,
-            'python_imports': job_imports,
+            'python_parameters': work_arguments_encoded,
+            'python_function': work_function,
+            'python_packages': self.requires,
+            'python_modules': python_modules,
+            'python_imports': python_imports,
         }
 
         node_output = node.run('./dcp.js', run_parameters)
 
-        job_output = _node_output['jobOutput']
+        result_set = node_output['jobOutput']
+
+        self.result_set = result_set
         
-        return job_output
-
-    def __js_deploy(self): # Under Construction
-
-        """
-        self.input_set
-        self.work_function
-        self.work_arguments
-        self.requires
-        self.compute_groups
-        self.python_imports
-        self.public
-        self.local_cores
-        self.multiplier
-        """
-
-        job_arguments = __input_encoder(_job_arguments)
-
-        job_slices_encoded = []
-        for block_index, block_slice in enumerate(job_slices):
-
-            block_slice_encoded = __input_encoder(block_slice)
-
-            job_slices_encoded.append({
-                'index': block_index,
-                'data': block_slice_encoded })
-
-        job_results = __dcp_run(
-            job_input,
-            job_arguments,
-            job_function,
-            job_packages,
-            job_groups,
-            job_public,
-            job_multiplier,
-            job_local,
-        )
-
-    def __py_deploy(self): # Under Construction
-
-        """
-        self.input_set
-        self.work_function
-        self.work_arguments
-        self.requires
-        self.compute_groups
-        self.python_imports
-        self.public
-        self.local_cores
-        self.multiplier
-        """
-
-        job_modules = {}
-        for module_name in job_imports:
-            job_modules[module_name] = __module_writer(module_name)
-
-        job_function = __function_writer(job_function)
-
-        job_arguments = __pickle_jar(job_arguments)
-
-        job_slices_encoded = []
-        for block_index, block_slice in enumerate(job_slices):
-
-            block_slice_encoded = __pickle_jar(block_slice)
-
-            job_slices_encoded.append({
-                'index': block_index,
-                'data': block_slice_encoded })
-
-        job_results = __dcp_run(
-            job_input,
-            job_arguments,
-            job_function,
-            job_packages,
-            job_groups,
-            job_imports,
-            job_modules,
-            job_public,
-            job_multiplier,
-            job_local,
-        )
+        return result_set
 
     def on(self, event_name, event_function):
         self.events[event_name] = event_function
@@ -264,11 +182,14 @@ class Job:
         self.events[event_name] = event_function
 
     def exec(self, slice_payment_offer = self.slice_payment_offer, payment_account = self.payment_account, initial_slice_profile = self.initial_slice_profile):
-        self.results = job_deploy(self)
+        self.slice_payment_offer = slice_payment_offer
+        self.payment_account = payment_account
+        self.initial_slice_profile = initial_slice_profile
+        self.results = __dcp_run(self)
 
     def local_exec(self, local_cores = 1):
         self.local_cores = local_cores
-        self.results = job_deploy(self)
+        self.results = __dcp_run(self)
 
     def set_slice_payment_offer(self, slice_payment_offer):
         self.slice_payment_offer = slice_payment_offer
