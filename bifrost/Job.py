@@ -176,10 +176,13 @@ class Job:
     def on(self, event_name, event_function):
         self.events[event_name] = event_function
 
-    def exec(self, slice_payment_offer = self.slice_payment_offer, payment_account = self.payment_account, initial_slice_profile = self.initial_slice_profile):
-        self.slice_payment_offer = slice_payment_offer
-        self.payment_account = payment_account
-        self.initial_slice_profile = initial_slice_profile
+    def exec(self, slice_payment_offer = False, payment_account = False, initial_slice_profile = False):
+        if ( slice_payment_offer != False ):
+            self.slice_payment_offer = slice_payment_offer
+        if ( payment_account != False ):
+            self.payment_account = payment_account
+        if ( initial_slice_profile != False ):
+            self.initial_slice_profile = initial_slice_profile     
         self.results = __dcp_run(self)
 
     def local_exec(self, local_cores = 1):
