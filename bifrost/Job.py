@@ -1,4 +1,4 @@
-from .Work import Work
+from .Work import dcp_init_worker, dcp_compute_worker
 
 import cloudpickle
 import codecs
@@ -103,11 +103,6 @@ class Job:
         return data_encoded
 
     def __dcp_run(self):
-
-        work = Work()
-
-        dcp_init_worker = work.dcp_init_worker
-        dcp_compute_worker = work.dcp_compute_worker
 
         work_function = __function_writer(self.work_function)
 
