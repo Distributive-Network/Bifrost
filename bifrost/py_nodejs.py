@@ -176,7 +176,7 @@ class Node():
 
         script = Path(filename).read_text()
         
-        vars = run(script, vars, timeout)
+        vars = self.run(script, vars, timeout)
 
         return vars
 
