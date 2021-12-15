@@ -142,7 +142,7 @@ class Job:
             input_set_encoded.append(slice_object)
 
         job_input = []
-        for i in range(self.job_multiplier):
+        for i in range(self.multiplier):
             job_input.extend(self.input_set_encoded)
 
         if self.shuffle == True:
