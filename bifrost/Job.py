@@ -209,11 +209,15 @@ class Job:
             self.payment_account = payment_account
         if ( initial_slice_profile != False ):
             self.initial_slice_profile = initial_slice_profile     
-        self.results = self.__dcp_run()
+        results = self.__dcp_run()
+        self.results = results
+        return results
 
     def local_exec(self, local_cores = 1):
         self.local_cores = local_cores
-        self.results = self.__dcp_run()
+        results = self.__dcp_run()
+        self.results = results
+        return results
 
     def set_slice_payment_offer(self, slice_payment_offer):
         self.slice_payment_offer = slice_payment_offer
