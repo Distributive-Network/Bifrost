@@ -100,9 +100,12 @@ js_deploy_job = """
                     }
                     else if (dcp_remote_storage_location && myResult.result.hasOwnProperty('href'))
                     {
-                        if (jobResults[myResult.result.index].length == 0)
+                        let remoteResultString = '/result/'
+                        let remoteResultIndex = myResult.result.href.indexOf(remoteResultString);
+                        let remoteResultSlice = myResult.result.href.slice(remoteResultIndex + remoteResultString.length);
+                        if (jobResults[remoteResultSlice].length == 0)
                         {
-                            jobResults[myResult.result.index] = myResult.result.href;
+                            jobResults[remoteResultSlice] = myResult.result.href;
 
                             jobTimings.push(0);
                         }
