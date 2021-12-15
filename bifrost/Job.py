@@ -117,7 +117,7 @@ class Job:
     def __dcp_run(self):
 
         if self.node_js == True:
-            work_arguments_encoded = self.__input_encoder(self.work_arguments)
+            work_arguments_encoded = self.work_arguments # self.__input_encoder(self.work_arguments)
             work_function_encoded = self.work_function # TODO: adapt __function_writer for Node.js files
             work_imports_encoded = {}
         else:
@@ -137,7 +137,7 @@ class Job:
                 if (self.node_js == False):
                     input_slice_encoded = self.__pickle_jar(input_slice)
                 else:
-                    input_slice_encoded = self.__input_encoder(input_slice)
+                    input_slice_encoded = input_slice # self.__input_encoder(input_slice)
                 slice_object['data'] = input_slice_encoded
             input_set_encoded.append(slice_object)
 
