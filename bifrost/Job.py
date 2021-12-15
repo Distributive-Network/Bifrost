@@ -1,5 +1,8 @@
 from .Work import dcp_init_worker, dcp_compute_worker
 
+from js_deploy_job import js_deploy_job
+from js_work_function import js_work_function
+
 import cloudpickle
 import codecs
 import random
@@ -151,6 +154,7 @@ class Job:
             random.shuffle(job_input)
 
         run_parameters = {
+            'deploy_function': js_work_function,
             'dcp_data': job_input,
             'dcp_parameters': work_arguments_encoded,
             'dcp_function': work_function_encoded,
@@ -168,7 +172,7 @@ class Job:
             'python_compute_worker': dcp_compute_worker,
         }
 
-        node_output = node.run_file('deployJob.js', run_parameters)
+        node_output = node.run(js_deploy_job, run_parameters)
 
         result_set = node_output['jobOutput']
 
