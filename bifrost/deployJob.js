@@ -157,7 +157,7 @@
     let jobLocal = dcp_local;
 
     let jobFunction;
-    let jobParameters = [];
+    let jobParameters;
     if (dcp_node_js == false)
     {
         jobFunction = require('./workFunction').workFunction;

@@ -116,6 +116,8 @@ class Job:
 
     def __dcp_run(self):
 
+        from bifrost import node
+
         if self.node_js == True:
             work_arguments_encoded = self.work_arguments # self.__input_encoder(self.work_arguments)
             work_function_encoded = self.work_function # TODO: adapt __function_writer for Node.js files
