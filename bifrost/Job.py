@@ -1,7 +1,7 @@
 from .Work import dcp_init_worker, dcp_compute_worker
 
-from js_deploy_job import js_deploy_job
-from js_work_function import js_work_function
+from .js_deploy_job import js_deploy_job
+from .js_work_function import js_work_function
 
 import cloudpickle
 import codecs
