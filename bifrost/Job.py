@@ -63,7 +63,7 @@ class Job:
             'console': False,
             'error': False,
             'readystatechange': False,
-            'result': False,
+            'result': True,
         }
 
         # bifrost internal job properties

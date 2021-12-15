@@ -118,10 +118,9 @@ js_deploy_job = """
                     }
                 }
 
-                job.on('result', eventFunctions['result']);
                 for ( event in dcp_events )
                 {
-                    if (eventFunctions[event]) job.on(event, eventFunctions[event]);
+                    if (dcp_events[event] == true) job.on(event, eventFunctions[event]);
                 }
 
                 if ( myLocal > 0 )
@@ -137,10 +136,9 @@ js_deploy_job = """
 
         let finalResults = await dcpPromise();
 
-        job.removeEventListener('result', eventFunctions['result']);
         for ( event in dcp_events )
         {
-            job.removeEventListener(event, eventFunctions[event]);
+            if (dcp_events[event] == true) job.removeEventListener(event, eventFunctions[event]);
         }
 
         const averageSliceTime = jobTimings.reduce((a, b) => a + b) / finalResults.length;
