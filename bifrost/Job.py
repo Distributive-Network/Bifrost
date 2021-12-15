@@ -143,7 +143,7 @@ class Job:
 
         job_input = []
         for i in range(self.multiplier):
-            job_input.extend(self.input_set_encoded)
+            job_input.extend(input_set_encoded)
 
         if self.shuffle == True:
             random.shuffle(job_input)
