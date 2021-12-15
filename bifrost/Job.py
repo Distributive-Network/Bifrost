@@ -78,13 +78,25 @@ class Job:
     def __function_writer(self, function):
 
         import inspect
+        import re
 
-        function_name = function.__name__
-        function_code = inspect.getsource(function)
+        try:
+            # function code is locally retrievable source code
+            function_name = function.__name__    
+            function_code = inspect.getsource(function)
+        except: # OSError
+            try:
+                # function code is in a .py file in the current directory
+                function_name = function
+                function_code = Path(function_name).read_text()
+            except: # FileNotFoundError
+                # function code is already represented as a string
+                function_name = re.findall("def (.+?)\s?\(", function)[0]
+                function_code = function
+        finally:
+            return [function_name, function_code]
 
-        return [function_name, function_code]
-
-    def __module_writer(self, module_name):
+    def __module_writer(self, module_name): # TODO: Reconcile with Path().read_text() functionality elsewhere
 
         module_filename = module_name + '.py'
 
@@ -106,12 +118,14 @@ class Job:
 
         if self.node_js == True:
             work_arguments_encoded = self.__input_encoder(self.work_arguments)
+            work_function_encoded = self.work_function # TODO: adapt __function_writer for Node.js files
+            work_imports_encoded = {}
         else:
             work_arguments_encoded = self.__pickle_jar(self.work_arguments)
-            work_function = self.__function_writer(self.work_function)
-            python_modules = {}
+            work_function_encoded = self.__function_writer(self.work_function)
+            work_imports_encoded = {}
             for module_name in self.python_imports:
-                python_modules[module_name] = self.__module_writer(module_name)
+                work_imports_encoded[module_name] = self.__module_writer(module_name)
 
         input_set_encoded = []
         for slice_index, input_slice in enumerate(self.input_set):
@@ -136,6 +150,8 @@ class Job:
 
         run_parameters = {
             'dcp_data': job_input,
+            'dcp_parameters': work_arguments_encoded,
+            'dcp_function': work_function_encoded,
             'dcp_multiplier': self.multiplier,
             'dcp_local': self.local_cores,
             'dcp_groups': self.compute_groups,
@@ -143,13 +159,11 @@ class Job:
             'dcp_requirements': self.requirements,
             'dcp_debug': self.debug,
             'dcp_node_js': self.node_js,
+            'python_packages': self.requires,
+            'python_modules': work_imports_encoded,
+            'python_imports': self.python_imports,
             'python_init_worker': dcp_init_worker,
             'python_compute_worker': dcp_compute_worker,
-            'python_parameters': work_arguments_encoded,
-            'python_function': work_function,
-            'python_packages': self.requires,
-            'python_modules': python_modules,
-            'python_imports': python_imports,
         }
 
         node_output = node.run_file('deployJob.js', run_parameters)

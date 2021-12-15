@@ -14,9 +14,9 @@
 
         let inputSet = [];
         myData.forEach(x => {
-          let myItem = Object.fromEntries(Object.entries(x));
-          inputSet.push(myItem);
-          return [];
+            let myItem = Object.fromEntries(Object.entries(x));
+            inputSet.push(myItem);
+            return [];
         });
 
         let job = compute.for(inputSet, workFunction, sharedArguments);
@@ -32,18 +32,18 @@
         // set module requirements for python job
         if (dcp_node_js == false)
         {
-          for (let i = 0; i < python_packages.length; i++)
-          {
-            let thisPackageName = python_packages[i];
-            let thisPackagePath = 'aitf-' + thisPackageName + '-16/' + thisPackageName;
-            job.requires(thisPackagePath);
-          }
-          job.requires('aitf-pyodide-16/pyodide');
-          job.requires('aitf-cloudpickle-16/cloudpickle');
+            for (let i = 0; i < python_packages.length; i++)
+            {
+                let thisPackageName = python_packages[i];
+                let thisPackagePath = 'aitf-' + thisPackageName + '-16/' + thisPackageName;
+                job.requires(thisPackagePath);
+            }
+            job.requires('aitf-pyodide-16/pyodide');
+            job.requires('aitf-cloudpickle-16/cloudpickle');
         }
         job.requires('aitf-compress/pako');
 
-        let jobFunctions = {
+        let eventFunctions = {
             accepted: () => {},
             complete: () => {},
             console: () => {},
@@ -56,32 +56,32 @@
         {
             return new Promise(function(resolve, reject)
             {
-                jobFunctions.accepted = function onJobAccepted()
+                eventFunctions.accepted = function onJobAccepted()
                 {
                     console.log('Accepted: ' + job.id);
                 }
 
-                jobFunctions.complete = function onJobConsole(myEvent)
+                eventFunctions.complete = function onJobConsole(myEvent)
                 {
                     console.log('Complete: ' + job.id);
                 }
 
-                jobFunctions.console = function onJobConsole(myConsole)
+                eventFunctions.console = function onJobConsole(myConsole)
                 {
                     console.log(myConsole.sliceNumber + ' : ' + myConsole.level, ' : ' + myConsole.message);
                 }
 
-                jobFunctions.error = function onJobError(myError)
+                eventFunctions.error = function onJobError(myError)
                 {
                     console.log(myError.sliceNumber + ' : error : ' + myError.message);
                 }
 
-                jobFunctions.readystatechange = function onJobReadyStateChange(myStateChange)
+                eventFunctions.readystatechange = function onJobReadyStateChange(myStateChange)
                 {
                     console.log(myStateChange);
                 }
 
-                jobFunctions.result = function onJobResult(myResult)
+                eventFunctions.result = function onJobResult(myResult)
                 {
                     if (myResult.result.hasOwnProperty('output'))
                     {
@@ -92,7 +92,7 @@
                             jobTimings.push(parseInt(myResult.result.elapsed, 10));
 
                             let percentComputed = ((jobTimings.length / jobResults.length) * 100).toFixed(2);
-                            console.log('Computed: ' + percentComputed + '%');
+                            console.log('Computed : ' + percentComputed + '%');
                             
                             console.log('Result :', myResult.result);
                         }
@@ -117,10 +117,10 @@
                     }
                 }
 
-                job.on('result', jobFunctions['result']);
+                job.on('result', eventFunctions['result']);
                 for ( event in dcp_events )
                 {
-                    if (jobFunctions[event]) job.on(event, jobFunctions[event]);
+                    if (eventFunctions[event]) job.on(event, eventFunctions[event]);
                 }
 
                 if ( myLocal > 0 )
@@ -136,10 +136,10 @@
 
         let finalResults = await dcpPromise();
 
-        job.removeEventListener('result', jobFunctions['result']);
+        job.removeEventListener('result', eventFunctions['result']);
         for ( event in dcp_events )
         {
-            job.removeEventListener(event, jobFunctions[event]);
+            job.removeEventListener(event, eventFunctions[event]);
         }
 
         const averageSliceTime = jobTimings.reduce((a, b) => a + b) / finalResults.length;
@@ -151,22 +151,57 @@
         
         return finalResults;
     }
-    
-    let jobFunction = require('./workFunction').workFunction;
 
     let jobData = dcp_data;
     let jobMultiplier = dcp_multiplier;
     let jobLocal = dcp_local;
 
-    let jobParameters = [
-        python_parameters,
-        python_function,
-        python_modules,
-        python_packages,
-        python_imports,
-        python_init_worker,
-        python_compute_worker
-    ];
+    let jobFunction;
+    let jobParameters = [];
+    if (dcp_node_js == false)
+    {
+        jobFunction = require('./workFunction').workFunction;
+
+        jobParameters = [
+            dcp_parameters,
+            dcp_function,
+            python_modules,
+            python_packages,
+            python_imports,
+            python_init_worker,
+            python_compute_worker
+        ];
+    }
+    else
+    {
+        jobFunction = `async function(sliceData, sliceParameters)
+        {
+            try
+            {
+                const startTime = Date.now();
+                progress(0);
+                await console.log('Starting worker function for slice ' + sliceData.index + ' at ' + startTime + '...');
+                let sliceFunction = ${dcp_function};
+                let sliceOutput = await sliceFunction(sliceData.data, ...sliceParameters);
+                progress(1);
+                const stopTime = ((Date.now() - startTime) / 1000).toFixed(2);
+                return {
+                    output: sliceOutput,
+                    index: sliceData.index,
+                    elapsed: stopTime
+                };
+            }
+            catch (e)
+            {
+              await console.log(e);
+              throw e;
+            }
+        }`;
+
+        jobParameters = [
+            dcp_parameters,
+        ];
+    }
 
     try
     {

@@ -1,12 +1,12 @@
 async function workFunction(
-    pythonData,// input slice, primary arg to python function
-    pythonParameters,// shared parameters, secondary args to python function
-    pythonFunction,// user-provided python function to be run on input slice
-    pythonModules,// user-provided python module scripts to be imported into environment
-    pythonPackages,// dcp-provided pyodidie packages to be loaded into environment
-    pythonImports,// user-provided list of python import names to be imported into environment
-    pythonInitWorker,// dcp-provided python function to initialize environment
-    pythonComputeWorker,// dpc-provided python function to handle work function
+    sliceData,// input slice, primary arg to user-provided function
+    sliceParameters,// shared parameters, secondary args to user-provided function
+    sliceFunction,// user-provided function to be run on input slice
+    pythonModules = null,// user-provided python module scripts to be imported into environment
+    pythonPackages = null,// dcp-provided pyodidie packages to be loaded into environment
+    pythonImports = null,// user-provided list of python import names to be imported into environment
+    pythonInitWorker = null,// dcp-provided python function to initialize environment
+    pythonComputeWorker = null,// dpc-provided python function to handle work function
 )
 {
     const providePackageFile = async function providePackageFile(packageNameArray)
@@ -270,30 +270,32 @@ async function workFunction(
 
         await pyodide.runPythonAsync(pythonInitWorker);
 
-        await pyodide.runPythonAsync(pythonFunction[1]); //function.code
+        await pyodide.runPythonAsync(sliceFunction[1]); //function.code
         
-        pyodide.globals.set('input_data', pythonData.data);
-        pyodide.globals.set('input_parameters', pythonParameters);
-        pyodide.globals.set('input_function', pythonFunction[0]); //function.name
+        pyodide.globals.set('input_data', sliceData.data);
+        pyodide.globals.set('input_parameters', sliceParameters);
+        pyodide.globals.set('input_function', sliceFunction[0]); //function.name
 
         await pyodide.runPythonAsync(pythonComputeWorker);
 
         progress();
 
+        let sliceOutput = pyodide.globals.get('output_data');
+
         const stopTime = ((Date.now() - startTime) / 1000).toFixed(2);
-        
-        pythonParameters = [];
-        pythonFunction = [];
-        pythonModules = [];
-        pythonPackages = [];
-        pythonImports = [];
-        pythonData.data = [];
+
+        pythonModules = null;
+        pythonPackages = null;
+        pythonImports = null;        
+        sliceParameters = null;
+        pythonFunction = null;
+        sliceData.data = null;
         
         progress(1);
 
         let resultObject = {
-            output: pyodide.globals.get('output_data'),
-            index: pythonData.index,
+            output: sliceOutput,
+            index: sliceData.index,
             elapsed: stopTime,
         };
 
