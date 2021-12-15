@@ -103,12 +103,15 @@ js_deploy_job = """
                         let remoteResultString = '/result/';
                         let remoteResultIndex = myResult.result['href'].indexOf(remoteResultString);
                         let remoteResultSlice = myResult.result['href'].slice(remoteResultIndex + remoteResultString.length);
-                        if (jobResults[remoteResultSlice].length == 0)
+                        console.log('Remote Result :', myResult.result['href'], remoteResultString, remoteResultIndex, remoteResultSlice);
+                        if (jobResults[parseInt(remoteResultSlice, 10) - 1].length == 0)
                         {
-                            jobResults[remoteResultSlice] = myResult.result['href'];
+                            jobResults[parseInt(remoteResultSlice, 10) - 1] = myResult.result['href'];
 
                             jobTimings.push(0);
                         }
+                        console.log('Results Tracking :', jobResults);
+                        console.log('Timings Tracking :', jobTimings);
                     }
 
                     let percentComputed = ((jobTimings.length / jobResults.length) * 100).toFixed(2);
