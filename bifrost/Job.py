@@ -65,7 +65,7 @@ class Job:
 
         # bifrost internal job properties
         self.python_imports = []
-        self.nodejs = False
+        self.node_js = False
         self.shuffle = False
         self.range_object_input = False
 
