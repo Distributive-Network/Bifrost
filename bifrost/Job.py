@@ -165,6 +165,7 @@ class Job:
             'dcp_requirements': self.requirements,
             'dcp_debug': self.debug,
             'dcp_node_js': self.node_js,
+            'dcp_events': self.events,
             'python_packages': self.requires,
             'python_modules': work_imports_encoded,
             'python_imports': self.python_imports,
