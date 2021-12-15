@@ -89,34 +89,37 @@ js_deploy_job = """
 
                 eventFunctions.result = function onJobResult(myResult)
                 {
-                    if (myResult.result.hasOwnProperty('output'))
-                    {
-                        if (jobResults[myResult.result.index].length == 0)
-                        {
-                            jobResults[myResult.result.index] = myResult.result.output;
+                    let resultContent = myResult.result;
 
-                            jobTimings.push(parseInt(myResult.result.elapsed, 10));
+                    if (resultContent.hasOwnProperty('output'))
+                    {
+                        if (jobResults[resultContent.index].length == 0)
+                        {
+                            jobResults[resultContent.index] = resultContent.output;
+
+                            jobTimings.push(parseInt(resultContent.elapsed, 10));
                         }
                     }
-                    else if (myResult.result['href'])
+                    else
                     {
-                        let remoteResultString = '/result/';
-                        let remoteResultIndex = myResult.result['href'].indexOf(remoteResultString);
-                        let remoteResultSlice = myResult.result['href'].slice(remoteResultIndex + remoteResultString.length);
-                        console.log('Remote Result :', myResult.result['href'], remoteResultString, remoteResultIndex, remoteResultSlice);
-                        if (jobResults[parseInt(remoteResultSlice, 10) - 1].length == 0)
+                        resultContent = JSON.parse(resultContent);
+
+                        if (resultContent.hasOwnProperty('href'))
                         {
-                            jobResults[parseInt(remoteResultSlice, 10) - 1] = myResult.result['href'];
+                            let remoteResultString = '/result/';
+                            let remoteResultIndex = resultContent.href.indexOf(remoteResultString);
+                            let remoteResultSlice = resultContent.href.slice(remoteResultIndex + remoteResultString.length);
+                            if (jobResults[parseInt(remoteResultSlice,10) - 1].length == 0)
+                            {
+                                jobResults[parseInt(remoteResultSlice,10) - 1] = resultContent.href;
 
-                            jobTimings.push(0);
+                                jobTimings.push(0);
+                            }
                         }
-                        console.log('Results Tracking :', jobResults);
-                        console.log('Timings Tracking :', jobTimings);
                     }
-
                     let percentComputed = ((jobTimings.length / jobResults.length) * 100).toFixed(2);
                     console.log('Computed : ' + percentComputed + '%');
-                    console.log('Result :', myResult.result);
+                    console.log('Result :', resultContent);
 
                     let emptyIndexArray = jobResults.filter(thisResult => thisResult.length == 0);
                     console.log('Unique Slices Remaining : ' + emptyIndexArray.length);
