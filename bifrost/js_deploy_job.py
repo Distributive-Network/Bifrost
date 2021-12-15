@@ -46,7 +46,7 @@ js_deploy_job = """
 
         if (dcp_remote_storage_location)
         {
-            job.setResultStorage(dcp_remote_storage_location, dcp_remote_storage_params);
+            job.setResultStorage(new URL(dcp_remote_storage_location), dcp_remote_storage_params);
         }
 
         let eventFunctions = {
