@@ -44,6 +44,11 @@ js_deploy_job = """
         }
         job.requires('aitf-compress/pako');
 
+        if (dcp_remote_storage_location)
+        {
+            job.setResultStorage(dcp_remote_storage_location, dcp_remote_storage_params);
+        }
+
         let eventFunctions = {
             accepted: () => {},
             complete: () => {},
@@ -91,30 +96,28 @@ js_deploy_job = """
                             jobResults[myResult.result.index] = myResult.result.output;
 
                             jobTimings.push(parseInt(myResult.result.elapsed, 10));
-
-                            let percentComputed = ((jobTimings.length / jobResults.length) * 100).toFixed(2);
-                            console.log('Computed : ' + percentComputed + '%');
-                            
-                            console.log('Result :', myResult.result);
                         }
-
-                        let emptyIndexArray = jobResults.filter(thisResult => thisResult.length == 0);
-
-                        console.log('Unique Slices Remaining : ' + emptyIndexArray.length);
-
-                        if (emptyIndexArray.length == 0)
+                    }
+                    else if (dcp_remote_storage_location && myResult.result.hasOwnProperty('href'))
+                    {
+                        if (jobResults[myResult.result.index].length == 0)
                         {
+                            jobResults[myResult.result.index] = myResult.result.href;
 
-                            resolve(jobResults);
+                            jobTimings.push(0);
                         }
                     }
-                    else if (myResult.result.hasOwnProperty(''))
+
+                    let percentComputed = ((jobTimings.length / jobResults.length) * 100).toFixed(2);
+                    console.log('Computed : ' + percentComputed + '%');
+                    console.log('Result :', myResult.result);
+
+                    let emptyIndexArray = jobResults.filter(thisResult => thisResult.length == 0);
+                    console.log('Unique Slices Remaining : ' + emptyIndexArray.length);
+
+                    if (emptyIndexArray.length == 0)
                     {
-                        // remote url result || remote null result
-                    }
-                    else
-                    {
-                        console.log('Bad Result : ' + myResult);
+                        resolve(jobResults);
                     }
                 }
 

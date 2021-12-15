@@ -58,7 +58,7 @@ class Job:
 
         # event listener properties
         self.events = {
-            'accept': False,
+            'accepted': False,
             'complete': False,
             'console': False,
             'error': False,
@@ -166,6 +166,8 @@ class Job:
             'dcp_debug': self.debug,
             'dcp_node_js': self.node_js,
             'dcp_events': self.events,
+            'dcp_remote_storage_location': self.remote_storage_location,
+            'dcp_remote_storage_params': self.remote_storage_params,
             'python_packages': self.requires,
             'python_modules': work_imports_encoded,
             'python_imports': self.python_imports,
