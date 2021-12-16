@@ -79,6 +79,12 @@ class Job:
         self.shuffle = False
         self.range_object_input = False
 
+    def __getitem__(self, item):
+        return getattr(self, item)
+
+    def __setitem__(self, item):
+        return setattr(self, item)
+
     def __input_encoder(self, input_data):
 
         data_encoded = codecs.encode( input_data, 'base64' ).decode()
