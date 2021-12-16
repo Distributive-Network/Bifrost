@@ -143,7 +143,7 @@ class Job:
         if self.remote.input_set:
             if self.remote.input_set == 'remote_data_set':
                 input_set_encoded = self.input_set.remote_data_set
-            else if self.remote.input_set == 'url_object':
+            elif self.remote.input_set == 'url_object':
                 input_set_encoded = self.input_set.url_object
             else:
                 input_set_encoded = self.input_set
