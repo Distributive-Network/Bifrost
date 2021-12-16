@@ -32,7 +32,7 @@ class Dcp:
             for url_string in url_list:
                 url_object = url_string # Url(url_string)
                 remote_data_set.append(url_object)
-            self.remote_data_set = remote_data_pattern
+            self.remote_data_set = remote_data_set
 
     class RemoteDataPattern: # Temporary Implementation
 
