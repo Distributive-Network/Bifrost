@@ -56,6 +56,13 @@ class Job:
             'results': False, # string || Url
         }
 
+        # remote data input checks
+        for element in ['input_set', 'work_function', 'work_arguments']:
+            if hasattr(self[element], 'remote_data_set'):
+                self.remote[element] = 'remote_data_set'
+            if hasattr(self[element], 'url_object'):
+                self.remote[element] = 'url_object'
+
         # event listener properties
         self.events = {
             'accepted': False,
@@ -133,18 +140,26 @@ class Job:
                 work_imports_encoded[module_name] = self.__module_writer(module_name)
 
         input_set_encoded = []
-        for slice_index, input_slice in enumerate(self.input_set):
-            slice_object = {
-                'index': slice_index,
-                'data': False,
-            }
-            if (self.range_object_input == False):
-                if (self.node_js == False):
-                    input_slice_encoded = self.__pickle_jar(input_slice)
-                else:
-                    input_slice_encoded = input_slice # self.__input_encoder(input_slice)
-                slice_object['data'] = input_slice_encoded
-            input_set_encoded.append(slice_object)
+        if self.remote.input_set:
+            if self.remote.input_set == 'remote_data_set':
+                input_set_encoded = self.input_set.remote_data_set
+            else if self.remote.input_set == 'url_object':
+                input_set_encoded = self.input_set.url_object
+            else:
+                input_set_encoded = self.input_set
+        else:
+            for slice_index, input_slice in enumerate(self.input_set):
+                slice_object = {
+                    'index': slice_index,
+                    'data': False,
+                }
+                if (self.range_object_input == False):
+                    if (self.node_js == False):
+                        input_slice_encoded = self.__pickle_jar(input_slice)
+                    else:
+                        input_slice_encoded = input_slice # self.__input_encoder(input_slice)
+                    slice_object['data'] = input_slice_encoded
+                input_set_encoded.append(slice_object)
 
         job_input = []
         for i in range(self.multiplier):
@@ -166,6 +181,7 @@ class Job:
             'dcp_debug': self.debug,
             'dcp_node_js': self.node_js,
             'dcp_events': self.events,
+            'dcp_remote_flags': self.remote,
             'dcp_remote_storage_location': self.remote_storage_location,
             'dcp_remote_storage_params': self.remote_storage_params,
             'python_packages': self.requires,

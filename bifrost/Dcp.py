@@ -21,28 +21,25 @@ class Dcp:
     class Url: # Temporary Implementation
 
         def __init__(self, url_string):
-            from urllib.parse import urlparse
-            url_object = urlparse(url_string)
+            # from urllib.parse import urlparse
+            url_object = url_string # urlparse(url_string)
             self.url_object = url_object
-            return url_object
 
     class RemoteDataSet: # Temporary Implementation
 
         def __init__(self, url_list):
             remote_data_set = []
             for url_string in url_list:
-                url_object = Url(url_string)
+                url_object = url_string # Url(url_string)
                 remote_data_set.append(url_object)
             self.remote_data_set = remote_data_pattern
-            return remote_data_set
 
     class RemoteDataPattern: # Temporary Implementation
 
         def __init__(self, url_string, url_count):
-            remote_data_pattern = []
+            remote_data_set = []
             for n in range(url_count):
-                url_object = Url(url_string + str(n))
-                remote_data_pattern.append(url_object)
-            self.remote_data_pattern = remote_data_pattern
-            return remote_data_pattern
+                url_object = url_string + str(n) # Url(url_string + str(n))
+                remote_data_set.append(url_object)
+            self.remote_data_set = remote_data_set
 

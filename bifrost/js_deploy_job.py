@@ -14,11 +14,18 @@ js_deploy_job = """
         let compute = await require('dcp/compute');
 
         let inputSet = [];
-        myData.forEach(x => {
-            let myItem = Object.fromEntries(Object.entries(x));
-            inputSet.push(myItem);
-            return [];
-        });
+        if ( dcp_remote_flags['input_set'] )
+        {
+            inputSet = myData;
+        }
+        else
+        {
+            myData.forEach(x => {
+                let myItem = Object.fromEntries(Object.entries(x));
+                inputSet.push(myItem);
+                return [];
+            });
+        }
 
         let job = compute.for(inputSet, workFunction, sharedArguments);
 
