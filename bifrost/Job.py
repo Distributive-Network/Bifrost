@@ -146,10 +146,10 @@ class Job:
                 work_imports_encoded[module_name] = self.__module_writer(module_name)
 
         input_set_encoded = []
-        if self.remote.input_set:
-            if self.remote.input_set == 'remote_data_set':
+        if self.remote['input_set']:
+            if self.remote['input_set'] == 'remote_data_set':
                 input_set_encoded = self.input_set.remote_data_set
-            elif self.remote.input_set == 'url_object':
+            elif self.remote['input_set'] == 'url_object':
                 input_set_encoded = self.input_set.url_object
             else:
                 input_set_encoded = self.input_set
