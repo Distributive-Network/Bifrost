@@ -1,3 +1,5 @@
+import itertools
+
 from .Job import Job
 
 class Dcp:
@@ -24,6 +26,31 @@ class Dcp:
             # from urllib.parse import urlparse
             url_object = url_string # urlparse(url_string)
             self.url_object = url_object
+
+    class RangeObject: # Temporary Implementation
+
+        # TODO: Implement 'group' support
+        # TODO: Implement 'sparse' support
+        def __init__(self, start, end, step, group = None):
+            slices = []
+            for value in range(start, end, step):
+                slices.append(value)
+            self.slices = slices
+
+    class MultiRangeObject: # Temporary Implementation
+
+        # TODO: Avoid transmitting redundant inputs
+        def __init__(self, ranges):
+            values = []
+            for value in ranges:
+                if isinstance(value,(list,tuple,set)):
+                    values.append(value)
+                else:
+                    values.append([value])
+            slices = []
+            for value in itertools.product(*values):
+                slices.append(list(value))
+            self.slices = slices
 
     class RemoteDataSet: # Temporary Implementation
 
