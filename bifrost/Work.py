@@ -49,8 +49,8 @@ def dcp_compute_worker():
     import codecs
     import cloudpickle
 
-    function_decoded = codecs.decode( input_function.encode(), 'base64' )
-    function_unpickled = cloudpickle.loads( function_decoded )
+    #function_decoded = codecs.decode( input_function.encode(), 'base64' )
+    #function_unpickled = cloudpickle.loads( function_decoded )
 
     parameters_decoded = codecs.decode( input_parameters.encode(), 'base64' )
     parameters_unpickled = cloudpickle.loads( parameters_decoded )
@@ -58,7 +58,10 @@ def dcp_compute_worker():
     data_decoded = codecs.decode( input_data.encode(), 'base64' )
     data_unpickled = cloudpickle.loads( data_decoded )
 
-    output_data = function_unpickled( data_unpickled, **parameters_unpickled )
+    output_function = locals()[input_function]
+
+    #output_data = function_unpickled( data_unpickled, **parameters_unpickled )
+    output_data = output_function( data_unpickled, **parameters_unpickled )
 
     output_data_pickled = cloudpickle.dumps( output_data )
     output_data_encoded = codecs.encode( output_data_pickled, 'base64' ).decode()
