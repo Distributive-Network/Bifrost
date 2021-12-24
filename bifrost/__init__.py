@@ -54,6 +54,7 @@ if isnotebook():
         '''
         This is a hook that will execute when ipython closes.
         '''
+        global node
         node.cancel(restart=False)
         raise TryNext
 
@@ -71,6 +72,8 @@ if isnotebook():
 #When python exists please do the following
 @atexit.register
 def onEnd():
+    global memName
+    global node
 
     #Clean up everything.... Include shm file and mmap stuff.
     try:

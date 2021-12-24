@@ -284,31 +284,3 @@ class Node():
     def clear(self):
         self.cancel()
 
-
-npm = Npm()
-node = Node()
-memName = node.vs.SHARED_MEMORY_NAME
-
-#When python exists please do the following
-@atexit.register
-def onEnd():
-    global memName
-    global node
-
-    #Clean up everything.... Include shm file and mmap stuff.
-    try:
-        if hasattr(node, 'process'):
-            os.kill(node.process.pid, signal.SIGSTOP)
-    except:
-        print("Could not kill process. May already be dead.")
-    try:
-        if hasattr(node, 'nstdproc'):
-            node.nstdproc.stop()
-    except:
-        print("Could not stop nstdproc. May already be dead.")
-
-    posix_ipc.unlink_shared_memory(memName)
-    print("Memory map has been destroyed")
-
-
-
