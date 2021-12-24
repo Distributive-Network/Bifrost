@@ -87,6 +87,8 @@ class Job:
         self.node_js = False
         self.shuffle = False
         self.range_object_input = False
+        self.python_init = dcp_init_worker
+        self.python_compute = dcp_compute_worker
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -180,8 +182,8 @@ class Job:
         if self.shuffle == True:
             random.shuffle(job_input)
 
-        dcp_init_source = inspect.getsource(dcp_init_worker)
-        dcp_compute_source = inspect.getsource(dcp_compute_worker)
+        python_init_source = inspect.getsource(self.python_init)
+        python_compute_source = inspect.getsource(self.python_compute)
 
         run_parameters = {
             'deploy_function': js_work_function,
@@ -202,8 +204,8 @@ class Job:
             'python_packages': self.requires,
             'python_modules': work_imports_encoded,
             'python_imports': self.python_imports,
-            'python_init_worker': dcp_init_source,
-            'python_compute_worker': dcp_compute_source,
+            'python_init_worker': python_init_source,
+            'python_compute_worker': python_compute_source,
         }
 
         node_output = node.run(js_deploy_job, run_parameters)
