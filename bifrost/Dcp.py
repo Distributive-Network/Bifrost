@@ -37,6 +37,12 @@ class Dcp:
                 slices.append(value)
             self.slices = slices
 
+        def __getitem__(self, item):
+            return getattr(self, item)
+
+        def __setitem__(self, item):
+            return setattr(self, item)
+
     class MultiRangeObject: # Temporary Implementation
 
         # TODO: Avoid transmitting redundant inputs
@@ -51,6 +57,12 @@ class Dcp:
             for value in itertools.product(*values):
                 slices.append(list(value))
             self.slices = slices
+
+        def __getitem__(self, item):
+            return getattr(self, item)
+
+        def __setitem__(self, item):
+            return setattr(self, item)
 
     class RemoteDataSet: # Temporary Implementation
 

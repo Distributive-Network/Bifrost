@@ -56,12 +56,18 @@ class Job:
             'results': False, # string || Url
         }
 
+        # TODO: Move the input checks to top of __init__, and check input attributes directly instead of checking self
+
         # remote data input checks
         for element in ['input_set', 'work_function', 'work_arguments']:
             if hasattr(self[element], 'remote_data_set'):
                 self.remote[element] = 'remote_data_set'
             if hasattr(self[element], 'url_object'):
                 self.remote[element] = 'url_object'
+
+        # range object input checks
+        if hasattr(self.input_set, 'slices'):
+            self.input_set = self.input_set.slices
 
         # event listener properties
         self.events = {
