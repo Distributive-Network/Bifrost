@@ -7,6 +7,9 @@ import cloudpickle
 import codecs
 import random
 
+import inspect
+import re
+
 class Job:
 
     def __init__(self, input_set, work_function, work_arguments = []):
@@ -99,9 +102,6 @@ class Job:
 
     def __function_writer(self, function):
 
-        import inspect
-        import re
-
         try:
             # function code is locally retrievable source code
             function_name = function.__name__    
@@ -180,6 +180,9 @@ class Job:
         if self.shuffle == True:
             random.shuffle(job_input)
 
+        dcp_init_source = inspect.getsource(dcp_init_worker)
+        dcp_compute_source = inspect.getsource(dcp_compute_worker)
+
         run_parameters = {
             'deploy_function': js_work_function,
             'dcp_data': job_input,
@@ -199,8 +202,8 @@ class Job:
             'python_packages': self.requires,
             'python_modules': work_imports_encoded,
             'python_imports': self.python_imports,
-            'python_init_worker': dcp_init_worker,
-            'python_compute_worker': dcp_compute_worker,
+            'python_init_worker': dcp_init_source,
+            'python_compute_worker': dcp_compute_source,
         }
 
         node_output = node.run(js_deploy_job, run_parameters)
