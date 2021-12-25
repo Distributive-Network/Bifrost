@@ -16,7 +16,7 @@ js_deploy_job = """
         let inputSet = [];
         if ( dcp_remote_flags['input_set'] )
         {
-            inputSet = myData;
+            inputSet = new compute.RemoteDataSet(myData);
         }
         else
         {
@@ -25,6 +25,22 @@ js_deploy_job = """
                 inputSet.push(myItem);
                 return [];
             });
+        }
+
+        if ( dcp_debug )
+        {
+            console.log('inputSet');
+            for (let i = 0; i < inputSet.length; i++)
+            {
+                console.log(JSON.stringify(inputSet[i]));
+            }
+            console.log('sharedArguments');
+            for (let i = 0; i < sharedArguments.length; i++)
+            {
+                console.log(JSON.stringify(sharedArguments[i]));
+            }
+            console.log('workFunction');
+            console.log(workFunction);
         }
 
         let job = compute.for(inputSet, workFunction, sharedArguments);
@@ -176,6 +192,7 @@ js_deploy_job = """
 
     let jobFunction;
     let jobParameters;
+
     if (dcp_node_js == false)
     {
         jobFunction = deploy_function;

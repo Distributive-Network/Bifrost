@@ -87,8 +87,11 @@ class Job:
         self.node_js = False
         self.shuffle = False
         self.range_object_input = False
+
+        # work wrapper functions
         self.python_init = dcp_init_worker
         self.python_compute = dcp_compute_worker
+        self.python_wrapper = js_work_function
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -186,7 +189,7 @@ class Job:
         python_compute_source = inspect.getsource(self.python_compute)
 
         run_parameters = {
-            'deploy_function': js_work_function,
+            'deploy_function': self.python_wrapper,
             'dcp_data': job_input,
             'dcp_parameters': work_arguments_encoded,
             'dcp_function': work_function_encoded,
