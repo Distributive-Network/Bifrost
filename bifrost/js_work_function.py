@@ -266,35 +266,25 @@ async function workFunction(
             progress();
         }
 
-        await console.log('input_imports', pythonImports);
-        await console.log('input_modules', pythonModules);
+        let pythonInput = 0;
         
         pyodide.globals.set('input_imports', pythonImports);
         pyodide.globals.set('input_modules', pythonModules);
-
-        await console.log('pythonInitWorker', pythonInitWorker);
-
+        pyodide.globals.set('python_input', pythonInput);
+        
         await pyodide.runPythonAsync(pythonInitWorker);
 
-        await console.log('sliceFunction[1]', sliceFunction[1]);
-
         await pyodide.runPythonAsync(sliceFunction[1]); //function.code
-
-        await console.log('input_data', sliceData.data);
-        await console.log('input_parameters', sliceParameters);
-        await console.log('sliceFunction[0]', sliceFunction[0]);
         
         pyodide.globals.set('input_data', sliceData.data);
         pyodide.globals.set('input_parameters', sliceParameters);
         pyodide.globals.set('input_function', sliceFunction[0]); //function.name
-
-        await console.log('pythonComputeWorker', pythonComputeWorker);
         
         await pyodide.runPythonAsync(pythonComputeWorker);
 
         progress();
 
-        let sliceOutput = pyodide.globals.get('output_data');
+        let sliceOutput = pyodide.globals.get('python_input');
 
         const stopTime = ((Date.now() - startTime) / 1000).toFixed(2);
         
