@@ -5,8 +5,8 @@ def dcp_init_worker():
     sys.setrecursionlimit(20000)
 
     # suppress warnings
-    import warnings
-    warnings.filterwarnings('ignore')
+    #import warnings
+    #warnings.filterwarnings('ignore')
 
     # custom module loading
     import sys
@@ -61,7 +61,7 @@ def dcp_compute_worker():
     output_function = locals()[input_function]
 
     #output_data = function_unpickled( data_unpickled, **parameters_unpickled )
-    output_data = output_function( data_unpickled, **parameters_unpickled )
+    python_input = output_function( data_unpickled, **parameters_unpickled )
 
     #output_data_pickled = cloudpickle.dumps( output_data )
     #output_data_encoded = codecs.encode( output_data_pickled, 'base64' ).decode()
