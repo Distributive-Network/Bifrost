@@ -281,7 +281,7 @@ async function workFunction(
 
         progress();
 
-        let sliceOutput = pyodide.globals.get('output_data_encoded');
+        let sliceOutput = pyodide.globals.get('output_data');
 
         const stopTime = ((Date.now() - startTime) / 1000).toFixed(2);
 
