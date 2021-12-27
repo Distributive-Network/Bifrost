@@ -45,6 +45,8 @@ def dcp_init_worker():
 
 def dcp_compute_worker():
 
+    global python_input
+    
     # input serialization
     import codecs
     import cloudpickle
