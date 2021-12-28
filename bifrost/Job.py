@@ -185,8 +185,8 @@ class Job:
         if self.shuffle == True:
             random.shuffle(job_input)
 
-        python_init_source = inspect.getsource(self.python_init)
-        python_compute_source = inspect.getsource(self.python_compute)
+        #python_init_source = inspect.getsource(self.python_init)
+        #python_compute_source = inspect.getsource(self.python_compute)
 
         run_parameters = {
             'deploy_function': self.python_wrapper,
@@ -207,8 +207,8 @@ class Job:
             'python_packages': self.requires,
             'python_modules': work_imports_encoded,
             'python_imports': self.python_imports,
-            'python_init_worker': python_init_source,
-            'python_compute_worker': python_compute_source,
+            'python_init_worker': self.python_init,
+            'python_compute_worker': self.python_compute,
         }
 
         node_output = node.run(js_deploy_job, run_parameters)
