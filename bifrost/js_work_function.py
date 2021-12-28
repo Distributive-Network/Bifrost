@@ -265,12 +265,9 @@ async function workFunction(
 
             progress();
         }
-
-        let pythonInput = 0;
         
         pyodide.globals.set('input_imports', pythonImports);
         pyodide.globals.set('input_modules', pythonModules);
-        pyodide.globals.set('python_input', pythonInput);
         
         await pyodide.runPythonAsync(pythonInitWorker);
 
@@ -280,7 +277,7 @@ async function workFunction(
         pyodide.globals.set('input_parameters', sliceParameters);
         pyodide.globals.set('input_function', sliceFunction[0]); //function.name
         
-        let pythonOutput = await pyodide.runPythonAsync(pythonComputeWorker);
+        await pyodide.runPythonAsync(pythonComputeWorker);
 
         progress();
 
@@ -291,7 +288,7 @@ async function workFunction(
         progress(1);
 
         let resultObject = {
-            output: [pythonOutput, sliceOutput],
+            output: sliceOutput,
             index: sliceData.index,
             elapsed: stopTime,
         };
