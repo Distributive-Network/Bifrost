@@ -1,5 +1,5 @@
-def dcp_init_worker():
-
+#def dcp_init_worker():
+dcp_init_worker = """
     # reset recursion limit
     import sys
     sys.setrecursionlimit(20000)
@@ -42,10 +42,10 @@ def dcp_init_worker():
 
         if module_spec is None:
             module_runtime(module_name, input_modules[module_name])
+"""
 
-def dcp_compute_worker():
-
-    global python_input
+#def dcp_compute_worker():
+dcp_compute_worker = """
     
     # input serialization
     import codecs
@@ -70,4 +70,5 @@ def dcp_compute_worker():
 
     #return output_data_encoded
 
-    output_function( data_unpickled, **parameters_unpickled )
+    output_data = output_function( data_unpickled, **parameters_unpickled )
+"""
