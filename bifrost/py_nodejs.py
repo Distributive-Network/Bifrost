@@ -21,7 +21,7 @@ class Npm():
         self.cwd = cwd
         if not ( ( os.path.exists(cwd + '/node_modules/xxhash') ) ):#if not ( ( os.path.exists(cwd + '/node_modules/xxhash') ) and ( os.path.exists(cwd + '/node_modules/nan') ) and ( os.path.exists(cwd + '/node_modules/mmap-io') ) and ( os.path.exists(cwd + '/node_modules/shmmap') ) ):
             self.run(['npm', 'init', '--yes'])
-            self.run(['npm', 'install',
+            self.run(['npm', 'install', '--quiet',
                       'xxhash', 
                       'git+https://github.com/chris-c-mcintyre/shmmap.js',
                       'git+https://github.com/bungabear/mmap.js'])

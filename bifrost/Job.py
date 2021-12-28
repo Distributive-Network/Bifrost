@@ -145,7 +145,7 @@ class Job:
 
         from bifrost import node, npm
 
-        npm.install('dcp-client')
+        npm.install('--quiet', 'dcp-client')
 
         node.run('require("dcp-client").initSync(scheduler);', { 'scheduler': self.scheduler })
 
