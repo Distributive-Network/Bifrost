@@ -153,7 +153,7 @@ class Job:
 
         from bifrost import node
 
-        __dcp_install()
+        self.__dcp_install()
 
         if self.node_js == True:
             work_arguments_encoded = self.work_arguments # self.__input_encoder(self.work_arguments)
