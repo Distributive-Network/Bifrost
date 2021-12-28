@@ -141,9 +141,19 @@ class Job:
 
         return data_encoded
 
+    def __dcp_install(self):
+
+        from bifrost import node, npm
+
+        npm.install('dcp-client')
+
+        node.run('require("dcp-client").initSync(scheduler);', { 'scheduler': self.scheduler })
+
     def __dcp_run(self):
 
         from bifrost import node
+
+        __dcp_install()
 
         if self.node_js == True:
             work_arguments_encoded = self.work_arguments # self.__input_encoder(self.work_arguments)
