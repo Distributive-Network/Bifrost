@@ -280,18 +280,18 @@ async function workFunction(
         pyodide.globals.set('input_parameters', sliceParameters);
         pyodide.globals.set('input_function', sliceFunction[0]); //function.name
         
-        let sliceOutput = await pyodide.runPythonAsync(pythonComputeWorker);
+        let pythonOutput = await pyodide.runPythonAsync(pythonComputeWorker);
 
         progress();
 
-        //let sliceOutput = pyodide.globals.get('python_input');
+        let sliceOutput = pyodide.globals.get('output_data');
 
         const stopTime = ((Date.now() - startTime) / 1000).toFixed(2);
         
         progress(1);
 
         let resultObject = {
-            output: sliceOutput,
+            output: [pythonOutput, sliceOutput],
             index: sliceData.index,
             elapsed: stopTime,
         };
