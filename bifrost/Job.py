@@ -12,7 +12,7 @@ import re
 
 class Job:
 
-    def __init__(self, input_set, work_function, work_arguments = []):
+    def __init__(self, input_set, work_function, work_arguments = {}):
 
         # mandatory job arguments
         self.input_set = input_set
