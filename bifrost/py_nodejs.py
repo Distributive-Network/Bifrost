@@ -24,7 +24,8 @@ class Npm():
             self.run(['npm', 'install', '--quiet',
                       'xxhash', 
                       'git+https://github.com/chris-c-mcintyre/shmmap.js',
-                      'git+https://github.com/bungabear/mmap.js'])
+                      'git+https://github.com/bungabear/mmap.js',
+                      '>/dev/null'])
 
     def run(self, cmd):
         '''
@@ -45,10 +46,10 @@ class Npm():
         return returnCode
 
     def install(self,*args):
-        self.run(['npm', 'install', *args])
+        self.run(['npm', '--quiet', 'install', *args, '>/dev/null'])
 
     def uninstall(self, *args):
-        self.run(['npm', 'uninstall', *args])
+        self.run(['npm', '--quiet', 'uninstall', *args, '>/dev/null'])
 
     def list_modules(self, *args):
         self.run(['npm', 'list', *args])
