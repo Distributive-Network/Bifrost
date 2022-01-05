@@ -8,8 +8,8 @@
   "author": "Kings Distributed Systems",
   "license": "ISC",
   "dependencies": {
-    "shmmap": "git+https://github.com/chris-c-mcintyre/shmmap",
-    "mmap.js": "git+https://github.com/bungabear/mmap.js"
+    "shmmap": "git+https://github.com/chris-c-mcintyre/shmmap.js.git",
+    "mmap.js": "git+https://github.com/bungabear/mmap.js.git"
   },
   "description": "An SHM/memmap based python and node communication/evaluation tool."
 }
