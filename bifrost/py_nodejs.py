@@ -20,12 +20,11 @@ class Npm():
     def __init__(self, cwd = os.getcwd()):
         self.cwd = cwd
         if not ( ( os.path.exists(cwd + '/node_modules/xxhash') ) ):#if not ( ( os.path.exists(cwd + '/node_modules/xxhash') ) and ( os.path.exists(cwd + '/node_modules/nan') ) and ( os.path.exists(cwd + '/node_modules/mmap-io') ) and ( os.path.exists(cwd + '/node_modules/shmmap') ) ):
-            self.run(['npm', 'init', '--yes', '>/dev/null'])
+            self.run(['npm', 'init', '--yes'])
             self.run(['npm', 'install', '--quiet',
-                      'xxhash', 
+                      'xxhash',
                       'git+https://github.com/chris-c-mcintyre/shmmap.js',
-                      'git+https://github.com/bungabear/mmap.js',
-                      '>/dev/null'])
+                      'git+https://github.com/bungabear/mmap.js'])
 
     def run(self, cmd):
         '''
@@ -46,10 +45,10 @@ class Npm():
         return returnCode
 
     def install(self,*args):
-        self.run(['npm', '--quiet', 'install', *args, '>/dev/null'])
+        self.run(['npm', '--quiet', 'install', *args])
 
     def uninstall(self, *args):
-        self.run(['npm', '--quiet', 'uninstall', *args, '>/dev/null'])
+        self.run(['npm', '--quiet', 'uninstall', *args])
 
     def list_modules(self, *args):
         self.run(['npm', 'list', *args])
