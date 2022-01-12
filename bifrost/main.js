@@ -11,12 +11,6 @@ const args      = process.argv;
 const deepEqual = require('./deepEqual.js').deepEqual;
 const SHM_FILE_NAME = args[args.length-1];
 
-
-// Begin by piping stderr into stdout
-process.stderr.pipe(process.stdout);
-
-
-
 console.log("Beginning Node Process");
 
 /**
