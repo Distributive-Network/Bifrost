@@ -1,6 +1,6 @@
 # PROGRAM
 
-def isnotebook():
+def is_notebook():
     """
     A function that checks to see if we are in a notebook or not.
     This is necessary so that we know whether ipython specific functions
