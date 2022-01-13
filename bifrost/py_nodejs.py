@@ -5,6 +5,7 @@ import os, sys, socket
 import subprocess, signal
 from threading import Thread, Event, Lock
 from subprocess import call, Popen, PIPE
+from pathlib import Path
 import atexit
 
 #Simple python global read write lock
@@ -170,6 +171,14 @@ class Node():
         if var_type is not str:
             var_type = str(var_type)
         self.deserializer_custom_funcs[var_type] = func
+
+    def run_file(self, filename, vars = {}, timeout=None):
+
+        script = Path(filename).read_text()
+        
+        vars = self.run(script, vars, timeout)
+
+        return vars
 
     def run(self, script, vars = {}, timeout=None):
         '''

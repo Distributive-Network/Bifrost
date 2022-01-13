@@ -54,6 +54,22 @@ class BifrostMagics(Magics):
             self.shell.user_ns[key] = vars_to_sync[key]
         return
 
+    @line_magic
+    def node_file(self, filename):
+        '''
+        `%%node_file` is a line magic that sync variables between python and node,
+        executes the contents of the file in the node process and syncs the python
+        and node process once more.
+        '''
+        #look at get_ipython().user_ns <- it returns a dict of namespace in user space
+        vars_to_sync = { k: self.shell.user_ns[k] for k in self.shell.user_ns.keys() if not k.startswith('_') and k not in RESERVED }
+        try:
+            vars_to_sync = self._node.run_file(filename, vars = vars_to_sync)
+        except KeyboardInterrupt:
+            return 
+        for key in vars_to_sync.keys():
+            self.shell.user_ns[key] = vars_to_sync[key]
+        return
 
 def shutdown_hook(ipython):
     '''
