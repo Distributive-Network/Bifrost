@@ -1,4 +1,5 @@
 from .py_storage import *
+from .py_utils import is_notebook
 from .ReadWriteLock import ReadWriteLock
 import time, posix_ipc
 import os, sys, socket
@@ -19,7 +20,7 @@ class Npm():
     '''
     def __init__(self, cwd = os.getcwd()):
         self.cwd = cwd
-        if not ( ( os.path.exists(cwd + '/node_modules/xxhash') ) ):#if not ( ( os.path.exists(cwd + '/node_modules/xxhash') ) and ( os.path.exists(cwd + '/node_modules/nan') ) and ( os.path.exists(cwd + '/node_modules/mmap-io') ) and ( os.path.exists(cwd + '/node_modules/shmmap') ) ):
+        if not ( ( os.path.exists(cwd + '/node_modules/xxhash') ) and ( os.path.exists(cwd + '/node_modules/shmmap') ) and ( os.path.exists(cwd + '/node_modules/mmap.js') ):#if not ( ( os.path.exists(cwd + '/node_modules/xxhash') ) and ( os.path.exists(cwd + '/node_modules/nan') ) and ( os.path.exists(cwd + '/node_modules/mmap-io') ) and ( os.path.exists(cwd + '/node_modules/shmmap') ) ):
             self.run(['npm', 'init', '--yes'])
             self.run(['npm', 'install', '--quiet',
                       'xxhash',
@@ -143,6 +144,10 @@ class Node():
         env = os.environ
         #make sure to add the current path to the node_path
         env["NODE_PATH"] = self.cwd + '/node_modules'
+
+        if utils.is_notebook():
+            env["BIFROST_SHELL"] = "notebook"
+
         #ready the node process
         self.process = Popen(['node',
                               '--max-old-space-size=32000',

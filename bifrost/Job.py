@@ -14,6 +14,8 @@ class Job:
 
     def __init__(self, input_set, work_function, work_arguments = {}):
 
+        self.__dcp_install()
+
         # mandatory job arguments
         self.input_set = input_set
         self.work_function = work_function
@@ -145,15 +147,13 @@ class Job:
 
         from bifrost import node, npm
 
-        npm.install('--quiet', 'dcp-client')
+        npm.install('--quiet', '--force', 'dcp-client')
 
         node.run('require("dcp-client").initSync(scheduler);', { 'scheduler': self.scheduler })
 
     def __dcp_run(self):
 
         from bifrost import node
-
-        self.__dcp_install()
 
         if self.node_js == True:
             work_arguments_encoded = self.work_arguments # self.__input_encoder(self.work_arguments)

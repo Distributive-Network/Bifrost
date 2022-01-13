@@ -13,6 +13,7 @@ const SHM_FILE_NAME = args[args.length-1];
 
 console.log("Beginning Node Process");
 
+if (process.env['BIFROST_SHELL'] !== "notebook") process.stderr.pipe(process.stdout);
 /**
  * Evaluator class is the main class meant to evaluate any node script given
  * using some node context.
