@@ -145,7 +145,7 @@ class Node():
         #make sure to add the current path to the node_path
         env["NODE_PATH"] = self.cwd + '/node_modules'
 
-        if utils.is_notebook():
+        if is_notebook():
             env["BIFROST_SHELL"] = "notebook"
 
         #ready the node process

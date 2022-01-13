@@ -22,7 +22,7 @@ node = Node()
 
 memName = node.vs.SHARED_MEMORY_NAME
 
-if utils.is_notebook():
+if is_notebook():
 
     # ipython modules
     from IPython.core.error import TryNext
