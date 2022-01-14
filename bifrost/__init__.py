@@ -11,8 +11,9 @@ import warnings
 import posix_ipc
 
 # local modules
-from .Dcp import Dcp
+from .py_utils import is_notebook
 from .py_nodejs import Npm, Node
+from .Dcp import Dcp
 
 # PROGRAM
 
@@ -21,27 +22,7 @@ node = Node()
 
 memName = node.vs.SHARED_MEMORY_NAME
 
-def isnotebook():
-    """
-    A function that checks to see if we are in a notebook or not.
-    This is necessary so that we know whether ipython specific functions
-    are available or not. If they are available, we'd like to use them.
-    """
-    try:
-        shell = get_ipython().__class__.__name__
-    except:
-        return False      # Probably standard Python interpreter
-    else:
-        if shell == 'ZMQInteractiveShell':
-            return True   # Jupyter notebook or qtconsole
-        elif shell == 'Shell':
-            return True
-        elif shell == 'TerminalInteractiveShell':
-            return False  # Terminal running IPython
-        else:
-            return False  # Other type (Unknown ipython kernel....)
-
-if isnotebook():
+if is_notebook():
 
     # ipython modules
     from IPython.core.error import TryNext
@@ -69,7 +50,7 @@ if isnotebook():
         print(e)
         raise EnvironmentError("Environment is not as was expected")
 
-#When python exists please do the following
+#When python exits please do the following
 @atexit.register
 def onEnd():
     global memName
