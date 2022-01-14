@@ -1,4 +1,5 @@
 from .py_storage import *
+from .py_utils import is_notebook
 from .ReadWriteLock import ReadWriteLock
 import time, posix_ipc
 import os, sys, socket
@@ -19,10 +20,10 @@ class Npm():
     '''
     def __init__(self, cwd = os.getcwd()):
         self.cwd = cwd
-        if not ( ( os.path.exists(cwd + '/node_modules/xxhash') ) ):#if not ( ( os.path.exists(cwd + '/node_modules/xxhash') ) and ( os.path.exists(cwd + '/node_modules/nan') ) and ( os.path.exists(cwd + '/node_modules/mmap-io') ) and ( os.path.exists(cwd + '/node_modules/shmmap') ) ):
+        if not ( ( os.path.exists(cwd + '/node_modules/xxhash') ) and ( os.path.exists(cwd + '/node_modules/shmmap') ) and ( os.path.exists(cwd + '/node_modules/mmap.js') ) ):
             self.run(['npm', 'init', '--yes'])
-            self.run(['npm', 'install',
-                      'xxhash', 
+            self.run(['npm', 'install', '--quiet',
+                      'xxhash',
                       'git+https://github.com/chris-c-mcintyre/shmmap.js',
                       'git+https://github.com/bungabear/mmap.js'])
 
@@ -45,10 +46,10 @@ class Npm():
         return returnCode
 
     def install(self,*args):
-        self.run(['npm', 'install', *args])
+        self.run(['npm', '--quiet', 'install', *args])
 
     def uninstall(self, *args):
-        self.run(['npm', 'uninstall', *args])
+        self.run(['npm', '--quiet', 'uninstall', *args])
 
     def list_modules(self, *args):
         self.run(['npm', 'list', *args])
@@ -143,6 +144,10 @@ class Node():
         env = os.environ
         #make sure to add the current path to the node_path
         env["NODE_PATH"] = self.cwd + '/node_modules'
+
+        if is_notebook():
+            env["BIFROST_SHELL"] = "notebook"
+
         #ready the node process
         self.process = Popen(['node',
                               '--max-old-space-size=32000',
@@ -283,32 +288,4 @@ class Node():
 
     def clear(self):
         self.cancel()
-
-
-npm = Npm()
-node = Node()
-memName = node.vs.SHARED_MEMORY_NAME
-
-#When python exists please do the following
-@atexit.register
-def onEnd():
-    global memName
-    global node
-
-    #Clean up everything.... Include shm file and mmap stuff.
-    try:
-        if hasattr(node, 'process'):
-            os.kill(node.process.pid, signal.SIGSTOP)
-    except:
-        print("Could not kill process. May already be dead.")
-    try:
-        if hasattr(node, 'nstdproc'):
-            node.nstdproc.stop()
-    except:
-        print("Could not stop nstdproc. May already be dead.")
-
-    posix_ipc.unlink_shared_memory(memName)
-    print("Memory map has been destroyed")
-
-
 
