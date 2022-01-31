@@ -16,6 +16,198 @@ async function workFunction
 
         progress(0);
 
+        // TODO: consolidate calls to pyDcp file cache into a single function
+        class PyodideXMLHttpRequest
+        {
+            method;
+            async;
+            url;
+            body;
+
+            //response;
+            responseType;
+            onload;
+            onerror;
+
+            constructor()
+            {
+                this.method = null;
+                this.async = null;
+                this.url = null;
+                this.body = null;
+
+                this.response = null;
+                this.responseType = null;
+                this.onload = null;
+                this.onerror = null;
+            }
+
+            open(method, url, async = true, user = null, password = null)
+            {
+                this.method = method;
+                this.url = url;
+                this.async = async;
+
+                if (pyDcp[this.url])
+                {
+                  this.response = pyDcp[this.url];
+                }
+                else
+                {
+                  throw('Missing file:', this.url, '(xhr.open)');
+                }
+                return 1;
+            }
+
+            send(body = null)
+            {
+                return 1;
+            }
+        }
+        globalThis.XMLHttpRequest = PyodideXMLHttpRequest;
+
+        // TODO: this is a meme function, DO NOT USE outside of development and diagnostics!
+        let crypto =
+        {
+            getRandomValues: function(typedArray)
+            {
+                return typedArray.map(x => Math.floor(Math.random() * 256)); // currently assumes Uint8; TODO: populate based on array type checking
+            }
+        };
+        globalThis.crypto = crypto;
+
+        // TODO: restrict file retrieval to web worker behaviours only
+        let process = {};
+        globalThis.process = process;
+
+         // TODO: make an empty fs polyfill available by default, or avoid needing to do this
+        var fs = await require("fs");
+        fs.readFile = async function readFile(path, callback)
+        {
+            return await new Promise((resolve, reject) => {
+                try
+                {
+                    if ( pyDcp[path] )
+                    {
+                      resolve(callback( null, pyDcp[path] ));
+                    }
+                    else
+                    {
+                      reject('Missing file:', path);
+                    }
+                }
+                catch(myError)
+                {
+                    reject(myError);
+                };
+            });
+        }
+
+        // TODO: investigate pyodide's existing python fetch integrate
+        async function pyodideFetch(input, init = {})
+        {
+          async function fetchArrayBuffer()
+          {
+            if (pyDcp[input].buffer)
+            {
+              return pyDcp[input].buffer;
+            }
+            else
+            {
+              throw('Missing file:', input, '(fetch.arrayBuffer)');
+            }
+          }
+
+          async function fetchJson()
+          {
+            if (pyDcp[input])
+            {
+              return JSON.parse(pyDcp[input]);
+            }
+            else
+            {
+              throw('Missing file:', input, '(fetch.json)');
+            }
+          }
+
+          let fetchResponseFunctions = {
+              arrayBuffer: fetchArrayBuffer,
+              json: fetchJson,
+              ok: true,
+          }
+          
+          return fetchResponseFunctions;
+        }
+        globalThis.fetch = pyodideFetch;
+
+        // TODO: more seamless invocation of BravoJS require
+        async function importScripts(...args)
+        {
+            for (let i = 0; i < args.length; i++)
+            {
+                let thisArg = args[i];
+
+                if (pyDcp[thisArg])
+                {
+                    //await eval(pyDcp[thisArg]);
+
+                    let importLoader = require('pyodide.js.js');
+                    importLoader.packages(pyDcp[thisArg]);
+                }
+                else
+                {
+                    throw('Missing file:', thisArg, '(importScripts)');
+                }
+            }
+        }
+        globalThis.importScripts = importScripts;
+
+        // TODO: are these necessary?
+        globalThis.AbortController = function(...args)
+        {
+            return {};
+        };
+        globalThis.FormData = function(...args)
+        {
+            return {};
+        };
+        globalThis.URLSearchParams = function(...args)
+        {
+            return {};
+        };
+
+        // TODO: these are the dry bones of ancient stripped-down infrastructure; at this point, it just turns off instantiateStreaming
+        function wasmWedge( wedgeStreaming = false )
+        {
+          const wasmInstantiateStreaming = WebAssembly.instantiateStreaming;
+          const wasmInstantiate = WebAssembly.instantiate;
+
+          async function wasmStreamingDestream(binary, info)
+          {
+              const binaryInput = await binary.arrayBuffer();
+              const result = await wasmInstantiate(binaryInput, info);
+              return result;
+          }
+
+          async function wasmDestream(binary, info)
+          {
+              const result = await wasmInstantiate(binary, info);
+              return result;
+          }
+
+          if (wedgeStreaming)
+          {
+            globalThis.WebAssembly.instantiateStreaming = wasmDestream;
+          }
+          else
+          {
+            globalThis.WebAssembly.instantiateStreaming = null;
+          }
+
+          globalThis.WebAssembly.instantiate = wasmDestream;
+        }
+        wasmWedge();
+
         // python files
         if (!globalThis.pyDcp) globalThis.pyDcp = {};
 
