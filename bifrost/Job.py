@@ -1,7 +1,4 @@
-from .Work import dcp_init_worker, dcp_compute_worker
-
-from .js_deploy_job import js_deploy_job
-from .js_work_function import js_work_function
+from .Work import dcp_init_worker, dcp_compute_worker, js_work_function, js_deploy_job
 
 import cloudpickle
 import codecs
@@ -74,12 +71,13 @@ class Job:
 
         # event listener properties
         self.events = {
-            'accepted': False,
-            'complete': False,
-            'console': False,
-            'error': False,
-            'readystatechange': False,
+            'accepted': True,
+            'complete': True,
+            'console': True,
+            'error': True,
+            'readystatechange': True,
             'result': True,
+            'status': True,
         }
 
         # bifrost internal job properties
@@ -92,7 +90,9 @@ class Job:
         self.python_init = dcp_init_worker
         self.python_compute = dcp_compute_worker
         self.python_wrapper = js_work_function
+        self.python_deploy = js_deploy_job
 
+        # install and initialize dcp-client
         self.__dcp_install()
 
     def __getitem__(self, item):
@@ -111,7 +111,7 @@ class Job:
 
         try:
             # function code is locally retrievable source code
-            function_name = function.__name__    
+            function_name = function.__name__
             function_code = inspect.getsource(function)
         except: # OSError
             try:
@@ -123,7 +123,7 @@ class Job:
                 function_name = re.findall("def (.+?)\s?\(", function)[0]
                 function_code = function
         finally:
-            return [function_name, function_code]
+            return {'name': function_name, 'code': function_code}
 
     def __module_writer(self, module_name): # TODO: Reconcile with Path().read_text() functionality elsewhere
 
@@ -221,7 +221,7 @@ class Job:
             'python_compute_worker': self.python_compute,
         }
 
-        node_output = node.run(js_deploy_job, run_parameters)
+        node_output = node.run(self.python_deploy, run_parameters)
 
         result_set = node_output['jobOutput']
 

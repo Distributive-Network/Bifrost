@@ -8,8 +8,6 @@
 
         let jobTimings = [];
 
-        let distributedCount = 0;
-
         let compute = await require('dcp/compute');
 
         let inputSet = [];
@@ -32,14 +30,29 @@
         // set module requirements for python job
         if (dcp_node_js == false)
         {
+            job.requires('pyodide.0.19.0-packages.json/packages.json.js');
+            job.requires('pyodide.0.19.0-pyodide.asm.data/pyodide.asm.data.js');
+            job.requires('pyodide.0.19.0-pyodide.asm.wasm/pyodide.asm.wasm.js');
+            job.requires('pyodide.0.19.0-pyodide.asm.js/pyodide.asm.js.js');
+            job.requires('pyodide.0.19.0-pyodide.js/pyodide.js.js');
+            job.requires('pyodide.0.19.0-pyodide_py.tar/pyodide_py.tar.js');
+            job.requires('pyodide.0.19.0-distutils.data/distutils.data.js');
+            job.requires('pyodide.0.19.0-distutils.js/distutils.js.js');
+            job.requires('0.19.0a1-pyodide.asm.js/fs');
+            job.requires('0.19.0a1-fetch/fetch.js');
+            job.requires('pyodide.0.19.0-cloudpickle.data/cloudpickle.data.js');
+            job.requires('pyodide.0.19.0-cloudpickle.js/cloudpickle.js.js');
             for (let i = 0; i < python_packages.length; i++)
             {
                 let thisPackageName = python_packages[i];
+                let packageDataPath = 'pyodide.0.19.0-' + thisPackageName + '.data/' + thisPackageName + '.data.js';
+                let packageJsPath = 'pyodide.0.19.0-' + thisPackageName + '.js/' + thisPackageName + '.js.js';
+                job.requires(packageDataPath);
+                job.requires(packageJsPath);
+
                 let thisPackagePath = 'aitf-' + thisPackageName + '-16/' + thisPackageName;
                 job.requires(thisPackagePath);
             }
-            job.requires('aitf-pyodide-16/pyodide');
-            job.requires('aitf-cloudpickle-16/cloudpickle');
         }
         job.requires('aitf-compress/pako');
 
@@ -49,7 +62,8 @@
             console: () => {},
             error: () => {},
             readystatechange: () => {},
-            result: () => {}
+            result: () => {},
+            status: () => {},
         };
 
         async function dcpPromise()
@@ -61,7 +75,7 @@
                     console.log('Accepted: ' + job.id);
                 }
 
-                eventFunctions.complete = function onJobConsole(myEvent)
+                eventFunctions.complete = function onJobComplete(myComplete)
                 {
                     console.log('Complete: ' + job.id);
                 }
@@ -76,9 +90,9 @@
                     console.log(myError.sliceNumber + ' : error : ' + myError.message);
                 }
 
-                eventFunctions.readystatechange = function onJobReadyStateChange(myStateChange)
+                eventFunctions.readystatechange = function onJobReadyStateChange(myReadyStateChange)
                 {
-                    console.log(myStateChange);
+                    console.log('State: ' + myReadyStateChange);
                 }
 
                 eventFunctions.result = function onJobResult(myResult)
@@ -92,9 +106,8 @@
                             jobTimings.push(parseInt(myResult.result.elapsed, 10));
 
                             let percentComputed = ((jobTimings.length / jobResults.length) * 100).toFixed(2);
+
                             console.log('Computed : ' + percentComputed + '%');
-                            
-                            console.log('Result :', myResult.result);
                         }
 
                         let emptyIndexArray = jobResults.filter(thisResult => thisResult.length == 0);
@@ -103,7 +116,6 @@
 
                         if (emptyIndexArray.length == 0)
                         {
-
                             resolve(jobResults);
                         }
                     }
@@ -117,7 +129,11 @@
                     }
                 }
 
-                job.on('result', eventFunctions['result']);
+                eventFunctions.status = function onJobStatus(myStatus)
+                {
+                    console.log('Status: ' + myStatus);
+                }
+
                 for ( event in dcp_events )
                 {
                     if (eventFunctions[event]) job.on(event, eventFunctions[event]);
@@ -136,7 +152,6 @@
 
         let finalResults = await dcpPromise();
 
-        job.removeEventListener('result', eventFunctions['result']);
         for ( event in dcp_events )
         {
             job.removeEventListener(event, eventFunctions[event]);
@@ -158,9 +173,10 @@
 
     let jobFunction;
     let jobParameters;
+
     if (dcp_node_js == false)
     {
-        jobFunction = require('./workFunction').workFunction;
+        jobFunction = deploy_function;
 
         jobParameters = [
             dcp_parameters,
@@ -209,6 +225,6 @@
     }
     catch (e)
     {
-        await console.log('CAUGHT NODEJS ERROR : ' + e);
+        await console.log('Deploy Job Error : ' + e);
     }
 })();
