@@ -5,8 +5,8 @@ dcp_init_worker = """
     sys.setrecursionlimit(20000)
 
     # suppress warnings
-    #import warnings
-    #warnings.filterwarnings('ignore')
+    import warnings
+    warnings.filterwarnings('ignore')
 
     # custom module loading
     import sys
