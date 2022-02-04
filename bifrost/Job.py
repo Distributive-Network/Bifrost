@@ -14,8 +14,6 @@ class Job:
 
     def __init__(self, input_set, work_function, work_arguments = {}):
 
-        self.__dcp_install()
-
         # mandatory job arguments
         self.input_set = input_set
         self.work_function = work_function
@@ -94,6 +92,8 @@ class Job:
         self.python_init = dcp_init_worker
         self.python_compute = dcp_compute_worker
         self.python_wrapper = js_work_function
+
+        self.__dcp_install()
 
     def __getitem__(self, item):
         return getattr(self, item)
