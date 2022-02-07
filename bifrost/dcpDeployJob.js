@@ -10,6 +10,8 @@
 
         let compute = await require('dcp/compute');
 
+        if (dcp_debug) console.log('DCP Client Build :', await require('dcp/build'));
+
         let inputSet = [];
         myData.forEach(x => {
             let myItem = Object.fromEntries(Object.entries(x));
@@ -72,12 +74,14 @@
             {
                 eventFunctions.accepted = function onJobAccepted()
                 {
-                    console.log('Accepted: ' + job.id);
+                    console.log('Accepted :', job.id);
                 }
 
                 eventFunctions.complete = function onJobComplete(myComplete)
                 {
-                    console.log('Complete: ' + job.id);
+                    console.log('Complete :', job.id);
+
+                    resolve(Array.from(myComplete));
                 }
 
                 eventFunctions.console = function onJobConsole(myConsole)
@@ -92,7 +96,7 @@
 
                 eventFunctions.readystatechange = function onJobReadyStateChange(myReadyStateChange)
                 {
-                    console.log('State: ' + myReadyStateChange);
+                    console.log('State :', myReadyStateChange);
                 }
 
                 eventFunctions.result = function onJobResult(myResult)
@@ -108,30 +112,33 @@
                             let percentComputed = ((jobTimings.length / jobResults.length) * 100).toFixed(2);
 
                             console.log('Computed : ' + percentComputed + '%');
+
+                            if (job.debug) console.log(myResult.result.index, ': Python Log :', myResult.result.stdout);
                         }
 
                         let emptyIndexArray = jobResults.filter(thisResult => thisResult.length == 0);
 
-                        console.log('Unique Slices Remaining : ' + emptyIndexArray.length);
+                        if (myMultiplier > 1) console.log('Unique Slices Remaining : ' + emptyIndexArray.length);
 
                         if (emptyIndexArray.length == 0)
                         {
                             resolve(jobResults);
                         }
                     }
-                    else if (myResult.result.hasOwnProperty(''))
+                    else if (myResult.result.hasOwnProperty('error'))
                     {
-                        // remote url result || remote null result
+                        console.log(myResult.result.index, ': Slice Error :', myResult.result.error);
+                        console.log(myResult.result.index, ': Python Log :', myResult.result.stdout);
                     }
                     else
                     {
-                        console.log('Bad Result : ' + myResult);
+                        console.log('Bad Result (no "output" property) : ' + myResult);
                     }
                 }
 
                 eventFunctions.status = function onJobStatus(myStatus)
                 {
-                    console.log('Status: ' + myStatus);
+                    console.log('Status :', myStatus);
                 }
 
                 for ( event in dcp_events )
@@ -139,14 +146,24 @@
                     if (eventFunctions[event]) job.on(event, eventFunctions[event]);
                 }
 
+                let execResults;
+
                 if ( myLocal > 0 )
                 {
-                    job.localExec(myLocal);
+                    execResults = job.localExec(myLocal);
                 }
                 else
                 {
-                    job.exec();
+                    execResults = job.exec();
                 }
+
+                execResults.then
+                (
+                    function execHandler(execResolved)
+                    {
+                        resolve(Array.from(execResolved));
+                    }
+                );
             });
         }
 
@@ -185,7 +202,8 @@
             python_packages,
             python_imports,
             python_init_worker,
-            python_compute_worker
+            python_compute_worker,
+            python_pickle_function,
         ];
     }
     else
@@ -207,10 +225,10 @@
                     elapsed: stopTime
                 };
             }
-            catch (e)
+            catch (error)
             {
-              await console.log(e);
-              throw e;
+              await console.log('Work Function Error :', error);
+              throw error;
             }
         }`;
 
@@ -223,8 +241,8 @@
     {
         jobOutput = await dcpPost(jobData, jobFunction, jobParameters, jobMultiplier, jobLocal);
     }
-    catch (e)
+    catch (error)
     {
-        await console.log('Deploy Job Error : ' + e);
+        await console.log('Deploy Job Error :', error);
     }
 })();

@@ -7,10 +7,13 @@ async function workFunction(
     pythonImports,// user-provided list of python import names to be imported into environment
     pythonInitWorker,// dcp-provided python function to initialize environment
     pythonComputeWorker,// dpc-provided python function to handle work function
+    pythonPickleFunction,// flag which indicates that the work function is a cloudpickle object
 )
 {
-    const startTime = Date.now();
+  const startTime = Date.now();
 
+  try
+  {
     progress();
 
     class PyodideXMLHttpRequest
@@ -217,6 +220,7 @@ async function workFunction(
         indexURL : "./",
         jsglobals : pyScope,
         stdout: pyLogger,
+        stderr: pyLogger,
       }
     );
     progress();
@@ -241,11 +245,20 @@ async function workFunction(
 
     progress();
 
-    await pyodide.runPythonAsync(sliceFunction['code']);
+    pyodide.globals.set('pickle_function', pythonPickleFunction);
+
+    if (pythonPickleFunction)
+    {
+        pyodide.globals.set('input_function', sliceFunction);
+    }
+    else
+    {
+        await pyodide.runPython(sliceFunction['code']);
+        pyodide.globals.set('input_function', sliceFunction['name']);
+    }
 
     pyodide.globals.set('input_data', sliceData['data']);
     pyodide.globals.set('input_parameters', sliceParameters);
-    pyodide.globals.set('input_function', sliceFunction['name']);
 
     await pyodide.runPython(pythonComputeWorker);
 
@@ -261,8 +274,24 @@ async function workFunction(
         output: sliceOutput,
         index: sliceData['index'],
         elapsed: stopTime,
-        log: pyLog,
+        stdout: pyLog,
     };
 
-    return resultObject;        
+    return resultObject;
+  }
+  catch(error)
+  {
+    pyLog.push('// PYTHON LOG ERROR //');
+
+    const stopTime = ((Date.now() - startTime) / 1000).toFixed(2);
+
+    let errorObject = {
+        error: error,
+        index: sliceData['index'],
+        elapsed: stopTime,
+        stdout: pyLog,
+    };
+
+    return errorObject;
+  }
 }

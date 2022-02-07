@@ -1,10 +1,12 @@
 from .Work import dcp_init_worker, dcp_compute_worker, js_work_function, js_deploy_job
 
 import cloudpickle
-import codecs
-import random
 
+import codecs
+import contextlib
 import inspect
+import io
+import random
 import re
 
 class Job:
@@ -21,8 +23,7 @@ class Job:
         self.initial_slice_profile = False # Not Used
         self.slice_payment_offer = False # TODO
         self.payment_account = False # TODO
-        self.requires = []
-        self.require_path = False # Not Used
+        self.require_path = []
         self.module_path = False # Not Used
         self.collate_results = True
         self.status = { # Not Used
@@ -85,6 +86,7 @@ class Job:
         self.node_js = False
         self.shuffle = False
         self.range_object_input = False
+        self.pickle_work_function = True
 
         # work wrapper functions
         self.python_init = dcp_init_worker
@@ -106,6 +108,29 @@ class Job:
         data_encoded = codecs.encode( input_data, 'base64' ).decode()
 
         return data_encoded
+
+    def __output_decoder(self, output_data):
+
+        data_decoded = codecs.decode( output_data.encode(), 'base64' )
+
+        return data_decoded
+
+    def __pickle_jar(self, input_data):
+
+        import bifrost
+        cloudpickle.register_pickle_by_value(bifrost)
+
+        data_pickled = cloudpickle.dumps( input_data )
+        data_encoded = self.__input_encoder( data_pickled )
+
+        return data_encoded
+
+    def __unpickle_jar(self, output_data):
+
+        data_decoded = self.__output_decoder( output_data )
+        data_unpickled = cloudpickle.loads( data_decoded )
+
+        return data_unpickled
 
     def __function_writer(self, function):
 
@@ -136,20 +161,26 @@ class Job:
 
         return module_encoded
 
-    def __pickle_jar(self, input_data):
-
-        data_pickled = cloudpickle.dumps( input_data )
-        data_encoded = self.__input_encoder( data_pickled )
-
-        return data_encoded
-
     def __dcp_install(self):
 
         from bifrost import node, npm
 
-        npm.install('--quiet', '--force', 'dcp-client')
+        def _npm_checker(package_name):
 
-        node.run('require("dcp-client").initSync(scheduler);', { 'scheduler': self.scheduler })
+            npm_io = io.StringIO()
+            with contextlib.redirect_stdout(npm_io):
+                npm.list_modules(package_name)
+            npm_check = npm_io.getvalue()
+
+            if '(empty)' in npm_check:
+                print('installing dcp-client due to npm_check')
+                npm.install(package_name, '--quiet', '--force', 'dcp-client')
+
+        _npm_checker('dcp-client')
+
+        node.run("""
+        if ( !globalThis.dcpClient ) globalThis.dcpClient = require("dcp-client").init(scheduler);
+        """, { 'scheduler': self.scheduler })
 
     def __dcp_run(self):
 
@@ -161,7 +192,10 @@ class Job:
             work_imports_encoded = {}
         else:
             work_arguments_encoded = self.__pickle_jar(self.work_arguments)
-            work_function_encoded = self.__function_writer(self.work_function)
+            if self.pickle_work_function == True:
+                work_function_encoded = self.__pickle_jar(self.work_function)
+            else:
+                work_function_encoded = self.__function_writer(self.work_function)
             work_imports_encoded = {}
             for module_name in self.python_imports:
                 work_imports_encoded[module_name] = self.__module_writer(module_name)
@@ -195,9 +229,6 @@ class Job:
         if self.shuffle == True:
             random.shuffle(job_input)
 
-        #python_init_source = inspect.getsource(self.python_init)
-        #python_compute_source = inspect.getsource(self.python_compute)
-
         run_parameters = {
             'deploy_function': self.python_wrapper,
             'dcp_data': job_input,
@@ -214,16 +245,23 @@ class Job:
             'dcp_remote_flags': self.remote,
             'dcp_remote_storage_location': self.remote_storage_location,
             'dcp_remote_storage_params': self.remote_storage_params,
-            'python_packages': self.requires,
+            'python_packages': self.require_path,
             'python_modules': work_imports_encoded,
             'python_imports': self.python_imports,
             'python_init_worker': self.python_init,
             'python_compute_worker': self.python_compute,
+            'python_pickle_function': self.pickle_work_function,
         }
 
         node_output = node.run(self.python_deploy, run_parameters)
 
         result_set = node_output['jobOutput']
+
+        for result_index, result_slice in enumerate(result_set):
+
+            result_slice = self.__unpickle_jar( result_slice )
+
+            result_set[result_index] = result_slice
 
         self.result_set = result_set
         
@@ -239,7 +277,7 @@ class Job:
         on(self, event_name, event_function)
 
     def requires(self, package_name):
-        self.requires.append(package_name)
+        self.require_path.append(package_name)
 
     def set_result_storage(self, remote_storage_location, remote_storage_params = {}):
         self.remote_storage_location = remote_storage_location
