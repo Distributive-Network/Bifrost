@@ -1,6 +1,6 @@
 {
   "name": "bifrost",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -9,7 +9,7 @@
   "license": "ISC",
   "dependencies": {
     "shmmap": "git+https://github.com/chris-c-mcintyre/shmmap.js.git",
-    "mmap.js": "git+https://github.com/bungabear/mmap.js.git"
+    "@raygun-nickj/mmap-io": "latest"
   },
   "description": "An SHM/memmap based python and node communication/evaluation tool."
 }
