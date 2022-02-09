@@ -7,9 +7,9 @@ with open("./README.md", "r") as fh:
 
 setuptools.setup(
     name="Bifrost",
-    version="0.0.1",
-    author="Hamada Gasmallah",
-    author_email="hamada@kingsds.network",
+    version="0.4.0",
+    author="Kings Distributed Systems",
+    author_email="toolchains@kingsds.network",
     description="Python to JS intercommunication and execution",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -25,10 +25,9 @@ setuptools.setup(
     ],
     install_requires=[
         "numpy",
-        "posix_ipc",
         "xxhash"
     ],
-    python='>=3.6'
+    python='>=3.8'
 
 
 

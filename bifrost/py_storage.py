@@ -1,10 +1,11 @@
-import math, json, sys, hashlib, posix_ipc, mmap
+import math, json, sys, hashlib, mmap
 import xxhash
 from tempfile import TemporaryFile
 from io import BytesIO
 import base64, uuid
 import numpy as np
 
+from multiprocessing import shared_memory
 
 class VariableSync():
     '''
@@ -17,13 +18,18 @@ class VariableSync():
         self.size = int(math.floor( 0.75 *(1024*1024*1024) ))
         #Set some arbitrary name for the file
         self.SHARED_MEMORY_NAME = "/bifrost_shared_memory" + str(uuid.uuid4())
-        self.memory = posix_ipc.SharedMemory(self.SHARED_MEMORY_NAME, posix_ipc.O_CREX,
-                                        size=self.size)
+        self.memory = shared_memory.SharedMemory(
+          name=self.SHARED_MEMORY_NAME,
+          create=True,
+          size=self.size
+        )
+
+        self.memory.fd = self.memory._fd
 
         #map the file to memory
         self.mapFile = mmap.mmap(self.memory.fd, self.memory.size)
 
-        self.memory.close_fd()
+        self.memory.close()
         self.clearCache()
         print("Memory map has been established")
 
@@ -33,7 +39,7 @@ class VariableSync():
         '''
         try:
             self.mapFile.close()
-            posix_ipc.unlink_shared_memory(self.SHARED_MEMORY_NAME)
+            self.memory.unlink()
             print("Memory unlinked!")
         except Exception as e:
             print(str(e))

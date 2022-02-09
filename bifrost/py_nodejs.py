@@ -1,7 +1,7 @@
 from .py_storage import *
 from .py_utils import is_notebook
 from .ReadWriteLock import ReadWriteLock
-import time, posix_ipc
+import time
 import os, sys, socket
 import subprocess, signal
 from threading import Thread, Event, Lock
