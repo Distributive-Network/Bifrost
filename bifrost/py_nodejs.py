@@ -25,7 +25,7 @@ class Npm():
             self.run(['npm', 'install', '--quiet',
                       'xxhash',
                       'git+https://github.com/chris-c-mcintyre/shmmap.js',
-                      'git+https://github.com/bungabear/mmap.js'])
+                      '@raygun-nickj/mmap-io'])
 
     def run(self, cmd):
         '''
