@@ -20,7 +20,8 @@ class Npm():
     '''
     def __init__(self, cwd = os.getcwd()):
         self.cwd = cwd
-        if not ( ( os.path.exists(cwd + '/node_modules/xxhash') ) and ( os.path.exists(cwd + '/node_modules/shmmap') ) and ( os.path.exists(cwd + '/node_modules/mmap.js') ) ):
+        self.shell = (os.name == 'nt')
+        if not ( ( os.path.exists(cwd + '/node_modules/xxhash') ) and ( os.path.exists(cwd + '/node_modules/shmmap') ) and ( os.path.exists(cwd + '/node_modules/mmap-io') ) ):
             self.run(['npm', 'init', '--yes'])
             self.run(['npm', 'install', '--quiet',
                       'xxhash',
@@ -35,7 +36,7 @@ class Npm():
 
         Also helpful to block until command completes.
         '''
-        process = Popen(cmd, cwd = self.cwd, stdout = subprocess.PIPE)
+        process = Popen(cmd, cwd = self.cwd, shell = self.shell, stdout = subprocess.PIPE)
         while True:
             output = process.stdout.readline().decode('utf-8')
             if output == '' and process.poll() is not None:
@@ -125,6 +126,7 @@ class Node():
     '''
     def __init__(self, cwd= os.getcwd()):
         self.cwd = cwd
+        self.shell = (os.name == 'nt')
         self.serializer_custom_funcs = {}
         self.deserializer_custom_funcs = {}
         #the replFile is the main file that preps the node runtime for use with this module
@@ -154,6 +156,7 @@ class Node():
                               self.replFile,
                               self.vs.SHARED_MEMORY_NAME], cwd=self.cwd,stdin=subprocess.PIPE,
                               env=env,
+                              shell=self.shell,
                               stdout=subprocess.PIPE)
 
         #ready the node stdout manager
