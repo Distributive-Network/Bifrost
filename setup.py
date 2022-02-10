@@ -1,13 +1,12 @@
 import setuptools
 from setuptools import find_packages
 
-
 with open("./README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="Bifrost",
-    version="0.4.0",
+    version="0.4.1",
     author="Kings Distributed Systems",
     author_email="toolchains@kingsds.network",
     description="Python to JS intercommunication and execution",
@@ -24,11 +23,10 @@ setuptools.setup(
         "Programming Language :: Python :: 3"
     ],
     install_requires=[
+        "cloudpickle>=2.0.0",
         "numpy",
+        "posix_ipc",
         "xxhash"
     ],
     python='>=3.8'
-
-
-
 )
