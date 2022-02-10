@@ -5,7 +5,6 @@ const utils     = require('./utils');
 const shm       = require('shmmap');
 const mmap      = require('mmap-io');
 const npy       = require('./npy-js');
-const XXHash    = require('xxhash');
 const crypto    = require('crypto');
 const args      = process.argv;
 const deepEqual = require('./deepEqual.js').deepEqual;
@@ -59,7 +58,7 @@ class Evaluator{
      */
     inCache( key, val){
       let results = { 'bool': false, 'hash': '' }; 
-      results.hash = XXHash.hash64( val , this.seed);
+      results.hash = crypto.createHash('sha1').update(val).digest('hex');
 
       if (typeof this.cache[key] !== 'undefined'){
         if (this.cache[key] === results.hash){

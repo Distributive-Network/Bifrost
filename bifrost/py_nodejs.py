@@ -21,10 +21,9 @@ class Npm():
     def __init__(self, cwd = os.getcwd()):
         self.cwd = cwd
         self.shell = (os.name == 'nt')
-        if not ( ( os.path.exists(cwd + '/node_modules/xxhash') ) and ( os.path.exists(cwd + '/node_modules/shmmap') ) and ( os.path.exists(cwd + '/node_modules/mmap-io') ) ):
+        if not ( ( os.path.exists(cwd + '/node_modules/shmmap') ) and ( os.path.exists(cwd + '/node_modules/mmap-io') ) ):
             self.run(['npm', 'init', '--yes'])
             self.run(['npm', 'install', '--quiet',
-                      'xxhash',
                       'git+https://github.com/chris-c-mcintyre/shmmap.js',
                       '@raygun-nickj/mmap-io'])
 
