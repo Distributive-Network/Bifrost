@@ -24,6 +24,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3"
     ],
     install_requires=[
+        "cloudpickle>=2.0.0",
         "numpy",
         "posix_ipc",
         "xxhash"
