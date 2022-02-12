@@ -56,6 +56,14 @@
                 job.requires(thisPackagePath);
             }
         }
+        else
+        {
+            for (let i = 0; i < python_packages.length; i++)
+            {
+                let thisPackageName = python_packages[i];
+                job.requires(thisPackageName);
+            }
+        }
         job.requires('aitf-compress/pako');
 
         let eventFunctions = {
