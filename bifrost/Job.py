@@ -193,7 +193,7 @@ class Job:
             let nodeSharedArguments;
             """)
 
-            for ( argument in self.work_arguments ):
+            for argument in self.work_arguments:
                 shared_argument = self.work_arguments[argument]
                 node.run("""
                 nodeSharedArguments.push( sharedArgument );
