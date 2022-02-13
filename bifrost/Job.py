@@ -187,7 +187,18 @@ class Job:
         from bifrost import node
 
         if self.node_js == True:
-            work_arguments_encoded = self.work_arguments # self.__input_encoder(self.work_arguments)
+            work_arguments_encoded = False # self.__input_encoder(self.work_arguments)
+
+            node.run("""
+            let nodeSharedArguments;
+            """)
+
+            for ( argument in self.work_arguments ):
+                shared_argument = self.work_arguments[argument]
+                node.run("""
+                nodeSharedArguments.push( sharedArgument );
+                """, { 'sharedArgument': shared_argument })
+
             work_function_encoded = self.work_function # TODO: adapt __function_writer for Node.js files
             work_imports_encoded = {}
         else:

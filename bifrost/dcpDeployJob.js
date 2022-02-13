@@ -241,7 +241,7 @@
         }`;
 
         jobParameters = [
-            dcp_parameters,
+            nodeSharedArguments,
         ];
     }
 
