@@ -269,9 +269,10 @@ class Job:
         result_set = node_output['jobOutput']
 
         for result_index, result_slice in enumerate(result_set):
-
-            result_slice = self.__unpickle_jar( result_slice )
-
+            if self.node_js == False:
+                result_slice = self.__unpickle_jar( result_slice )
+            else:
+                result_slice = result_slice # self.__input_decoder(result_slice)
             result_set[result_index] = result_slice
 
         self.result_set = result_set
