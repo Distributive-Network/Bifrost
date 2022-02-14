@@ -190,7 +190,7 @@ class Job:
             work_arguments_encoded = False # self.__input_encoder(self.work_arguments)
 
             node.run("""
-            let nodeSharedArguments = [];
+            globalThis.nodeSharedArguments = [];
             """)
 
             for argument_index in range(len(self.work_arguments)):
