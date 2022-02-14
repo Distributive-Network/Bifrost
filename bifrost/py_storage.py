@@ -5,7 +5,7 @@ from io import BytesIO
 import base64, uuid
 import numpy as np
 
-from multiprocessing import shared_memory
+import os
 
 class VariableSync():
     '''
@@ -17,19 +17,12 @@ class VariableSync():
         #Likely some problem the mmap/shm_open library used
         self.size = int(math.floor( 0.75 *(1024*1024*1024) ))
         #Set some arbitrary name for the file
-        self.SHARED_MEMORY_NAME = "/bifrost_shared_memory" + str(uuid.uuid4())
-        self.memory = shared_memory.SharedMemory(
-          name=self.SHARED_MEMORY_NAME,
-          create=True,
-          size=self.size
-        )
+        self.SHARED_MEMORY_NAME = "bifrost_shared_memory_" + str(uuid.uuid4())
 
-        self.memory.fd = self.memory._fd
+        with open(self.SHARED_MEMORY_NAME, "wb") as file_obj:
+            #map the file to memory
+            self.mapFile = mmap.mmap(file_obj.fileno(), 0)
 
-        #map the file to memory
-        self.mapFile = mmap.mmap(self.memory.fd, self.memory.size)
-
-        self.memory.close()
         self.clearCache()
         print("Memory map has been established")
 
@@ -39,11 +32,18 @@ class VariableSync():
         '''
         try:
             self.mapFile.close()
-            self.memory.unlink()
+            print("Memory closed!")
+        except Exception as e:
+            print(str(e))
+            print("Could not close shared memory for some reason")
+
+        try:
+            os.remove(self.SHARED_MEMORY_NAME)
             print("Memory unlinked!")
         except Exception as e:
             print(str(e))
             print("Could not unlink shared memory for some reason")
+
         return
 
     def setCache(self, key, hsh):

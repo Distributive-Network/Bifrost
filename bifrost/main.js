@@ -1,14 +1,14 @@
 const stream    = require('stream');
 const vm        = require('vm');
 const utils     = require('./utils');
-//const shm       = require('../build/Release/shmjs.node');
-//const shm       = require('shmmap');
 const mmap      = require('mmap-io');
 const npy       = require('./npy-js');
 const crypto    = require('crypto');
 const args      = process.argv;
 const deepEqual = require('./deepEqual.js').deepEqual;
 const SHM_FILE_NAME = args[args.length-1];
+
+const fs = require('fs');
 
 console.log("Beginning Node Process");
 
@@ -32,8 +32,7 @@ class Evaluator{
         this.fd = -1;
         let size= Math.floor( 0.75 * 1024*1024*1024 );
 
-        let fd = this.fd//shm.open(SHM_FILE_NAME, shm.O_RDWR, 600);
-        //let fd = shm.open(SHM_FILE_NAME);
+        let fd = fs.openSync(SHM_FILE_NAME, 'r+');
 
         this.mm= mmap.map
         (
@@ -44,7 +43,6 @@ class Evaluator{
             0,
         );
 
-        //this.mm= shm.read_write(SHM_FILE_NAME, size);
         this.dontSync = Object.keys(this.context);
         this.seed = crypto.randomBytes(8); 
     }

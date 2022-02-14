@@ -64,7 +64,19 @@ def onEnd():
     except:
         print("Could not stop nstdproc. May already be dead.")
 
-    # TODO: close mmap here if SharedMemory fails to do so automatically
+    try:
+        node.vs.mapFile.close()
+        print("Memory map has been destroyed")
+    except Exception as e:
+        print(str(e))
+        print("Could not close shared memory.")
+
+    try:
+        os.remove(node.vs.SHARED_MEMORY_NAME)
+        print("Memory unlinked!")
+    except Exception as e:
+        print(str(e))
+        print("Could not unlink shared memory.")
 
 # set up our DCP bridge interface
 dcp = Dcp()
