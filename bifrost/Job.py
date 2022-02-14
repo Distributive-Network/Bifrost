@@ -187,7 +187,18 @@ class Job:
         from bifrost import node
 
         if self.node_js == True:
-            work_arguments_encoded = self.work_arguments # self.__input_encoder(self.work_arguments)
+            work_arguments_encoded = False # self.__input_encoder(self.work_arguments)
+
+            node.run("""
+            globalThis.nodeSharedArguments = [];
+            """)
+
+            for argument_index in range(len(self.work_arguments)):
+                shared_argument = self.work_arguments[argument_index]
+                node.run("""
+                nodeSharedArguments.push( sharedArgument );
+                """, { 'sharedArgument': shared_argument })
+
             work_function_encoded = self.work_function # TODO: adapt __function_writer for Node.js files
             work_imports_encoded = {}
         else:
@@ -258,9 +269,10 @@ class Job:
         result_set = node_output['jobOutput']
 
         for result_index, result_slice in enumerate(result_set):
-
-            result_slice = self.__unpickle_jar( result_slice )
-
+            if self.node_js == False:
+                result_slice = self.__unpickle_jar( result_slice )
+            else:
+                result_slice = result_slice # self.__input_decoder(result_slice)
             result_set[result_index] = result_slice
 
         self.result_set = result_set

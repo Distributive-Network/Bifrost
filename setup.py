@@ -6,7 +6,7 @@ with open("./README.md", "r") as fh:
 
 setuptools.setup(
     name="Bifrost",
-    version="0.4.3",
+    version="0.4.4",
     author="Kings Distributed Systems",
     author_email="toolchains@kingsds.network",
     description="Python to JS intercommunication and execution",
@@ -24,7 +24,7 @@ setuptools.setup(
     ],
     install_requires=[
         "cloudpickle>=2.0.0",
-        "numpy"
+        "numpy",
     ],
     python='>=3.8'
 )

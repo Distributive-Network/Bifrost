@@ -1,23 +1,16 @@
 (async function()
 {
-    async function dcpPost(myData, workFunction, sharedArguments, myMultiplier, myLocal)
+    async function dcpPost(inputSet, workFunction, sharedArguments, myMultiplier, myLocal)
     {
         const jobStartTime = Date.now();
 
-        let jobResults = [...Array(myData.length / myMultiplier)].map(x => []);
+        let jobResults = [...Array(inputSet.length / myMultiplier)].map(x => []);
 
         let jobTimings = [];
 
         let compute = await require('dcp/compute');
 
         if (dcp_debug) console.log('DCP Client Build :', await require('dcp/build'));
-
-        let inputSet = [];
-        myData.forEach(x => {
-            let myItem = Object.fromEntries(Object.entries(x));
-            inputSet.push(myItem);
-            return [];
-        });
 
         let job = compute.for(inputSet, workFunction, sharedArguments);
 
@@ -54,6 +47,14 @@
 
                 let thisPackagePath = 'aitf-' + thisPackageName + '-16/' + thisPackageName;
                 job.requires(thisPackagePath);
+            }
+        }
+        else
+        {
+            for (let i = 0; i < python_packages.length; i++)
+            {
+                let thisPackageName = python_packages[i];
+                job.requires(thisPackageName);
             }
         }
         job.requires('aitf-compress/pako');
@@ -180,7 +181,7 @@
         console.log('Total Elapsed Job Time: ' + (totalJobTime / 1000).toFixed(2) + ' s');
         console.log('Mean Elapsed Worker Time Per Slice: ' + averageSliceTime + ' s');
         console.log('Mean Elapsed Client Time Per Unique Slice: ' + ((totalJobTime / 1000) / finalResults.length).toFixed(2) + ' s');
-        
+
         return finalResults;
     }
 
@@ -188,14 +189,14 @@
     let jobMultiplier = dcp_multiplier;
     let jobLocal = dcp_local;
 
-    let jobFunction;
-    let jobParameters;
+    let workFunction;
+    let sharedArguments;
 
     if (dcp_node_js == false)
     {
-        jobFunction = deploy_function;
+        workFunction = deploy_function;
 
-        jobParameters = [
+        sharedArguments = [
             dcp_parameters,
             dcp_function,
             python_modules,
@@ -208,7 +209,7 @@
     }
     else
     {
-        jobFunction = `async function(sliceData, sliceParameters)
+        workFunction = `async function(sliceData, sliceParameters)
         {
             try
             {
@@ -222,7 +223,7 @@
                 return {
                     output: sliceOutput,
                     index: sliceData.index,
-                    elapsed: stopTime
+                    elapsed: stopTime,
                 };
             }
             catch (error)
@@ -232,14 +233,25 @@
             }
         }`;
 
-        jobParameters = [
-            dcp_parameters,
-        ];
+        let jobArguments = [];
+        nodeSharedArguments.forEach(x => {
+            let myItem = Object.fromEntries(Object.entries(x));
+            jobArguments.push(myItem);
+            return [];
+        });
+        sharedArguments = [ jobArguments ];
     }
+
+    let inputSet = [];
+    jobData.forEach(x => {
+        let myItem = Object.fromEntries(Object.entries(x));
+        inputSet.push(myItem);
+        return [];
+    });
 
     try
     {
-        jobOutput = await dcpPost(jobData, jobFunction, jobParameters, jobMultiplier, jobLocal);
+        jobOutput = await dcpPost(inputSet, workFunction, sharedArguments, jobMultiplier, jobLocal);
     }
     catch (error)
     {
