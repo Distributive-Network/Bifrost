@@ -19,9 +19,12 @@ class VariableSync():
         #Set some arbitrary name for the file
         self.SHARED_MEMORY_NAME = "bifrost_shared_memory_" + str(uuid.uuid4())
 
-        with open(self.SHARED_MEMORY_NAME, "wb") as file_obj:
+        with open(self.SHARED_MEMORY_NAME, "w+b") as self.file_obj:
+            #truncate the shared memory so that we are not mapping to an empty file
+            self.file_obj.truncate( self.size )
             #map the file to memory
-            self.mapFile = mmap.mmap(file_obj.fileno(), 0)
+            self.file_obj.flush()
+            self.mapFile = mmap.mmap(self.file_obj.fileno(), self.size, access=mmap.ACCESS_WRITE)
 
         self.clearCache()
         print("Memory map has been established")

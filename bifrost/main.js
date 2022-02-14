@@ -12,7 +12,7 @@ const fs = require('fs');
 
 console.log("Beginning Node Process");
 
-if (process.env['BIFROST_SHELL'] !== "notebook") process.stderr.pipe(process.stdout);
+if ( process.env['BIFROST_SHELL'] !== "notebook" && process.env['BIFROST_OS'] !== "nt" ) process.stderr.pipe(process.stdout);
 /**
  * Evaluator class is the main class meant to evaluate any node script given
  * using some node context.
@@ -32,7 +32,7 @@ class Evaluator{
         this.fd = -1;
         let size= Math.floor( 0.75 * 1024*1024*1024 );
 
-        let fd = fs.openSync(SHM_FILE_NAME, 'r+');
+        let fd = fs.openSync(SHM_FILE_NAME, 'r+b');
 
         this.mm= mmap.map
         (

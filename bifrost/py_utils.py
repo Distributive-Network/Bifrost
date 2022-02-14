@@ -1,3 +1,5 @@
+import os
+
 # PROGRAM
 
 def is_notebook():
@@ -19,4 +21,15 @@ def is_notebook():
             return False  # Terminal running IPython
         else:
             return False  # Other type (Unknown ipython kernel....) # TODO: investigate: should this default in the other direction?
+
+def is_windows():
+  """
+  A function that checks to see if we are in a Windows NT environment.
+  Windows handles process management differently, and introduces other
+  restrictions to how we share memory and make interprocess commands.
+  """
+  if os.name == 'nt':
+    return True
+  else:
+    return False
 

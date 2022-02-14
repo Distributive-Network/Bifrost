@@ -1,5 +1,5 @@
 from .py_storage import *
-from .py_utils import is_notebook
+from .py_utils import is_notebook, is_windows
 from .ReadWriteLock import ReadWriteLock
 import time
 import os, sys, socket
@@ -8,6 +8,7 @@ from threading import Thread, Event, Lock
 from subprocess import call, Popen, PIPE
 from pathlib import Path
 import atexit
+import shutil
 
 #Simple python global read write lock
 NODE_LOCK       = ReadWriteLock()
@@ -20,11 +21,19 @@ class Npm():
     '''
     def __init__(self, cwd = os.getcwd()):
         self.cwd = cwd
-        self.shell = (os.name == 'nt')
+        self.npm_exec_path = shutil.which('node')
         if not ( os.path.exists(cwd + '/node_modules/mmap-io') ):
-            self.run(['npm', 'init', '--yes'])
-            self.run(['npm', 'install', '--quiet',
-                      '@raygun-nickj/mmap-io'])
+          self.run([
+            self.npm_exec_path,
+            'init',
+            '--yes',
+          ])
+          self.run([
+            self.npm_exec_path,
+            'install',
+            '--quiet',
+            '@raygun-nickj/mmap-io',
+          ])
 
     def run(self, cmd):
         '''
@@ -34,7 +43,13 @@ class Npm():
 
         Also helpful to block until command completes.
         '''
-        process = Popen(cmd, cwd = self.cwd, shell = self.shell, stdout = subprocess.PIPE)
+
+        process = Popen(
+          cmd,
+          cwd = self.cwd,
+          stdout = subprocess.PIPE
+        )
+
         while True:
             output = process.stdout.readline().decode('utf-8')
             if output == '' and process.poll() is not None:
@@ -45,13 +60,13 @@ class Npm():
         return returnCode
 
     def install(self,*args):
-        self.run(['npm', '--quiet', 'install', *args])
+        self.run([self.npm_exec_path, '--quiet', 'install', *args])
 
     def uninstall(self, *args):
-        self.run(['npm', '--quiet', 'uninstall', *args])
+        self.run([self.npm_exec_path, '--quiet', 'uninstall', *args])
 
     def list_modules(self, *args):
-        self.run(['npm', 'list', *args])
+        self.run([self.npm_exec_path, 'list', *args])
 
 
 class NodeSTDProc(Thread):
@@ -112,10 +127,7 @@ class NodeSTDProc(Thread):
                     #otherwise print out the json
                     if (output and len(output.strip()) > 0):
                         print(output.strip())
-                    continue 
-
-
-
+                    continue
 
 
 class Node():
@@ -124,7 +136,7 @@ class Node():
     '''
     def __init__(self, cwd= os.getcwd()):
         self.cwd = cwd
-        self.shell = (os.name == 'nt')
+        self.node_exec_path = shutil.which('node')
         self.serializer_custom_funcs = {}
         self.deserializer_custom_funcs = {}
         #the replFile is the main file that preps the node runtime for use with this module
@@ -133,7 +145,6 @@ class Node():
         self.vs = VariableSync()
 
         self.init_process()
-
 
     def init_process(self):
         '''
@@ -147,15 +158,22 @@ class Node():
 
         if is_notebook():
             env["BIFROST_SHELL"] = "notebook"
+        if is_windows():
+            env["BIFROST_OS"] = "nt"
 
         #ready the node process
-        self.process = Popen(['node',
-                              '--max-old-space-size=32000',
-                              self.replFile,
-                              self.vs.SHARED_MEMORY_NAME], cwd=self.cwd,stdin=subprocess.PIPE,
-                              env=env,
-                              shell=self.shell,
-                              stdout=subprocess.PIPE)
+        self.process = Popen(
+          [
+            node_exec_path,
+            '--max-old-space-size=32000',
+            self.replFile,
+            self.vs.SHARED_MEMORY_NAME
+          ],
+          cwd = self.cwd,
+          stdin = subprocess.PIPE,
+          env = env,
+          stdout = subprocess.PIPE
+        )
 
         #ready the node stdout manager
         self.nstdproc = NodeSTDProc(self.process)
@@ -168,7 +186,6 @@ class Node():
             var_type = str(var_type)
         self.serializer_custom_funcs[var_type] = func
         return
-
 
     def register_custom_deserializer(self, func, var_type):
         '''
