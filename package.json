@@ -1,14 +1,13 @@
 {
   "name": "bifrost",
-  "version": "0.4.0",
-  "main": "index.js",
+  "version": "0.4.5",
+  "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Kings Distributed Systems",
   "license": "ISC",
   "dependencies": {
-    "shmmap": "git+https://github.com/chris-c-mcintyre/shmmap.js.git",
     "@raygun-nickj/mmap-io": "latest"
   },
   "description": "An SHM/memmap based python and node communication/evaluation tool."
