@@ -95,9 +95,6 @@ class Job:
         self.python_wrapper = js_work_function
         self.python_deploy = js_deploy_job
 
-        # install and initialize dcp-client
-        self.__dcp_install()
-
     def __getitem__(self, item):
         return getattr(self, item)
 
@@ -162,7 +159,13 @@ class Job:
 
         return module_encoded
 
-    def __dcp_install(self):
+    def dcp_install(self):
+
+        # install and initialize dcp-client
+
+        # TODO: Call this before python_deploy is run, to ensure that dcp-client is available
+        # -> Do NOT move this back to Job.__init__; that location precludes custom scheduler settings
+        # -> This is now being called in compute_for, after Job.__init__, but before returning the Class
 
         from bifrost import node, npm
 
