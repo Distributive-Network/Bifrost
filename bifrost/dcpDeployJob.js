@@ -234,7 +234,6 @@
             {
                 const startTime = Date.now();
                 progress(0);
-                await console.log('Starting worker function for slice ' + sliceData.index + ' at ' + startTime + '...');
                 let sliceFunction = ${dcp_function};
                 let sliceOutput = await sliceFunction(sliceData.data, ...sliceParameters);
                 progress(1);
@@ -247,7 +246,7 @@
             }
             catch (error)
             {
-              await console.log('Work Function Error :', error);
+              console.log('Work Function Error (Slice ', sliceData.index, ') :', error);
               throw error;
             }
         }`;
@@ -274,6 +273,6 @@
     }
     catch (error)
     {
-        await console.log('Deploy Job Error :', error);
+        console.log('Deploy Job Error :', error);
     }
 })();
