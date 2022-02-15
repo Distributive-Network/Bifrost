@@ -32,7 +32,7 @@ class Evaluator{
         this.fd = -1;
         let size= Math.floor( 0.75 * 1024*1024*1024 );
 
-        let fd = fs.openSync(SHM_FILE_NAME, 'r+b');
+        let fd = fs.openSync(SHM_FILE_NAME, 'r+');
 
         this.mm= mmap.map
         (
