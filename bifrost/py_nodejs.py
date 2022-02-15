@@ -164,7 +164,7 @@ class Node():
         #ready the node process
         self.process = Popen(
           [
-            node_exec_path,
+            self.node_exec_path,
             '--max-old-space-size=32000',
             self.replFile,
             self.vs.SHARED_MEMORY_NAME
