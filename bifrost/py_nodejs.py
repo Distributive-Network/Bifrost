@@ -21,8 +21,8 @@ class Npm():
     '''
     def __init__(self, cwd = os.getcwd()):
         self.cwd = cwd
-        self.npm_exec_path = shutil.which('node')
-        if not ( os.path.exists(cwd + '/node_modules/mmap-io') ):
+        self.npm_exec_path = shutil.which('npm')
+        if not ( os.path.exists(cwd + '/node_modules/@raygun-nickj/mmap-io') ):
           self.run([
             self.npm_exec_path,
             'init',
