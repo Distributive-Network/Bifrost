@@ -12,6 +12,18 @@
 
         if (dcp_debug) console.log('DCP Client Build :', await require('dcp/build'));
 
+        // bifrost can decide to force redeployments at any point during the job's runtime.
+        // this can be done to save a job from failing, or to expedite its completion.
+        // we are going to retain the following between any redeployments of this job:
+        // -> jobStartTime : the clock is still ticking
+        // -> jobResults, jobTimings : we are going to carry over any and all successfully received results
+        // -> compute : resetting the API is just kinda pointless
+        // -> inputSet : we're going to cut out anything we've already got jobResults for before redeploying
+        // -> workFunction, sharedArguments : these haven't changed, in their content or in their necessity
+        // -> myMultiplier, myLocal : we may play with the multipliers in future, but for now assume no change
+
+        // this is the start of our redeployment zone
+
         let job = compute.for(inputSet, workFunction, sharedArguments);
 
         job.computeGroups = dcp_groups;
@@ -174,6 +186,11 @@
         {
             job.removeEventListener(event, eventFunctions[event]);
         }
+
+        // this the end of the redeployment zone
+
+        // nothing after this point should ever be called more than once as part of the same user-submitted job.
+        // time metrics especially must account for all redeployment attempts, and can never reset in between.
 
         const averageSliceTime = jobTimings.reduce((a, b) => a + b) / finalResults.length;
         const totalJobTime = Date.now() - jobStartTime;
