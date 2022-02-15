@@ -42,6 +42,7 @@ class Job:
         self.bank = False # Not Used
 
         # additional job properties
+        self.collate_results = False
         self.compute_groups = []
         self.debug = False
         self.multiplier = 1
@@ -247,6 +248,7 @@ class Job:
             'dcp_function': work_function_encoded,
             'dcp_multiplier': self.multiplier,
             'dcp_local': self.local_cores,
+            'dcp_collate': self.collate_results,
             'dcp_groups': self.compute_groups,
             'dcp_public': self.public,
             'dcp_requirements': self.requirements,

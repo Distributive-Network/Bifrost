@@ -26,6 +26,8 @@
 
         let job = compute.for(inputSet, workFunction, sharedArguments);
 
+        job.collateResults = dcp_collate;
+
         job.computeGroups = dcp_groups;
 
         job.public = dcp_public;
