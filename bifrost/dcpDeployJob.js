@@ -104,16 +104,16 @@
                         const jobResultCount = Array.from(job.results).length;
                         if ( job.debug ) console.log('Job Result Fetch Count', ':', jobResultCount, ':', Date.now());
                         // TODO : support for (myMultiplier > 1)
-                        if ( jobResultCount >= inputSet.length ) resolve(Array.from(job.results));
+                        if ( jobResultCount >= inputSet.length ) resolve({ bifrostResultHandle: job.results });
                     }, 5000);
                 }
 
-                eventFunctions.complete = function onJobComplete(myComplete)
+                eventFunctions.complete = function onJobComplete()
                 {
                     console.log('Complete :', job.id);
 
                     // TODO : support for (myMultiplier > 1)
-                    resolve(Array.from(myComplete));
+                    resolve({ bifrostResultHandle: job.results });
                 }
 
                 eventFunctions.console = function onJobConsole(myConsole)
@@ -191,10 +191,10 @@
 
                 execResults.then
                 (
-                    function execHandler(execResolved)
+                    function execHandler()
                     {
                         // TODO : support for (myMultiplier > 1)
-                        resolve(Array.from(execResolved));
+                        resolve({ bifrostResultHandle: job.results });
                     }
                 );
             });
@@ -207,6 +207,34 @@
         for ( event in dcp_events )
         {
             job.removeEventListener(event, eventFunctions[event]);
+        }
+
+        if ( finalResults['bifrostResultHandle'] )
+        {
+            let handleResults = Array.from(finalResults['bifrostResultHandle']);
+            for ( let i = 0; i < handleResults.length; i++)
+            {
+                let myResult = handleResults[i];
+
+                if (myResult.result.hasOwnProperty('output'))
+                {
+                    if (jobResults[myResult.result.index].length == 0)
+                    {
+                        jobResults[myResult.result.index] = myResult.result.output;
+
+                        jobTimings.push(parseInt(myResult.result.elapsed, 10));
+                    }
+                }
+                else if (myResult.result.hasOwnProperty('error'))
+                {
+                    console.log(myResult.result.index, ': Slice Error :', myResult.result.error);
+                    if (dcp_node_js == false) console.log(myResult.result.index, ': Python Log :', myResult.result.stdout);
+                }
+                else
+                {
+                    console.log('Bad Result (no "output" property) : ' + myResult);
+                }
+            }
         }
 
         // this the end of the redeployment zone
