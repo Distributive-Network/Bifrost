@@ -30,6 +30,8 @@
 
         job.computeGroups = dcp_groups;
 
+        job.estimationSlices = dcp_estimation;
+
         job.public = dcp_public;
 
         job.debug = dcp_debug;
