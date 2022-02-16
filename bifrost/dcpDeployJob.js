@@ -103,6 +103,7 @@
                         job.results.fetch( null, emitEvents = true ); // TODO : configurable flags
                         const jobResultCount = Array.from(job.results).length;
                         if ( job.debug ) console.log('Job Result Fetch Count', ':', jobResultCount, ':', Date.now());
+                        // TODO : support for (myMultiplier > 1)
                         if ( jobResultCount >= inputSet.length ) resolve(Array.from(job.results));
                     }, 5000);
                 }
@@ -111,6 +112,7 @@
                 {
                     console.log('Complete :', job.id);
 
+                    // TODO : support for (myMultiplier > 1)
                     resolve(Array.from(myComplete));
                 }
 
@@ -191,6 +193,7 @@
                 (
                     function execHandler(execResolved)
                     {
+                        // TODO : support for (myMultiplier > 1)
                         resolve(Array.from(execResolved));
                     }
                 );
