@@ -216,19 +216,19 @@
             {
                 let myResult = handleResults[i];
 
-                if (myResult.result.hasOwnProperty('output'))
+                if (myResult.hasOwnProperty('output'))
                 {
-                    if (jobResults[myResult.result.index].length == 0)
+                    if (jobResults[myResult.index].length == 0)
                     {
-                        jobResults[myResult.result.index] = myResult.result.output;
+                        jobResults[myResult.index] = myResult.output;
 
-                        jobTimings.push(parseInt(myResult.result.elapsed, 10));
+                        jobTimings.push(parseInt(myResult.elapsed, 10));
                     }
                 }
-                else if (myResult.result.hasOwnProperty('error'))
+                else if (myResult.hasOwnProperty('error'))
                 {
-                    console.log(myResult.result.index, ': Slice Error :', myResult.result.error);
-                    if (dcp_node_js == false) console.log(myResult.result.index, ': Python Log :', myResult.result.stdout);
+                    console.log(myResult.index, ': Slice Error :', myResult.error);
+                    if (dcp_node_js == false) console.log(myResult.index, ': Python Log :', myResult.stdout);
                 }
                 else
                 {
