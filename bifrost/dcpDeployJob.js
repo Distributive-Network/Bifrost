@@ -30,6 +30,8 @@
 
         job.computeGroups = dcp_groups;
 
+        job.estimationSlices = dcp_estimation;
+
         job.public = dcp_public;
 
         job.debug = dcp_debug;
@@ -83,6 +85,8 @@
             status: () => {},
         };
 
+        let jobResultInterval;
+
         async function dcpPromise()
         {
             return new Promise(function(resolve, reject)
@@ -90,12 +94,25 @@
                 eventFunctions.accepted = function onJobAccepted()
                 {
                     console.log('Accepted :', job.id);
+
+                    // TODO : make contingent on certain conditions or flags
+                    // TODO : configurable result threshold for resolving
+                    // TODO : configurable timer value, flag for interval vs single-shot timeout
+                    jobResultInterval = setInterval(function()
+                    {
+                        job.results.fetch( null, emitEvents = true ); // TODO : configurable flags
+                        const jobResultCount = Array.from(job.results).length;
+                        if ( job.debug ) console.log('Job Result Fetch Count', ':', jobResultCount, ':', Date.now());
+                        // TODO : support for (myMultiplier > 1)
+                        if ( jobResultCount >= inputSet.length ) resolve(Array.from(job.results));
+                    }, 5000);
                 }
 
                 eventFunctions.complete = function onJobComplete(myComplete)
                 {
                     console.log('Complete :', job.id);
 
+                    // TODO : support for (myMultiplier > 1)
                     resolve(Array.from(myComplete));
                 }
 
@@ -128,7 +145,7 @@
 
                             console.log('Computed : ' + percentComputed + '%');
 
-                            if (job.debug) console.log(myResult.result.index, ': Python Log :', myResult.result.stdout);
+                            if ( (dcp_node_js == false) && job.debug ) console.log(myResult.result.index, ': Python Log :', myResult.result.stdout);
                         }
 
                         let emptyIndexArray = jobResults.filter(thisResult => thisResult.length == 0);
@@ -143,7 +160,7 @@
                     else if (myResult.result.hasOwnProperty('error'))
                     {
                         console.log(myResult.result.index, ': Slice Error :', myResult.result.error);
-                        console.log(myResult.result.index, ': Python Log :', myResult.result.stdout);
+                        if (dcp_node_js == false) console.log(myResult.result.index, ': Python Log :', myResult.result.stdout);
                     }
                     else
                     {
@@ -176,6 +193,7 @@
                 (
                     function execHandler(execResolved)
                     {
+                        // TODO : support for (myMultiplier > 1)
                         resolve(Array.from(execResolved));
                     }
                 );
@@ -183,6 +201,8 @@
         }
 
         let finalResults = await dcpPromise();
+
+        clearInterval(jobResultInterval);
 
         for ( event in dcp_events )
         {
