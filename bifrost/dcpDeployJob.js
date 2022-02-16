@@ -83,6 +83,8 @@
             status: () => {},
         };
 
+        let jobResultInterval;
+
         async function dcpPromise()
         {
             return new Promise(function(resolve, reject)
@@ -90,6 +92,17 @@
                 eventFunctions.accepted = function onJobAccepted()
                 {
                     console.log('Accepted :', job.id);
+
+                    // TODO : make contingent on certain conditions or flags
+                    // TODO : configurable result threshold for resolving
+                    // TODO : configurable timer value, flag for interval vs single-shot timeout
+                    jobResultInterval = setInterval(function()
+                    {
+                        job.results.fetch( null, emitEvents = true ); // TODO : configurable flags
+                        const jobResultCount = Array.from(job.results).length;
+                        if ( job.debug ) console.log('Job Result Fetch Count', ':', jobResultCount, ':', Date.now());
+                        if ( jobResultCount >= inputSet.length ) resolve(Array.from(job.results));
+                    }, 5000);
                 }
 
                 eventFunctions.complete = function onJobComplete(myComplete)
@@ -183,6 +196,8 @@
         }
 
         let finalResults = await dcpPromise();
+
+        clearInterval(jobResultInterval);
 
         for ( event in dcp_events )
         {
