@@ -143,7 +143,7 @@
 
                             console.log('Computed : ' + percentComputed + '%');
 
-                            if (job.debug) console.log(myResult.result.index, ': Python Log :', myResult.result.stdout);
+                            if ( (dcp_node_js == false) && job.debug ) console.log(myResult.result.index, ': Python Log :', myResult.result.stdout);
                         }
 
                         let emptyIndexArray = jobResults.filter(thisResult => thisResult.length == 0);
@@ -158,7 +158,7 @@
                     else if (myResult.result.hasOwnProperty('error'))
                     {
                         console.log(myResult.result.index, ': Slice Error :', myResult.result.error);
-                        console.log(myResult.result.index, ': Python Log :', myResult.result.stdout);
+                        if (dcp_node_js == false) console.log(myResult.result.index, ': Python Log :', myResult.result.stdout);
                     }
                     else
                     {
