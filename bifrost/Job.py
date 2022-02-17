@@ -89,6 +89,9 @@ class Job:
         self.shuffle = False
         self.range_object_input = False
         self.pickle_work_function = True
+        # TODO : set new_context default to false once node.run hanging is fixed (bug #11)
+        # https://github.com/Kings-Distributed-Systems/Bifrost/issues/11
+        self.new_context = True
 
         # work wrapper functions
         self.python_init = dcp_init_worker
@@ -284,6 +287,9 @@ class Job:
 
         self.result_set = result_set
         
+        if self.new_context == True:
+            node.cancel()
+
         return result_set
 
     def on(self, event_name, event_function):
