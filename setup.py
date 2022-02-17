@@ -6,7 +6,7 @@ with open("./README.md", "r") as fh:
 
 setuptools.setup(
     name="Bifrost",
-    version="0.4.6",
+    version="0.4.7",
     author="Kings Distributed Systems",
     author_email="toolchains@kingsds.network",
     description="Python to JS intercommunication and execution",
