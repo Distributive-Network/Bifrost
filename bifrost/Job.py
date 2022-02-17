@@ -42,7 +42,7 @@ class Job:
         self.bank = False # Not Used
 
         # additional job properties
-        self.collate_results = False
+        self.collate_results = True
         self.compute_groups = []
         self.debug = False
         self.estimation_slices = 3

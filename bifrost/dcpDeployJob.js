@@ -101,19 +101,20 @@
                     jobResultInterval = setInterval(function()
                     {
                         job.results.fetch( null, emitEvents = true ); // TODO : configurable flags
-                        const jobResultCount = Array.from(job.results).length;
-                        if ( job.debug ) console.log('Job Result Fetch Count', ':', jobResultCount, ':', Date.now());
+                        const fetchResultCount = Array.from(job.results).length;
+                        if ( job.debug ) console.log('Job Result Fetch Count', ':', fetchResultCount, ':', Date.now());
                         // TODO : support for (myMultiplier > 1)
-                        if ( jobResultCount >= inputSet.length ) resolve({ bifrostResultHandle: job.results });
+                        if ( fetchResultCount >= inputSet.length ) resolve({ bifrostResultHandle: job.results });
                     }, 5000);
                 }
 
-                eventFunctions.complete = function onJobComplete()
+                eventFunctions.complete = function onJobComplete(myComplete)
                 {
                     console.log('Complete :', job.id);
 
+                    const completeResultCount = Array.from(myComplete).length;
                     // TODO : support for (myMultiplier > 1)
-                    resolve({ bifrostResultHandle: job.results });
+                    if ( completeResultCount >= inputSet.length ) resolve({ bifrostResultHandle: myComplete });
                 }
 
                 eventFunctions.console = function onJobConsole(myConsole)
@@ -191,10 +192,11 @@
 
                 execResults.then
                 (
-                    function execHandler()
+                    function execHandler( (promiseExec) =>
                     {
+                        const execResultCount = Array.from(promiseExec).length;
                         // TODO : support for (myMultiplier > 1)
-                        resolve({ bifrostResultHandle: job.results });
+                        if ( execResultCount >= inputSet.length ) resolve({ bifrostResultHandle: promiseExec });
                     }
                 );
             });
