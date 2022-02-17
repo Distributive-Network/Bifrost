@@ -190,15 +190,14 @@
                     execResults = job.exec();
                 }
 
-                execResults.then
-                (
-                    function execHandler( (promiseExec) =>
-                    {
-                        const execResultCount = Array.from(promiseExec).length;
-                        // TODO : support for (myMultiplier > 1)
-                        if ( execResultCount >= inputSet.length ) resolve({ bifrostResultHandle: promiseExec });
-                    }
-                );
+                function execHandler( promiseExec )
+                {
+                    const execResultCount = Array.from(promiseExec).length;
+                    // TODO : support for (myMultiplier > 1)
+                    if ( execResultCount >= inputSet.length ) resolve({ bifrostResultHandle: promiseExec });
+                }
+
+                execResults.then( execHandler );
             });
         }
 
