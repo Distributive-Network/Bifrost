@@ -26,5 +26,5 @@ setuptools.setup(
         "cloudpickle>=2.0.0",
         "numpy",
     ],
-    python='>=3.6'
+    python='>=3.8'
 )

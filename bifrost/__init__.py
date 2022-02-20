@@ -70,7 +70,10 @@ def onEnd():
         print(str(e))
         print("Could not close shared memory. May already be dead.")
     try:
-        os.remove(node.vs.SHARED_MEMORY_NAME)
+        if node.vs.windows:
+            os.remove(node.vs.SHARED_MEMORY_NAME)
+        else:
+            node.vs.memory.unlink()
         print("Memory unlinked!")
     except Exception as e:
         print(str(e))
