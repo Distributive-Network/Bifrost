@@ -89,9 +89,8 @@ class Evaluator{
 
         for (let key of allVarsToSync){
             try{
-                if (typeof this.context[key] !== 'undefined'){
-                    //if it is a dataArray, convert back to numpy!
-                    if (typeof this.context[key].constructor !== 'undefined' && this.context[key].constructor.name === 'DataArray'){
+                //if it is a dataArray, convert back to numpy!
+                if (!!this.context[key] && typeof this.context[key] !== 'undefined' && typeof this.context[key].constructor !== 'undefined' && this.context[key].constructor.name === 'DataArray'){
                         let toCheck = Buffer.concat([
                           Buffer.from(this.context[key].typedArray.buffer),
                           Buffer.from(this.context[key].shape)
@@ -111,6 +110,9 @@ class Evaluator{
                           };
                         };
                     }else{
+                        if (this.context[key] === undefined){
+                          throw 'undefined value error'
+                        }
                         let val = JSON.stringify(this.context[key]);
                         if (deepEqual(JSON.parse(val), this.context[key])){
                           let cacheResults = this.inCache( key, Buffer.from(val) );
@@ -121,10 +123,12 @@ class Evaluator{
                             final_output[key] = this.context[key]; 
                           }
                         }
-                    }
-                }
+                  }
             }catch(err){
                 // console.log(err);
+                if (err == 'undefined value error'){
+                  throw 'UNDEFINED VALUE ERROR: JavaScript variable to be synced contains an undefined value. Undefined values are not supported by Python.'
+                }
                 continue;
             }
         }

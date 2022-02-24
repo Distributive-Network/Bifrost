@@ -61,6 +61,10 @@ var Util = {
       return true;
     }
 
+    if (expected === undefined) {
+      throw 'undefined value error'
+    }
+
     // Primitive type
     if (actual === expected) {
       return true;
