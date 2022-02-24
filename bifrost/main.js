@@ -151,7 +151,7 @@ class Evaluator{
         var jsonVars    = JSON.parse(buffToParse.toString('utf-8'));
         for (let key of Object.keys(jsonVars)){
             let obj = jsonVars[key];
-            if (obj['type'] == 'numpy' && typeof obj['data'] === 'string'){
+            if (!!obj && obj['type'] == 'numpy' && typeof obj['data'] === 'string'){
                 let data = obj['data'];
                 let abData = utils.strtoab(data);
                 const npArr = npy.parseNumpyFile(abData);
