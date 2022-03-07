@@ -187,13 +187,7 @@ async function workFunction(
     progress();
 
     if (!globalThis.pyScope) globalThis.pyScope = {};
-
-    const globalKeys = Object.keys(globalThis);
-    for (let i = 0; i < globalKeys.length; i++)
-    {
-        let thisKey = globalKeys[i];
-        if ( !pyScope[thisKey] ) pyScope[thisKey] = globalThis[thisKey];
-    }
+    pyScope = { setTimeout: globalThis.setTimeout };
 
     if (!globalThis.pyLog) globalThis.pyLog = [];
     pyLog = ['// PYTHON LOG START //'];
