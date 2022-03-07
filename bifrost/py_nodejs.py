@@ -33,6 +33,7 @@ class Npm():
             'install',
             '--quiet',
             '@raygun-nickj/mmap-io',
+            'xxhash-wasm@0.4.2',
           ])
 
     def run(self, cmd):

@@ -25,6 +25,7 @@ setuptools.setup(
     install_requires=[
         "cloudpickle>=2.0.0",
         "numpy",
+        "xxhash",
     ],
     python='>=3.6'
 )

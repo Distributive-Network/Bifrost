@@ -1,5 +1,5 @@
 import math, json, sys, hashlib, mmap
-import hashlib
+import xxhash
 from tempfile import TemporaryFile
 from io import BytesIO
 import base64, uuid
@@ -62,9 +62,9 @@ class VariableSync():
         hsh = ''
         if var_type == np.ndarray:
             arr_bytes = bytes(val.data)
-            hsh = hashlib.sha1(arr_bytes).hexdigest() + str(val.shape)
+            hsh = xxhash.xxh32(arr_bytes).hexdigest() + str(val.shape)
         else:
-            hsh = hashlib.sha1( JSON.dumps(val).encode('utf8') ).hexdigest()
+            hsh = xxhash.xxh32( JSON.dumps(val).encode('utf8') ).hexdigest()
         if key in self.cache and hsh == self.cache[key]:
             return True, hsh
         return False, hsh

@@ -3,6 +3,7 @@ const vm        = require('vm');
 const utils     = require('./utils');
 const mmap      = require('@raygun-nickj/mmap-io');
 const npy       = require('./npy-js');
+const xxhash    = require('xxhash-wasm');
 const crypto    = require('crypto');
 const args      = process.argv;
 const deepEqual = require('./deepEqual.js').deepEqual;
@@ -56,7 +57,7 @@ class Evaluator{
      */
     inCache( key, val){
       let results = { 'bool': false, 'hash': '' }; 
-      results.hash = crypto.createHash('sha1').update(val).digest('hex');
+      results.hash = this.hash64( val, this.seed );
 
       if (typeof this.cache[key] !== 'undefined'){
         if (this.cache[key] === results.hash){
@@ -189,6 +190,12 @@ let inputStream = new stream.Transform();
  * 5. Tell the python process we are done.
  */
 inputStream._transform = async function(chunk, encoding, done){
+
+    if (!evaluator.hash64)
+    {
+        evaluator.hash64 = await xxhash().h64;
+    }
+
     evaluator.syncFrom();
     try{
         let scriptJSON = JSON.parse(chunk.toString('utf-8'));
