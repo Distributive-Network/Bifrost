@@ -16,6 +16,12 @@ async function workFunction(
   {
     progress();
 
+    if (typeof location !== "undefined")
+    {
+        location.href = './';
+        location.pathname = '';
+    }
+
     class PyodideXMLHttpRequest
     {
         method;
@@ -24,9 +30,11 @@ async function workFunction(
         body;
 
         response;
+        responseURL;
         responseType;
         onload;
         onerror;
+        onprogress;
 
         constructor()
         {
@@ -36,9 +44,14 @@ async function workFunction(
             this.body = null;
 
             this.response = null;
+            this.responseURL = null;
             this.responseType = null;
             this.onload = null;
             this.onerror = null;
+            this.onprogress = null;
+
+            this.status = null;
+            this.statusText = null;
         }
 
         open(method, url, async = true, user = null, password = null)
@@ -46,27 +59,25 @@ async function workFunction(
             this.method = method;
             this.url = url;
             this.async = async;
+        }
 
+        send(body = null)
+        {
             if (pyDcp[this.url])
             {
-              this.response = pyDcp[this.url];
+              this.response = pyDcp[this.url].buffer;
             }
             else
             {
               throw('Missing file:', input, '(xhr.open)');
             }
-            return 1;
-        }
 
-        send(body = null)
-        {
-            return 1;
+            this.status = 200;
+
+            this.onload();
         }
     }
     globalThis.XMLHttpRequest = PyodideXMLHttpRequest;
-
-    let process = {};
-    globalThis.process = process;
 
     let crypto = {
         getRandomValues: function(typedArray)
@@ -75,28 +86,6 @@ async function workFunction(
         }
     };
     globalThis.crypto = crypto;
-
-    var fs = await require("fs");
-    fs.readFile = async function readFile(path, callback)
-    {
-        return await new Promise((resolve, reject) => {
-            try
-            {
-                if ( pyDcp[path] )
-                {
-                  resolve(callback( null, pyDcp[path] ));
-                }
-                else
-                {
-                  reject('Missing file:', path);
-                }
-            }
-            catch(myError)
-            {
-                reject(myError);
-            };
-        });
-    }
 
     async function pyodideFetch(input, init = {})
     {

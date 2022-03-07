@@ -49,8 +49,6 @@
             job.requires('pyodide.0.19.0-pyodide_py.tar/pyodide_py.tar.js');
             job.requires('pyodide.0.19.0-distutils.data/distutils.data.js');
             job.requires('pyodide.0.19.0-distutils.js/distutils.js.js');
-            job.requires('0.19.0a1-pyodide.asm.js/fs');
-            job.requires('0.19.0a1-fetch/fetch.js');
             job.requires('pyodide.0.19.0-cloudpickle.data/cloudpickle.data.js');
             job.requires('pyodide.0.19.0-cloudpickle.js/cloudpickle.js.js');
             for (let i = 0; i < python_packages.length; i++)
