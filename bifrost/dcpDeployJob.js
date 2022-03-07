@@ -41,26 +41,23 @@
         // set module requirements for python job
         if (dcp_node_js == false)
         {
-            job.requires('pyodide.0.19.0-packages.json/packages.json.js');
-            job.requires('pyodide.0.19.0-pyodide.asm.data/pyodide.asm.data.js');
-            job.requires('pyodide.0.19.0-pyodide.asm.wasm/pyodide.asm.wasm.js');
-            job.requires('pyodide.0.19.0-pyodide.asm.js/pyodide.asm.js.js');
-            job.requires('pyodide.0.19.0-pyodide.js/pyodide.js.js');
-            job.requires('pyodide.0.19.0-pyodide_py.tar/pyodide_py.tar.js');
-            job.requires('pyodide.0.19.0-distutils.data/distutils.data.js');
-            job.requires('pyodide.0.19.0-distutils.js/distutils.js.js');
-            job.requires('pyodide.0.19.0-cloudpickle.data/cloudpickle.data.js');
-            job.requires('pyodide.0.19.0-cloudpickle.js/cloudpickle.js.js');
+            job.requires('pyodide-packages.json/packages.json.js');
+            job.requires('pyodide-pyodide.asm.data/pyodide.asm.data.js');
+            job.requires('pyodide-pyodide.asm.wasm/pyodide.asm.wasm.js');
+            job.requires('pyodide-pyodide.asm.js/pyodide.asm.js.js');
+            job.requires('pyodide-pyodide.js/pyodide.js.js');
+            job.requires('pyodide-pyodide_py.tar/pyodide_py.tar.js');
+            job.requires('pyodide-distutils.data/distutils.data.js');
+            job.requires('pyodide-distutils.js/distutils.js.js');
+            job.requires('pyodide-cloudpickle.data/cloudpickle.data.js');
+            job.requires('pyodide-cloudpickle.js/cloudpickle.js.js');
             for (let i = 0; i < python_packages.length; i++)
             {
                 let thisPackageName = python_packages[i];
-                let packageDataPath = 'pyodide.0.19.0-' + thisPackageName + '.data/' + thisPackageName + '.data.js';
-                let packageJsPath = 'pyodide.0.19.0-' + thisPackageName + '.js/' + thisPackageName + '.js.js';
+                let packageDataPath = 'pyodide-' + thisPackageName + '.data/' + thisPackageName + '.data.js';
+                let packageJsPath = 'pyodide-' + thisPackageName + '.js/' + thisPackageName + '.js.js';
                 job.requires(packageDataPath);
                 job.requires(packageJsPath);
-
-                let thisPackagePath = 'aitf-' + thisPackageName + '-16/' + thisPackageName;
-                job.requires(thisPackagePath);
             }
         }
         else
