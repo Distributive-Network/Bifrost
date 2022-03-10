@@ -80,7 +80,6 @@ class Job:
             'error': True,
             'readystatechange': True,
             'result': True,
-            'status': True,
         }
 
         # bifrost internal job properties

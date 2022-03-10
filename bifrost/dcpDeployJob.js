@@ -77,7 +77,6 @@
             error: () => {},
             readystatechange: () => {},
             result: () => {},
-            status: () => {},
         };
 
         let jobResultInterval;
@@ -162,11 +161,6 @@
                     {
                         console.log('Bad Result (no "output" property) : ' + myResult);
                     }
-                }
-
-                eventFunctions.status = function onJobStatus(myStatus)
-                {
-                    console.log('Status :', myStatus);
                 }
 
                 for ( event in dcp_events )

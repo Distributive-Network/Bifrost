@@ -1,3 +1,5 @@
+from .py_utils import is_windows
+
 import math, json, sys, hashlib, mmap
 import xxhash
 from tempfile import TemporaryFile
@@ -7,25 +9,36 @@ import numpy as np
 
 import os
 
+from multiprocessing.shared_memory import SharedMemory
+
 class VariableSync():
     '''
     Helper library to synchronize variables between python and node
     '''
     def __init__(self):
         self.variables = []
+        self.windows = is_windows()
         #max size experimentally was 3/4 of 1gb
         #Likely some problem the mmap/shm_open library used
         self.size = int(math.floor( 0.75 *(1024*1024*1024) ))
         #Set some arbitrary name for the file
         self.SHARED_MEMORY_NAME = "bifrost_shared_memory_" + str(uuid.uuid4())
 
-        with open(self.SHARED_MEMORY_NAME, "w+b") as self.file_obj:
-            #truncate the shared memory so that we are not mapping to an empty file
-            self.file_obj.truncate( self.size )
-            #map the file to memory
-            self.file_obj.flush()
-            self.mapFile = mmap.mmap(self.file_obj.fileno(), self.size, access=mmap.ACCESS_WRITE)
-
+        if self.windows:
+            with open(self.SHARED_MEMORY_NAME, "w+b") as self.file_obj:
+                #truncate the shared memory so that we are not mapping to an empty file
+                self.file_obj.truncate( self.size )
+                #map the file to memory
+                self.file_obj.flush()
+                self.mapFile = mmap.mmap(self.file_obj.fileno(), self.size, access=mmap.ACCESS_WRITE)
+        else:
+            self.memory = SharedMemory(
+              name=self.SHARED_MEMORY_NAME,
+              create=True,
+              size=self.size,
+            )
+            self.mapFile = mmap.mmap(self.memory._fd, self.size, access=mmap.ACCESS_WRITE)
+            self.memory.close()
         self.clearCache()
         print("Memory map has been established")
 
@@ -41,7 +54,10 @@ class VariableSync():
             print("Could not close shared memory for some reason")
 
         try:
-            os.remove(self.SHARED_MEMORY_NAME)
+            if self.windows:
+                os.remove(self.SHARED_MEMORY_NAME)
+            else:
+                self.memory.unlink()
             print("Memory unlinked!")
         except Exception as e:
             print(str(e))
