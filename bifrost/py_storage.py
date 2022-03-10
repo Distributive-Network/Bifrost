@@ -1,4 +1,4 @@
-from .py_utils import is_windows
+from .py_utils import is_windows, has_mp_shared
 
 import math, json, sys, hashlib, mmap
 import xxhash
@@ -9,8 +9,6 @@ import numpy as np
 
 import os
 
-from multiprocessing.shared_memory import SharedMemory
-
 class VariableSync():
     '''
     Helper library to synchronize variables between python and node
@@ -18,13 +16,14 @@ class VariableSync():
     def __init__(self):
         self.variables = []
         self.windows = is_windows()
+        self.mp_shared = has_mp_shared()
         #max size experimentally was 3/4 of 1gb
         #Likely some problem the mmap/shm_open library used
         self.size = int(math.floor( 0.75 *(1024*1024*1024) ))
         #Set some arbitrary name for the file
         self.SHARED_MEMORY_NAME = "bifrost_shared_memory_" + str(uuid.uuid4())
 
-        if self.windows:
+        if self.windows or self.mp_shared == False:
             with open(self.SHARED_MEMORY_NAME, "w+b") as self.file_obj:
                 #truncate the shared memory so that we are not mapping to an empty file
                 self.file_obj.truncate( self.size )
@@ -32,6 +31,9 @@ class VariableSync():
                 self.file_obj.flush()
                 self.mapFile = mmap.mmap(self.file_obj.fileno(), self.size, access=mmap.ACCESS_WRITE)
         else:
+
+            from multiprocessing.shared_memory import SharedMemory
+
             self.memory = SharedMemory(
               name=self.SHARED_MEMORY_NAME,
               create=True,
@@ -54,7 +56,7 @@ class VariableSync():
             print("Could not close shared memory for some reason")
 
         try:
-            if self.windows:
+            if self.windows or self.mp_shared == False:
                 os.remove(self.SHARED_MEMORY_NAME)
             else:
                 self.memory.unlink()

@@ -1,4 +1,5 @@
 import os
+import sys
 
 # PROGRAM
 
@@ -29,6 +30,18 @@ def is_windows():
   restrictions to how we share memory and make interprocess commands.
   """
   if os.name == 'nt':
+    return True
+  else:
+    return False
+
+def has_mp_shared():
+  """
+  A function that checks the current python version number, to check whether
+  we are in an environment that supports the multiprocessing.shared_memory
+  functionality that was introduced in Python 3.8, allowing easy shmmap calls.
+  """
+  # TODO: consider attempting to actually import multiprocessing.shared_memory here
+  if sys.version_info.major == 3 and sys.version.info.minor >= 8:
     return True
   else:
     return False
