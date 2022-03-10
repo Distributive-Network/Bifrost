@@ -193,7 +193,8 @@ inputStream._transform = async function(chunk, encoding, done){
 
     if (!evaluator.hash64)
     {
-        evaluator.hash64 = await xxhash().h64;
+        let { h64 } = await xxhash();
+        evaluator.hash64 = h64;
     }
 
     evaluator.syncFrom();
