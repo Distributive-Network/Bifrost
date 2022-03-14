@@ -17,7 +17,7 @@ const fs = require('fs');
 console.log("Beginning Node Process");
 
 // we only pipe the errors through stdout if we are in a NON-WINDOWS AND NON-NOTEBOOK environment
-if ( BIFROST_NOTEBOOK == false && BIFROST_WINDOWS == false ) process.stderr.pipe(process.stdout);
+if ( BIFROST_NOTEBOOK == "False" && BIFROST_WINDOWS == "False" ) process.stderr.pipe(process.stdout);
 /**
  * Evaluator class is the main class meant to evaluate any node script given
  * using some node context.
@@ -37,7 +37,7 @@ class Evaluator{
         this.fd = -1;
         let size= Math.floor( 0.75 * 1024*1024*1024 );
 
-        if ( BIFROST_WINDOWS == true || BIFROST_MP_SHARED == false )
+        if ( BIFROST_WINDOWS == "True" || BIFROST_MP_SHARED == "False" )
         {
             this.fd = fs.openSync
             (

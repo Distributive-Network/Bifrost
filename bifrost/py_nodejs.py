@@ -179,9 +179,9 @@ class Node():
             self.node_exec_path,
             '--max-old-space-size=32000',
             self.replFile,
-            self.vs.mp_shared,
-            self.vs.notebook,
-            self.vs.windows,
+            str(self.vs.mp_shared),
+            str(self.vs.notebook),
+            str(self.vs.windows),
             self.vs.SHARED_MEMORY_NAME
           ],
           cwd = self.cwd,
