@@ -16,6 +16,7 @@ class VariableSync():
     def __init__(self):
         self.variables = []
         self.windows = is_windows()
+        self.notebook = is_notebook()
         self.mp_shared = has_mp_shared()
         #max size experimentally was 3/4 of 1gb
         #Likely some problem the mmap/shm_open library used
@@ -23,7 +24,7 @@ class VariableSync():
         #Set some arbitrary name for the file
         self.SHARED_MEMORY_NAME = "bifrost_shared_memory_" + str(uuid.uuid4())
 
-        if self.windows or self.mp_shared == False:
+        if self.windows or not self.mp_shared:
             with open(self.SHARED_MEMORY_NAME, "w+b") as self.file_obj:
                 #truncate the shared memory so that we are not mapping to an empty file
                 self.file_obj.truncate( self.size )
@@ -56,7 +57,7 @@ class VariableSync():
             print("Could not close shared memory for some reason")
 
         try:
-            if self.windows or self.mp_shared == False:
+            if self.windows or not self.mp_shared:
                 os.remove(self.SHARED_MEMORY_NAME)
             else:
                 self.memory.unlink()

@@ -1,5 +1,5 @@
 from .py_storage import *
-from .py_utils import is_notebook, is_windows
+from .py_utils import is_windows, has_mp_shared
 from .ReadWriteLock import ReadWriteLock
 import time
 import os, sys, socket
@@ -22,19 +22,35 @@ class Npm():
     def __init__(self, cwd = os.getcwd()):
         self.cwd = cwd
         self.npm_exec_path = shutil.which('npm')
-        if not ( os.path.exists(cwd + '/node_modules/@raygun-nickj/mmap-io') ):
-          self.run([
-            self.npm_exec_path,
-            'init',
-            '--yes',
-          ])
-          self.run([
-            self.npm_exec_path,
-            'install',
-            '--quiet',
-            '@raygun-nickj/mmap-io',
-            'xxhash-wasm@0.4.2',
-          ])
+
+        self.js_needs_mmap = not os.path.exists(cwd + '/node_modules/@raygun-nickj/mmap-io')
+        self.js_needs_xxhash = not os.path.exists(cwd + '/node_modules/xxhash-wasm')
+        self.js_needs_shm = has_mp_shared() and not is_windows() and not os.path.exists(cwd + '/node_modules/shmmap')
+
+        # TODO: find better terminology than "js needs", but favour this pattern over the previous not-and-chain approach
+        if self.js_needs_mmap or self.js_needs_xxhash or self.js_needs_shm:
+            npm_init_args = [
+              self.npm_exec_path,
+              'init',
+              '--yes',
+            ]
+            self.run(npm_init_args)
+
+            npm_install_args = [
+              self.npm_exec_path,
+              'install',
+              '--quiet',
+            ]
+            if self.js_needs_mmap:
+                npm_install_args.append('@raygun-nickj/mmap-io')
+                self.js_needs_mmap = False
+            if self.js_needs_xxhash:
+                npm_install_args.append('xxhash-wasm@0.4.2')
+                self.js_needs_xxhash = False
+            if self.js_needs_shm:
+                npm_install_args.append('git+https://github.com/chris-c-mcintyre/shmmap.js')
+                self.js_needs_shm = False
+            self.run(npm_install_args)
 
     def run(self, cmd):
         '''
@@ -157,17 +173,15 @@ class Node():
         #make sure to add the current path to the node_path
         env["NODE_PATH"] = self.cwd + '/node_modules'
 
-        if is_notebook():
-            env["BIFROST_SHELL"] = "notebook"
-        if is_windows():
-            env["BIFROST_OS"] = "nt"
-
         #ready the node process
         self.process = Popen(
           [
             self.node_exec_path,
             '--max-old-space-size=32000',
             self.replFile,
+            self.vs.mp_shared,
+            self.vs.notebook,
+            self.vs.windows,
             self.vs.SHARED_MEMORY_NAME
           ],
           cwd = self.cwd,

@@ -8,12 +8,16 @@ const crypto    = require('crypto');
 const args      = process.argv;
 const deepEqual = require('./deepEqual.js').deepEqual;
 const SHM_FILE_NAME = args[args.length-1];
+const BIFROST_WINDOWS = args[args.length-2];
+const BIFROST_NOTEBOOK = args[args.length-3];
+const BIFROST_MP_SHARED = args[args.length-4];
 
 const fs = require('fs');
 
 console.log("Beginning Node Process");
 
-if ( process.env['BIFROST_SHELL'] !== "notebook" && process.env['BIFROST_OS'] !== "nt" ) process.stderr.pipe(process.stdout);
+// we only pipe the errors through stdout if we are in a NON-WINDOWS AND NON-NOTEBOOK environment
+if ( BIFROST_NOTEBOOK == false && BIFROST_WINDOWS == false ) process.stderr.pipe(process.stdout);
 /**
  * Evaluator class is the main class meant to evaluate any node script given
  * using some node context.
@@ -33,14 +37,32 @@ class Evaluator{
         this.fd = -1;
         let size= Math.floor( 0.75 * 1024*1024*1024 );
 
-        let fd = fs.openSync(SHM_FILE_NAME, 'r+');
+        if ( BIFROST_WINDOWS == true || BIFROST_MP_SHARED == false )
+        {
+            this.fd = fs.openSync
+            (
+                SHM_FILE_NAME,
+                'r+',
+            );
+        }
+        else
+        {
+            const shm = require('shmmap');
+
+            this.fd = shm.open
+            (
+                SHM_FILE_NAME,
+                shm.O_RDWR,
+                600,
+            );
+        }
 
         this.mm= mmap.map
         (
             size,
             mmap.PROT_READ | mmap.PROT_WRITE,
             mmap.MAP_SHARED,
-            fd,
+            this.fd,
             0,
         );
 
