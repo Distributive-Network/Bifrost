@@ -41,7 +41,7 @@ def has_mp_shared():
   functionality that was introduced in Python 3.8, allowing easy shmmap calls.
   """
   # TODO: consider attempting to actually import multiprocessing.shared_memory here
-  if sys.version_info.major == 3 and sys.version.info.minor >= 8:
+  if sys.version_info.major == 3 and sys.version_info.minor >= 8:
     return True
   else:
     return False
