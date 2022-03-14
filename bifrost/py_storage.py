@@ -1,4 +1,4 @@
-from .py_utils import is_windows, has_mp_shared
+from .py_utils import is_windows, is_notebook, has_mp_shared
 
 import math, json, sys, hashlib, mmap
 import xxhash
