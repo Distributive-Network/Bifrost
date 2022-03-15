@@ -80,6 +80,14 @@
         };
 
         let jobResultInterval;
+        let resultIntervalFunction = function()
+        {
+            job.results.fetch( null, emitEvents = true ); // TODO : configurable flags
+            const fetchResultCount = Array.from(job.results).length;
+            if ( job.debug ) console.log('Job Result Fetch Count', ':', fetchResultCount, ':', Date.now());
+            // TODO : support for (myMultiplier > 1)
+            if ( fetchResultCount >= inputSet.length ) resolve({ bifrostResultHandle: job.results });
+        }
 
         async function dcpPromise()
         {
@@ -92,14 +100,7 @@
                     // TODO : make contingent on certain conditions or flags
                     // TODO : configurable result threshold for resolving
                     // TODO : configurable timer value, flag for interval vs single-shot timeout
-                    jobResultInterval = setInterval(function()
-                    {
-                        job.results.fetch( null, emitEvents = true ); // TODO : configurable flags
-                        const fetchResultCount = Array.from(job.results).length;
-                        if ( job.debug ) console.log('Job Result Fetch Count', ':', fetchResultCount, ':', Date.now());
-                        // TODO : support for (myMultiplier > 1)
-                        if ( fetchResultCount >= inputSet.length ) resolve({ bifrostResultHandle: job.results });
-                    }, 5000);
+                    jobResultInterval = setInterval(resultIntervalFunction, 60000);
                 }
 
                 eventFunctions.complete = function onJobComplete(myComplete)
@@ -161,6 +162,9 @@
                     {
                         console.log('Bad Result (no "output" property) : ' + myResult);
                     }
+
+                    clearInterval(jobResultInterval);
+                    jobResultInterval = setInterval(resultIntervalFunction, 60000);
                 }
 
                 for ( event in dcp_events )
