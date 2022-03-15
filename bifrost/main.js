@@ -193,7 +193,6 @@ inputStream._transform = async function(chunk, encoding, done){
     }
     evaluator.syncTo();
     console.log('{"type": "done"}')
-    this.push(chunk);
     done();
 }
 
