@@ -88,9 +88,7 @@ class Job:
         self.shuffle = False
         self.range_object_input = False
         self.pickle_work_function = True
-        # TODO : set new_context default to false once node.run hanging is fixed (bug #11)
-        # https://github.com/Kings-Distributed-Systems/Bifrost/issues/11
-        self.new_context = True
+        self.new_context = False # clears the nodejs stream after every job if true
 
         # work wrapper functions
         self.python_init = dcp_init_worker
