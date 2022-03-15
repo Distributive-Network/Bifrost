@@ -14,8 +14,6 @@ const BIFROST_MP_SHARED = args[args.length-4];
 
 const fs = require('fs');
 
-console.log("Beginning Node Process");
-
 // we only pipe the errors through stdout if we are in a NON-WINDOWS AND NON-NOTEBOOK environment
 if ( BIFROST_NOTEBOOK == "False" && BIFROST_WINDOWS == "False" ) process.stderr.pipe(process.stdout);
 /**
@@ -32,7 +30,7 @@ class Evaluator{
         this.context['buildDataArray']   = npy.buildDataArray;
         this.context['require']          = require;
         vm.createContext(this.context);
-        console.log("VM context has been prepared.");
+
         this.cache = {};
         this.fd = -1;
         let size= Math.floor( 0.75 * 1024*1024*1024 );
@@ -194,7 +192,6 @@ class Evaluator{
     //to fully complete
     async evaluate(script){
         await vm.runInContext(script, this.context);
-        //console.log("Done evaluating");
     }
 }
 
