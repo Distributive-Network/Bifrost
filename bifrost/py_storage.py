@@ -43,28 +43,25 @@ class VariableSync():
             self.mapFile = mmap.mmap(self.memory._fd, self.size, access=mmap.ACCESS_WRITE)
             self.memory.close()
         self.clearCache()
-        print("Memory map has been established")
 
     def __del__(self):
         '''
         If this variable is deleted, we should manage it appropriately
         '''
         try:
-            self.mapFile.close()
-            print("Memory closed!")
-        except Exception as e:
-            print(str(e))
-            print("Could not close shared memory for some reason")
+            if sys.meta_path:
+                self.mapFile.close()
+        except:
+            print("Could not close shared memory. Process may be ending.")
 
         try:
-            if self.windows or not self.mp_shared:
-                os.remove(self.SHARED_MEMORY_NAME)
-            else:
-                self.memory.unlink()
-            print("Memory unlinked!")
-        except Exception as e:
-            print(str(e))
-            print("Could not unlink shared memory for some reason")
+            if sys.meta_path:
+                if self.windows or not self.mp_shared:
+                    os.remove(self.SHARED_MEMORY_NAME)
+                else:
+                    self.memory.unlink()
+        except:
+            print("Could not unlink shared memory. Process may be ending.")
 
         return
 

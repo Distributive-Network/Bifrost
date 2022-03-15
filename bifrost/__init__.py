@@ -52,10 +52,11 @@ if is_notebook():
 def onEnd():
     global node
 
+    
     #Clean up everything.... Include shm file and mmap stuff.
     try:
         if hasattr(node, 'process'):
-            os.kill(node.process.pid, signal.SIGSTOP)
+            os.kill(node.process.pid, signal.SIGTERM)
     except:
         print("Could not kill process. May already be dead.")
     try:
@@ -65,18 +66,14 @@ def onEnd():
         print("Could not stop nstdproc. May already be dead.")
     try:
         node.vs.mapFile.close()
-        print("Memory map has been destroyed")
-    except Exception as e:
-        print(str(e))
+    except:
         print("Could not close shared memory. May already be dead.")
     try:
-        if node.vs.windows:
+        if node.vs.windows or not node.vs.mp_shared:
             os.remove(node.vs.SHARED_MEMORY_NAME)
         else:
             node.vs.memory.unlink()
-        print("Memory unlinked!")
-    except Exception as e:
-        print(str(e))
+    except:
         print("Could not unlink shared memory. May already be dead.")
 
 # set up our DCP bridge interface

@@ -308,7 +308,7 @@ class Node():
 
     def cancel(self, restart=True):
         try:
-            os.kill(self.process.pid, signal.SIGSTOP)
+            os.kill(self.process.pid, signal.SIGTERM)
             self.nstdproc.stop()
         except Exception as e:
             print(e)

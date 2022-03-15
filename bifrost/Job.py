@@ -287,7 +287,7 @@ class Job:
         self.result_set = result_set
         
         if self.new_context == True:
-            node.cancel()
+            node.clear()
 
         return result_set
 
