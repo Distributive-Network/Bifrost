@@ -1,18 +1,28 @@
+// MODULES
+
+// node built-in modules
+const crypto    = require('crypto');
 const stream    = require('stream');
 const vm        = require('vm');
-const utils     = require('./utils');
+
+// npm modules
 const mmap      = require('@raygun-nickj/mmap-io');
-const npy       = require('./npy-js');
 const xxhash    = require('xxhash-wasm');
-const crypto    = require('crypto');
-const args      = process.argv;
+
+// local modules
 const deepEqual = require('./deepEqual.js').deepEqual;
+const npy       = require('./npy-js');
+const utils     = require('./utils');
+
+// PROGRAM
+
+// set up arguments
+const args      = process.argv;
+
 const SHM_FILE_NAME = args[args.length-1];
 const BIFROST_WINDOWS = args[args.length-2];
 const BIFROST_NOTEBOOK = args[args.length-3];
 const BIFROST_MP_SHARED = args[args.length-4];
-
-const fs = require('fs');
 
 // we only pipe the errors through stdout if we are in a NON-WINDOWS AND NON-NOTEBOOK environment
 if ( BIFROST_NOTEBOOK == "False" && BIFROST_WINDOWS == "False" ) process.stderr.pipe(process.stdout);
@@ -37,6 +47,8 @@ class Evaluator{
 
         if ( BIFROST_WINDOWS == "True" || BIFROST_MP_SHARED == "False" )
         {
+            const fs = require('fs');
+
             this.fd = fs.openSync
             (
                 SHM_FILE_NAME,

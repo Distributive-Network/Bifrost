@@ -1,6 +1,9 @@
+# MODULES
+
+# python standard library
 import threading
 
-
+# PROGRAM
 
 class ReadWriteLock:
     '''
@@ -34,3 +37,4 @@ class ReadWriteLock:
 
     def release_write(self):
         self._read_ready.release()
+

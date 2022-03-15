@@ -1,13 +1,24 @@
+# MODULES
+
+# python standard library
+import base64
+import json
+import math
+import mmap
+import os
+import sys
+import uuid
+from io import BytesIO
+from tempfile import TemporaryFile
+
+# pypi modules
+import numpy as np
+import xxhash
+
+# local modules
 from .py_utils import is_windows, is_notebook, has_mp_shared
 
-import math, json, sys, hashlib, mmap
-import xxhash
-from tempfile import TemporaryFile
-from io import BytesIO
-import base64, uuid
-import numpy as np
-
-import os
+# PROGRAM
 
 class VariableSync():
     '''

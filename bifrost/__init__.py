@@ -4,10 +4,7 @@
 import atexit
 import os
 import signal
-import sys
 import warnings
-
-# pypi modules
 
 # local modules
 from .py_utils import is_notebook
