@@ -129,6 +129,10 @@ build/Release
 node_modules
 jspm_packages
 
+# Dependency related files generated during initialization
+bifrost/package.json
+bifrost/package-lock.json
+
 # Optional npm cache directory
 .npm
 
