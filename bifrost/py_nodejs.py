@@ -1,13 +1,14 @@
 from .py_storage import *
-from .py_utils import is_notebook
+from .py_utils import is_windows, has_mp_shared
 from .ReadWriteLock import ReadWriteLock
-import time, posix_ipc
+import time
 import os, sys, socket
 import subprocess, signal
 from threading import Thread, Event, Lock
 from subprocess import call, Popen, PIPE
 from pathlib import Path
 import atexit
+import shutil
 
 #Simple python global read write lock
 NODE_LOCK       = ReadWriteLock()
@@ -20,12 +21,36 @@ class Npm():
     '''
     def __init__(self, cwd = os.getcwd()):
         self.cwd = cwd
-        if not ( ( os.path.exists(cwd + '/node_modules/xxhash') ) and ( os.path.exists(cwd + '/node_modules/shmmap') ) and ( os.path.exists(cwd + '/node_modules/mmap.js') ) ):
-            self.run(['npm', 'init', '--yes'])
-            self.run(['npm', 'install', '--quiet',
-                      'xxhash',
-                      'git+https://github.com/chris-c-mcintyre/shmmap.js',
-                      'git+https://github.com/bungabear/mmap.js'])
+        self.npm_exec_path = shutil.which('npm')
+
+        self.js_needs_mmap = not os.path.exists(cwd + '/node_modules/@raygun-nickj/mmap-io')
+        self.js_needs_xxhash = not os.path.exists(cwd + '/node_modules/xxhash-wasm')
+        self.js_needs_shm = has_mp_shared() and not is_windows() and not os.path.exists(cwd + '/node_modules/shmmap')
+
+        # TODO: find better terminology than "js needs", but favour this pattern over the previous not-and-chain approach
+        if self.js_needs_mmap or self.js_needs_xxhash or self.js_needs_shm:
+            npm_init_args = [
+              self.npm_exec_path,
+              'init',
+              '--yes',
+            ]
+            self.run(npm_init_args)
+
+            npm_install_args = [
+              self.npm_exec_path,
+              'install',
+              '--quiet',
+            ]
+            if self.js_needs_mmap:
+                npm_install_args.append('@raygun-nickj/mmap-io')
+                self.js_needs_mmap = False
+            if self.js_needs_xxhash:
+                npm_install_args.append('xxhash-wasm@0.4.2')
+                self.js_needs_xxhash = False
+            if self.js_needs_shm:
+                npm_install_args.append('git+https://github.com/chris-c-mcintyre/shmmap.js')
+                self.js_needs_shm = False
+            self.run(npm_install_args)
 
     def run(self, cmd):
         '''
@@ -35,7 +60,13 @@ class Npm():
 
         Also helpful to block until command completes.
         '''
-        process = Popen(cmd, cwd = self.cwd, stdout = subprocess.PIPE)
+
+        process = Popen(
+          cmd,
+          cwd = self.cwd,
+          stdout = subprocess.PIPE
+        )
+
         while True:
             output = process.stdout.readline().decode('utf-8')
             if output == '' and process.poll() is not None:
@@ -46,13 +77,13 @@ class Npm():
         return returnCode
 
     def install(self,*args):
-        self.run(['npm', '--quiet', 'install', *args])
+        self.run([self.npm_exec_path, '--quiet', 'install', *args])
 
     def uninstall(self, *args):
-        self.run(['npm', '--quiet', 'uninstall', *args])
+        self.run([self.npm_exec_path, '--quiet', 'uninstall', *args])
 
     def list_modules(self, *args):
-        self.run(['npm', 'list', *args])
+        self.run([self.npm_exec_path, 'list', *args])
 
 
 class NodeSTDProc(Thread):
@@ -113,10 +144,7 @@ class NodeSTDProc(Thread):
                     #otherwise print out the json
                     if (output and len(output.strip()) > 0):
                         print(output.strip())
-                    continue 
-
-
-
+                    continue
 
 
 class Node():
@@ -125,6 +153,7 @@ class Node():
     '''
     def __init__(self, cwd= os.getcwd()):
         self.cwd = cwd
+        self.node_exec_path = shutil.which('node')
         self.serializer_custom_funcs = {}
         self.deserializer_custom_funcs = {}
         #the replFile is the main file that preps the node runtime for use with this module
@@ -133,7 +162,6 @@ class Node():
         self.vs = VariableSync()
 
         self.init_process()
-
 
     def init_process(self):
         '''
@@ -145,16 +173,22 @@ class Node():
         #make sure to add the current path to the node_path
         env["NODE_PATH"] = self.cwd + '/node_modules'
 
-        if is_notebook():
-            env["BIFROST_SHELL"] = "notebook"
-
         #ready the node process
-        self.process = Popen(['node',
-                              '--max-old-space-size=32000',
-                              self.replFile,
-                              self.vs.SHARED_MEMORY_NAME], cwd=self.cwd,stdin=subprocess.PIPE,
-                              env=env,
-                              stdout=subprocess.PIPE)
+        self.process = Popen(
+          [
+            self.node_exec_path,
+            '--max-old-space-size=32000',
+            self.replFile,
+            str(self.vs.mp_shared),
+            str(self.vs.notebook),
+            str(self.vs.windows),
+            self.vs.SHARED_MEMORY_NAME
+          ],
+          cwd = self.cwd,
+          stdin = subprocess.PIPE,
+          env = env,
+          stdout = subprocess.PIPE
+        )
 
         #ready the node stdout manager
         self.nstdproc = NodeSTDProc(self.process)
@@ -167,7 +201,6 @@ class Node():
             var_type = str(var_type)
         self.serializer_custom_funcs[var_type] = func
         return
-
 
     def register_custom_deserializer(self, func, var_type):
         '''
@@ -275,7 +308,7 @@ class Node():
 
     def cancel(self, restart=True):
         try:
-            os.kill(self.process.pid, signal.SIGSTOP)
+            os.kill(self.process.pid, signal.SIGTERM)
             self.nstdproc.stop()
         except Exception as e:
             print(e)

@@ -1,10 +1,13 @@
-import math, json, sys, hashlib, posix_ipc, mmap
+from .py_utils import is_windows, is_notebook, has_mp_shared
+
+import math, json, sys, hashlib, mmap
 import xxhash
 from tempfile import TemporaryFile
 from io import BytesIO
 import base64, uuid
 import numpy as np
 
+import os
 
 class VariableSync():
     '''
@@ -12,32 +15,54 @@ class VariableSync():
     '''
     def __init__(self):
         self.variables = []
+        self.windows = is_windows()
+        self.notebook = is_notebook()
+        self.mp_shared = has_mp_shared()
         #max size experimentally was 3/4 of 1gb
         #Likely some problem the mmap/shm_open library used
         self.size = int(math.floor( 0.75 *(1024*1024*1024) ))
         #Set some arbitrary name for the file
-        self.SHARED_MEMORY_NAME = "/bifrost_shared_memory" + str(uuid.uuid4())
-        self.memory = posix_ipc.SharedMemory(self.SHARED_MEMORY_NAME, posix_ipc.O_CREX,
-                                        size=self.size)
+        self.SHARED_MEMORY_NAME = "bifrost_shared_memory_" + str(uuid.uuid4())
 
-        #map the file to memory
-        self.mapFile = mmap.mmap(self.memory.fd, self.memory.size)
+        if self.windows or not self.mp_shared:
+            with open(self.SHARED_MEMORY_NAME, "w+b") as self.file_obj:
+                #truncate the shared memory so that we are not mapping to an empty file
+                self.file_obj.truncate( self.size )
+                #map the file to memory
+                self.file_obj.flush()
+                self.mapFile = mmap.mmap(self.file_obj.fileno(), self.size, access=mmap.ACCESS_WRITE)
+        else:
 
-        self.memory.close_fd()
+            from multiprocessing.shared_memory import SharedMemory
+
+            self.memory = SharedMemory(
+              name=self.SHARED_MEMORY_NAME,
+              create=True,
+              size=self.size,
+            )
+            self.mapFile = mmap.mmap(self.memory._fd, self.size, access=mmap.ACCESS_WRITE)
+            self.memory.close()
         self.clearCache()
-        print("Memory map has been established")
 
     def __del__(self):
         '''
         If this variable is deleted, we should manage it appropriately
         '''
         try:
-            self.mapFile.close()
-            posix_ipc.unlink_shared_memory(self.SHARED_MEMORY_NAME)
-            print("Memory unlinked!")
-        except Exception as e:
-            print(str(e))
-            print("Could not unlink shared memory for some reason")
+            if sys.meta_path:
+                self.mapFile.close()
+        except:
+            print("Could not close shared memory. Process may be ending.")
+
+        try:
+            if sys.meta_path:
+                if self.windows or not self.mp_shared:
+                    os.remove(self.SHARED_MEMORY_NAME)
+                else:
+                    self.memory.unlink()
+        except:
+            print("Could not unlink shared memory. Process may be ending.")
+
         return
 
     def setCache(self, key, hsh):
@@ -53,7 +78,7 @@ class VariableSync():
         hsh = ''
         if var_type == np.ndarray:
             arr_bytes = bytes(val.data)
-            hsh = xxhash.xxh32( arr_bytes ).hexdigest() + str(val.shape)
+            hsh = xxhash.xxh32(arr_bytes).hexdigest() + str(val.shape)
         else:
             hsh = xxhash.xxh32( JSON.dumps(val).encode('utf8') ).hexdigest()
         if key in self.cache and hsh == self.cache[key]:

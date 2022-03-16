@@ -1,19 +1,21 @@
 const stream    = require('stream');
 const vm        = require('vm');
 const utils     = require('./utils');
-//const shm       = require('../build/Release/shmjs.node');
-const shm       = require('shmmap');
-const mmap      = require('mmap.js');
+const mmap      = require('@raygun-nickj/mmap-io');
 const npy       = require('./npy-js');
-const XXHash    = require('xxhash');
+const xxhash    = require('xxhash-wasm');
 const crypto    = require('crypto');
 const args      = process.argv;
 const deepEqual = require('./deepEqual.js').deepEqual;
 const SHM_FILE_NAME = args[args.length-1];
+const BIFROST_WINDOWS = args[args.length-2];
+const BIFROST_NOTEBOOK = args[args.length-3];
+const BIFROST_MP_SHARED = args[args.length-4];
 
-console.log("Beginning Node Process");
+const fs = require('fs');
 
-if (process.env['BIFROST_SHELL'] !== "notebook") process.stderr.pipe(process.stdout);
+// we only pipe the errors through stdout if we are in a NON-WINDOWS AND NON-NOTEBOOK environment
+if ( BIFROST_NOTEBOOK == "False" && BIFROST_WINDOWS == "False" ) process.stderr.pipe(process.stdout);
 /**
  * Evaluator class is the main class meant to evaluate any node script given
  * using some node context.
@@ -28,18 +30,40 @@ class Evaluator{
         this.context['buildDataArray']   = npy.buildDataArray;
         this.context['require']          = require;
         vm.createContext(this.context);
-        console.log("VM context has been prepared.");
+
         this.cache = {};
         this.fd = -1;
         let size= Math.floor( 0.75 * 1024*1024*1024 );
 
-        let fd = shm.open(SHM_FILE_NAME, shm.O_RDWR, 600);
-        //let fd = shm.open(SHM_FILE_NAME);
+        if ( BIFROST_WINDOWS == "True" || BIFROST_MP_SHARED == "False" )
+        {
+            this.fd = fs.openSync
+            (
+                SHM_FILE_NAME,
+                'r+',
+            );
+        }
+        else
+        {
+            const shm = require('shmmap');
 
-        this.mm= mmap.alloc(size, mmap.PROT_READ | mmap.PROT_WRITE,
-            mmap.MAP_SHARED, fd, 0);
+            this.fd = shm.open
+            (
+                SHM_FILE_NAME,
+                shm.O_RDWR,
+                600,
+            );
+        }
 
-        //this.mm= shm.read_write(SHM_FILE_NAME, size);
+        this.mm= mmap.map
+        (
+            size,
+            mmap.PROT_READ | mmap.PROT_WRITE,
+            mmap.MAP_SHARED,
+            this.fd,
+            0,
+        );
+
         this.dontSync = Object.keys(this.context);
         this.seed = crypto.randomBytes(8); 
     }
@@ -53,7 +77,7 @@ class Evaluator{
      */
     inCache( key, val){
       let results = { 'bool': false, 'hash': '' }; 
-      results.hash = XXHash.hash64( val , this.seed);
+      results.hash = this.hash64( val, this.seed );
 
       if (typeof this.cache[key] !== 'undefined'){
         if (this.cache[key] === results.hash){
@@ -86,9 +110,8 @@ class Evaluator{
 
         for (let key of allVarsToSync){
             try{
-                if (typeof this.context[key] !== 'undefined'){
-                    //if it is a dataArray, convert back to numpy!
-                    if (typeof this.context[key].constructor !== 'undefined' && this.context[key].constructor.name === 'DataArray'){
+                //if it is a dataArray, convert back to numpy!
+                if (!!this.context[key] && typeof this.context[key] !== 'undefined' && typeof this.context[key].constructor !== 'undefined' && this.context[key].constructor.name === 'DataArray'){
                         let toCheck = Buffer.concat([
                           Buffer.from(this.context[key].typedArray.buffer),
                           Buffer.from(this.context[key].shape)
@@ -108,6 +131,9 @@ class Evaluator{
                           };
                         };
                     }else{
+                        if (this.context[key] === undefined){
+                          throw 'undefined value error'
+                        }
                         let val = JSON.stringify(this.context[key]);
                         if (deepEqual(JSON.parse(val), this.context[key])){
                           let cacheResults = this.inCache( key, Buffer.from(val) );
@@ -118,10 +144,12 @@ class Evaluator{
                             final_output[key] = this.context[key]; 
                           }
                         }
-                    }
-                }
+                  }
             }catch(err){
                 // console.log(err);
+                if (err == 'undefined value error'){
+                  throw 'UNDEFINED VALUE ERROR: JavaScript variable to be synced contains an undefined value. Undefined values are not supported by Python.'
+                }
                 continue;
             }
         }
@@ -148,7 +176,7 @@ class Evaluator{
         var jsonVars    = JSON.parse(buffToParse.toString('utf-8'));
         for (let key of Object.keys(jsonVars)){
             let obj = jsonVars[key];
-            if (obj['type'] == 'numpy' && typeof obj['data'] === 'string'){
+            if (!!obj && obj['type'] == 'numpy' && typeof obj['data'] === 'string'){
                 let data = obj['data'];
                 let abData = utils.strtoab(data);
                 const npArr = npy.parseNumpyFile(abData);
@@ -164,7 +192,6 @@ class Evaluator{
     //to fully complete
     async evaluate(script){
         await vm.runInContext(script, this.context);
-        //console.log("Done evaluating");
     }
 }
 
@@ -182,6 +209,13 @@ let inputStream = new stream.Transform();
  * 5. Tell the python process we are done.
  */
 inputStream._transform = async function(chunk, encoding, done){
+
+    if (!evaluator.hash64)
+    {
+        let { h64 } = await xxhash();
+        evaluator.hash64 = h64;
+    }
+
     evaluator.syncFrom();
     try{
         let scriptJSON = JSON.parse(chunk.toString('utf-8'));

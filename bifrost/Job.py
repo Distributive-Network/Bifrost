@@ -1,13 +1,12 @@
-from .Work import dcp_init_worker, dcp_compute_worker
-
-from .js_deploy_job import js_deploy_job
-from .js_work_function import js_work_function
+from .Work import dcp_init_worker, dcp_compute_worker, js_work_function, js_deploy_job
 
 import cloudpickle
-import codecs
-import random
 
+import codecs
+import contextlib
 import inspect
+import io
+import random
 import re
 
 class Job:
@@ -24,8 +23,7 @@ class Job:
         self.initial_slice_profile = False # Not Used
         self.slice_payment_offer = False # TODO
         self.payment_account = False # TODO
-        self.requires = []
-        self.require_path = False # Not Used
+        self.require_path = []
         self.module_path = False # Not Used
         self.collate_results = True
         self.status = { # Not Used
@@ -44,8 +42,10 @@ class Job:
         self.bank = False # Not Used
 
         # additional job properties
+        self.collate_results = True
         self.compute_groups = []
         self.debug = False
+        self.estimation_slices = 3
         self.multiplier = 1
         self.local_cores = 0
 
@@ -74,11 +74,11 @@ class Job:
 
         # event listener properties
         self.events = {
-            'accepted': False,
-            'complete': False,
-            'console': False,
-            'error': False,
-            'readystatechange': False,
+            'accepted': True,
+            'complete': True,
+            'console': True,
+            'error': True,
+            'readystatechange': True,
             'result': True,
         }
 
@@ -87,13 +87,14 @@ class Job:
         self.node_js = False
         self.shuffle = False
         self.range_object_input = False
+        self.pickle_work_function = True
+        self.new_context = False # clears the nodejs stream after every job if true
 
         # work wrapper functions
         self.python_init = dcp_init_worker
         self.python_compute = dcp_compute_worker
         self.python_wrapper = js_work_function
-
-        self.__dcp_install()
+        self.python_deploy = js_deploy_job
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -107,11 +108,34 @@ class Job:
 
         return data_encoded
 
+    def __output_decoder(self, output_data):
+
+        data_decoded = codecs.decode( output_data.encode(), 'base64' )
+
+        return data_decoded
+
+    def __pickle_jar(self, input_data):
+
+        import bifrost
+        cloudpickle.register_pickle_by_value(bifrost)
+
+        data_pickled = cloudpickle.dumps( input_data )
+        data_encoded = self.__input_encoder( data_pickled )
+
+        return data_encoded
+
+    def __unpickle_jar(self, output_data):
+
+        data_decoded = self.__output_decoder( output_data )
+        data_unpickled = cloudpickle.loads( data_decoded )
+
+        return data_unpickled
+
     def __function_writer(self, function):
 
         try:
             # function code is locally retrievable source code
-            function_name = function.__name__    
+            function_name = function.__name__
             function_code = inspect.getsource(function)
         except: # OSError
             try:
@@ -123,7 +147,7 @@ class Job:
                 function_name = re.findall("def (.+?)\s?\(", function)[0]
                 function_code = function
         finally:
-            return [function_name, function_code]
+            return {'name': function_name, 'code': function_code}
 
     def __module_writer(self, module_name): # TODO: Reconcile with Path().read_text() functionality elsewhere
 
@@ -136,32 +160,58 @@ class Job:
 
         return module_encoded
 
-    def __pickle_jar(self, input_data):
+    def dcp_install(self):
 
-        data_pickled = cloudpickle.dumps( input_data )
-        data_encoded = self.__input_encoder( data_pickled )
+        # install and initialize dcp-client
 
-        return data_encoded
-
-    def __dcp_install(self):
+        # TODO: Call this before python_deploy is run, to ensure that dcp-client is available
+        # -> Do NOT move this back to Job.__init__; that location precludes custom scheduler settings
+        # -> This is now being called in compute_for, after Job.__init__, but before returning the Class
 
         from bifrost import node, npm
 
-        npm.install('--quiet', '--force', 'dcp-client')
+        def _npm_checker(package_name):
 
-        node.run('require("dcp-client").initSync(scheduler);', { 'scheduler': self.scheduler })
+            npm_io = io.StringIO()
+            with contextlib.redirect_stdout(npm_io):
+                npm.list_modules(package_name)
+            npm_check = npm_io.getvalue()
+
+            if '(empty)' in npm_check:
+                print('installing dcp-client due to npm_check')
+                npm.install(package_name, '--quiet', '--force', 'dcp-client')
+
+        _npm_checker('dcp-client')
+
+        node.run("""
+        if ( !globalThis.dcpClient ) globalThis.dcpClient = require("dcp-client").init(scheduler);
+        """, { 'scheduler': self.scheduler })
 
     def __dcp_run(self):
 
         from bifrost import node
 
         if self.node_js == True:
-            work_arguments_encoded = self.work_arguments # self.__input_encoder(self.work_arguments)
+            work_arguments_encoded = False # self.__input_encoder(self.work_arguments)
+
+            node.run("""
+            globalThis.nodeSharedArguments = [];
+            """)
+
+            for argument_index in range(len(self.work_arguments)):
+                shared_argument = self.work_arguments[argument_index]
+                node.run("""
+                nodeSharedArguments.push( sharedArgument );
+                """, { 'sharedArgument': shared_argument })
+
             work_function_encoded = self.work_function # TODO: adapt __function_writer for Node.js files
             work_imports_encoded = {}
         else:
             work_arguments_encoded = self.__pickle_jar(self.work_arguments)
-            work_function_encoded = self.__function_writer(self.work_function)
+            if self.pickle_work_function == True:
+                work_function_encoded = self.__pickle_jar(self.work_function)
+            else:
+                work_function_encoded = self.__function_writer(self.work_function)
             work_imports_encoded = {}
             for module_name in self.python_imports:
                 work_imports_encoded[module_name] = self.__module_writer(module_name)
@@ -195,9 +245,6 @@ class Job:
         if self.shuffle == True:
             random.shuffle(job_input)
 
-        #python_init_source = inspect.getsource(self.python_init)
-        #python_compute_source = inspect.getsource(self.python_compute)
-
         run_parameters = {
             'deploy_function': self.python_wrapper,
             'dcp_data': job_input,
@@ -205,6 +252,8 @@ class Job:
             'dcp_function': work_function_encoded,
             'dcp_multiplier': self.multiplier,
             'dcp_local': self.local_cores,
+            'dcp_collate': self.collate_results,
+            'dcp_estimation': self.estimation_slices,
             'dcp_groups': self.compute_groups,
             'dcp_public': self.public,
             'dcp_requirements': self.requirements,
@@ -214,19 +263,30 @@ class Job:
             'dcp_remote_flags': self.remote,
             'dcp_remote_storage_location': self.remote_storage_location,
             'dcp_remote_storage_params': self.remote_storage_params,
-            'python_packages': self.requires,
+            'python_packages': self.require_path,
             'python_modules': work_imports_encoded,
             'python_imports': self.python_imports,
             'python_init_worker': self.python_init,
             'python_compute_worker': self.python_compute,
+            'python_pickle_function': self.pickle_work_function,
         }
 
-        node_output = node.run(js_deploy_job, run_parameters)
+        node_output = node.run(self.python_deploy, run_parameters)
 
         result_set = node_output['jobOutput']
 
+        for result_index, result_slice in enumerate(result_set):
+            if self.node_js == False:
+                result_slice = self.__unpickle_jar( result_slice )
+            else:
+                result_slice = result_slice # self.__input_decoder(result_slice)
+            result_set[result_index] = result_slice
+
         self.result_set = result_set
         
+        if self.new_context == True:
+            node.clear()
+
         return result_set
 
     def on(self, event_name, event_function):
@@ -239,7 +299,7 @@ class Job:
         on(self, event_name, event_function)
 
     def requires(self, package_name):
-        self.requires.append(package_name)
+        self.require_path.append(package_name)
 
     def set_result_storage(self, remote_storage_location, remote_storage_params = {}):
         self.remote_storage_location = remote_storage_location

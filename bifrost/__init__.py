@@ -8,7 +8,6 @@ import sys
 import warnings
 
 # pypi modules
-import posix_ipc
 
 # local modules
 from .py_utils import is_notebook
@@ -19,8 +18,6 @@ from .Dcp import Dcp
 
 npm = Npm()
 node = Node()
-
-memName = node.vs.SHARED_MEMORY_NAME
 
 if is_notebook():
 
@@ -53,13 +50,13 @@ if is_notebook():
 #When python exits please do the following
 @atexit.register
 def onEnd():
-    global memName
     global node
 
+    
     #Clean up everything.... Include shm file and mmap stuff.
     try:
         if hasattr(node, 'process'):
-            os.kill(node.process.pid, signal.SIGSTOP)
+            os.kill(node.process.pid, signal.SIGTERM)
     except:
         print("Could not kill process. May already be dead.")
     try:
@@ -67,9 +64,17 @@ def onEnd():
             node.nstdproc.stop()
     except:
         print("Could not stop nstdproc. May already be dead.")
-
-    posix_ipc.unlink_shared_memory(memName)
-    print("Memory map has been destroyed")
+    try:
+        node.vs.mapFile.close()
+    except:
+        print("Could not close shared memory. May already be dead.")
+    try:
+        if node.vs.windows or not node.vs.mp_shared:
+            os.remove(node.vs.SHARED_MEMORY_NAME)
+        else:
+            node.vs.memory.unlink()
+    except:
+        print("Could not unlink shared memory. May already be dead.")
 
 # set up our DCP bridge interface
 dcp = Dcp()
