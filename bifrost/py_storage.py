@@ -1,13 +1,24 @@
+# MODULES
+
+# python standard library
+import base64
+import json
+import math
+import mmap
+import os
+import sys
+import uuid
+from io import BytesIO
+from tempfile import TemporaryFile
+
+# pypi modules
+import numpy as np
+import xxhash
+
+# local modules
 from .py_utils import is_windows, is_notebook, has_mp_shared
 
-import math, json, sys, hashlib, mmap
-import xxhash
-from tempfile import TemporaryFile
-from io import BytesIO
-import base64, uuid
-import numpy as np
-
-import os
+# PROGRAM
 
 class VariableSync():
     '''
@@ -80,7 +91,7 @@ class VariableSync():
             arr_bytes = bytes(val.data)
             hsh = xxhash.xxh32(arr_bytes).hexdigest() + str(val.shape)
         else:
-            hsh = xxhash.xxh32( JSON.dumps(val).encode('utf8') ).hexdigest()
+            hsh = xxhash.xxh32( json.dumps(val).encode('utf8') ).hexdigest()
         if key in self.cache and hsh == self.cache[key]:
             return True, hsh
         return False, hsh
@@ -105,6 +116,7 @@ class VariableSync():
                 else:
                     self.setCache(var_name, hsh)
             except Exception as e:
+                # TODO: this control flow pattern needs to be purged
                 pass
             if var_type == np.ndarray:
                 #Numpy is a special case and requires some managing to get data into a buffer

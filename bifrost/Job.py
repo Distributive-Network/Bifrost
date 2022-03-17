@@ -1,13 +1,20 @@
-from .Work import dcp_init_worker, dcp_compute_worker, js_work_function, js_deploy_job
+# MODULES
 
-import cloudpickle
-
+# python standard library
 import codecs
 import contextlib
 import inspect
 import io
 import random
 import re
+
+# pypi modules
+import cloudpickle
+
+# local modules
+from .Work import dcp_init_worker, dcp_compute_worker, js_work_function, js_deploy_job
+
+# PROGRAM
 
 class Job:
 

@@ -1,14 +1,20 @@
-from .py_storage import *
+# MODULES
+
+# python standard library
+import os
+import shutil
+import signal
+import time
+from pathlib import Path
+from subprocess import Popen, PIPE
+from threading import Thread, Event
+
+# local modules
+from .py_storage import VariableSync
 from .py_utils import is_windows, has_mp_shared
 from .ReadWriteLock import ReadWriteLock
-import time
-import os, sys, socket
-import subprocess, signal
-from threading import Thread, Event, Lock
-from subprocess import call, Popen, PIPE
-from pathlib import Path
-import atexit
-import shutil
+
+# PROGRAM
 
 #Simple python global read write lock
 NODE_LOCK       = ReadWriteLock()
@@ -64,7 +70,7 @@ class Npm():
         process = Popen(
           cmd,
           cwd = self.cwd,
-          stdout = subprocess.PIPE
+          stdout = PIPE
         )
 
         while True:
@@ -185,9 +191,9 @@ class Node():
             self.vs.SHARED_MEMORY_NAME
           ],
           cwd = self.cwd,
-          stdin = subprocess.PIPE,
+          stdin = PIPE,
           env = env,
-          stdout = subprocess.PIPE
+          stdout = PIPE
         )
 
         #ready the node stdout manager

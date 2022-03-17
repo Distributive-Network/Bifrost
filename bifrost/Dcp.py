@@ -1,6 +1,12 @@
+# MODULES
+
+# python standard library
 import itertools
 
+# local modules
 from .Job import Job
+
+# PROGRAM
 
 class Dcp:
 
