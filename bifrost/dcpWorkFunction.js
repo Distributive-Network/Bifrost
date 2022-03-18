@@ -178,6 +178,11 @@ async function workFunction(
             let fileLoader = require(pyFiles[i].filename + '.js');
             await fileLoader.download();
             pyDcp[fileKey] = await fileLoader.decode();
+            if (fileLoader.PACKAGE_FORMAT == 'string' && pyFiles[i].filename.contains('.js') && typeof pyDcp[fileKey] == 'string')
+            {
+                let sourceMappingIndex = pyDcp[fileKey].indexOf('//# sourceMappingURL');
+                if (sourceMappingIndex != -1) pyDcp[fileKey] = pyDcp[fileKey].slice(0, sourceMappingIndex);
+            }
         }
         progress();
     }
