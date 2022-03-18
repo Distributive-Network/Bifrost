@@ -96,6 +96,8 @@ class Job:
         self.range_object_input = False
         self.pickle_work_function = True
         self.new_context = False # clears the nodejs stream after every job if true
+        self.kvin = True # uses the kvin serialization library to decode job results
+        # TODO: turn kvin flag default to false after results.fetch serialization fix
 
         # work wrapper functions
         self.python_init = dcp_init_worker
@@ -177,6 +179,11 @@ class Job:
 
         from bifrost import node, npm
 
+        def _parse_version(version_string):
+            version_list = version_string.split('.')
+            version = tuple(int(version_element) for version_element in version_list)
+            return version
+
         def _npm_checker(package_name):
 
             npm_io = io.StringIO()
@@ -184,9 +191,13 @@ class Job:
                 npm.list_modules(package_name)
             npm_check = npm_io.getvalue()
 
-            if '(empty)' in npm_check:
-                print('installing dcp-client due to npm_check')
-                npm.install(package_name, '--quiet', '--force', 'dcp-client')
+            # TODO: reconcile the divergent and redundant approaches being used here
+            dcp_client_latest = npm.package_latest_version('dcp-client')
+            dcp_client_current = npm.package_current_version('dcp-client')
+
+            if '(empty)' in npm_check or _parse_version(dcp_client_current) < _parse_version(dcp_client_latest):
+                print('installing latest version of dcp-client')
+                npm.install(package_name + '@' + dcp_client_latest)
 
         _npm_checker('dcp-client')
 
@@ -267,6 +278,7 @@ class Job:
             'dcp_debug': self.debug,
             'dcp_node_js': self.node_js,
             'dcp_events': self.events,
+            'dcp_kvin': self.kvin,
             'dcp_remote_flags': self.remote,
             'dcp_remote_storage_location': self.remote_storage_location,
             'dcp_remote_storage_params': self.remote_storage_params,

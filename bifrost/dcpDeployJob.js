@@ -12,6 +12,8 @@
 
         if (dcp_debug) console.log('DCP Client Build :', await require('dcp/build'));
 
+        let kvin = (dcp_kvin) ? require('kvin') : null;
+
         // bifrost can decide to force redeployments at any point during the job's runtime.
         // this can be done to save a job from failing, or to expedite its completion.
         // we are going to retain the following between any redeployments of this job:
@@ -86,7 +88,7 @@
             const fetchResultCount = Array.from(job.results).length;
             if ( job.debug ) console.log('Job Result Fetch Count', ':', fetchResultCount, ':', Date.now());
             // TODO : support for (myMultiplier > 1)
-            if ( fetchResultCount >= inputSet.length ) resolve({ bifrostResultHandle: job.results });
+            if ( !dcp_kvin && fetchResultCount >= inputSet.length ) resolve({ bifrostResultHandle: job.results });
         }
 
         async function dcpPromise()
@@ -129,6 +131,10 @@
 
                 eventFunctions.result = function onJobResult(myResult)
                 {
+                    let kvinMimeString = 'data:application/x-kvin,';
+
+                    if (dcp_kvin && typeof myResult.result == 'string' && myResult.result.includes(kvinMimeString)) myResult.result = kvin.deserialize(myResult.result.slice(kvinMimeString.length));
+
                     if (myResult.result.hasOwnProperty('output'))
                     {
                         if (jobResults[myResult.result.index].length == 0)
@@ -160,7 +166,7 @@
                     }
                     else
                     {
-                        console.log('Bad Result (no "output" property) : ' + myResult);
+                        console.log('Bad Result (no "output" property) :', myResult);
                     }
 
                     clearInterval(jobResultInterval);
