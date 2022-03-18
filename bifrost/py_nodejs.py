@@ -7,7 +7,7 @@ import shutil
 import signal
 import time
 from pathlib import Path
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, check_output
 from threading import Thread, Event
 
 # local modules
