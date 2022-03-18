@@ -191,13 +191,16 @@ class Job:
                 npm.list_modules(package_name)
             npm_check = npm_io.getvalue()
 
-            # TODO: reconcile the divergent and redundant approaches being used here
-            dcp_client_latest = npm.package_latest_version('dcp-client')
-            dcp_client_current = npm.package_current_version('dcp-client')
+            if '(empty)' in npm_check:
+                print('installing ' + package_name)
+                npm.install(package_name)
+            else:
+                package_latest = npm.package_latest_version(package_name)
+                package_current = npm.package_current_version(package_name)
 
-            if '(empty)' in npm_check or _parse_version(dcp_client_current) < _parse_version(dcp_client_latest):
-                print('installing latest version of dcp-client')
-                npm.install(package_name + '@' + dcp_client_latest)
+                if _parse_version(package_current) < _parse_version(package_latest):
+                    print('installing version ' + package_latest + ' of ' + package_name)
+                    npm.install(package_name + '@' + package_latest)
 
         _npm_checker('dcp-client')
 
