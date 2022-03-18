@@ -271,16 +271,20 @@ async function workFunction(
   }
   catch(error)
   {
-    pyLog.push('// PYTHON LOG ERROR //');
-
     const stopTime = ((Date.now() - startTime) / 1000).toFixed(2);
 
     let errorObject = {
         error: error,
         index: sliceData['index'],
         elapsed: stopTime,
-        stdout: pyLog,
+        stdout: [],
     };
+
+    if (globalThis.pyLog)
+    {
+        pyLog.push('// PYTHON LOG ERROR //');
+        errorObject.stdout = pyLog;
+    }
 
     return errorObject;
   }
