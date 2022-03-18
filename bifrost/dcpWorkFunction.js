@@ -178,9 +178,11 @@ async function workFunction(
             let fileLoader = require(pyFiles[i].filename + '.js');
             await fileLoader.download();
             pyDcp[fileKey] = await fileLoader.decode();
-            if (fileLoader.PACKAGE_FORMAT == 'string' && pyFiles[i].filename.contains('.js') && typeof pyDcp[fileKey] == 'string')
+
+            // source maps are referenced in the last line of some js files; we want to strip these urls out, as the source maps will not be available
+            if (fileLoader.PACKAGE_FORMAT == 'string' && pyFiles[i].filename.includes('.js') && typeof pyDcp[fileKey] == 'string')
             {
-                let sourceMappingIndex = pyDcp[fileKey].indexOf('//# sourceMappingURL');
+                let sourceMappingIndex = pyDcp[fileKey].indexOf('//' + '#' + ' ' + 'sourceMappingURL'); // break up the string to avoid a potential resonance cascade
                 if (sourceMappingIndex != -1) pyDcp[fileKey] = pyDcp[fileKey].slice(0, sourceMappingIndex);
             }
         }
