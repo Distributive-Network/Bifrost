@@ -26,6 +26,18 @@ def is_notebook():
         else:
             return False  # Other type (Unknown ipython kernel....) # TODO: investigate: should this default in the other direction?
 
+def is_colab():
+    """
+    A function that checks to see if we are in a Google Colab or not.
+    """
+    try:
+        if 'google.colab' in str(get_ipython()):
+            return True
+        else:
+            return False
+    except:
+        return False
+
 def is_windows():
   """
   A function that checks to see if we are in a Windows NT environment.
