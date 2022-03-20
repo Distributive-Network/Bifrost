@@ -126,7 +126,9 @@ class Job:
     def __pickle_jar(self, input_data):
 
         import bifrost
-        cloudpickle.register_pickle_by_value(bifrost)
+
+        if hasattr(cloudpickle, 'register_pickle_by_value'):
+            cloudpickle.register_pickle_by_value(bifrost)
 
         data_pickled = cloudpickle.dumps( input_data )
         data_encoded = self.__input_encoder( data_pickled )
