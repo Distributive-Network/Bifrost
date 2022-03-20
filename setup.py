@@ -23,9 +23,12 @@ setuptools.setup(
         "Programming Language :: Python :: 3"
     ],
     install_requires=[
-        "cloudpickle>=2.0.0",
+        "cloudpickle>=2.0.0 ; extra != 'colab'",
         "numpy",
         "xxhash",
     ],
+    extras_require={
+        "colab": ["cloudpickle>=1.2.0,<1.7.0"],
+    },
     python='>=3.6'
 )
