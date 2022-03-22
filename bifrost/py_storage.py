@@ -16,7 +16,7 @@ import numpy as np
 import xxhash
 
 # local modules
-from .py_utils import is_windows, is_notebook, has_mp_shared
+from .py_utils import is_windows, is_notebook, has_mp_shared, is_colab
 
 # PROGRAM
 
@@ -29,8 +29,9 @@ class VariableSync():
         self.windows = is_windows()
         self.notebook = is_notebook()
         self.mp_shared = has_mp_shared()
+        self.colab = is_colab()
 
-        if os.name == 'posix' and not self.mp_shared:
+        if os.name == 'posix' and not self.mp_shared and not self.colab:
             self.shared = 'posix_ipc'
         elif self.mp_shared and not os.name == 'nt':
             self.shared = 'multiprocessing'
