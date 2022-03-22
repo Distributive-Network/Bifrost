@@ -95,7 +95,7 @@ class Job:
         self.shuffle = False
         self.range_object_input = False
         self.pickle_work_function = False
-        self.pickle_arguments = False
+        self.pickle_work_arguments = False
         self.pickle_input_set = False
         self.pickle_output_set = False
         self.new_context = False # clears the nodejs stream after every job if true
