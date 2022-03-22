@@ -7,14 +7,22 @@ if (pickle_arguments == True):
   parameters_decoded = codecs.decode( input_parameters.encode(), 'base64' )
   parameters_unpickled = cloudpickle.loads( parameters_decoded )
 else:
-  parameters_unpickled = input_parameters.to_py()
+  # degenerate pythonic EAFP pattern; consider purging in favour of JsProxy type check
+  try:
+    parameters_unpickled = input_parameters.to_py()
+  except:
+    parameters_unpickled = input_parameters
 
 if (pickle_input == True):
   # decode and unpickle primary argument to compute function
   data_decoded = codecs.decode( input_data.encode(), 'base64' )
   data_unpickled = cloudpickle.loads( data_decoded )
 else:
-  data_unpickled = input_data.to_py()
+  # degenerate pythonic EAFP pattern; consider purging in favour of JsProxy type check
+  try:
+    data_unpickled = input_data.to_py()
+  except:
+    data_unpickled = input_data
 
 if (pickle_function == True):
   # decode and unpickle compute_function from input cloudpickle object
