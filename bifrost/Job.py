@@ -95,6 +95,9 @@ class Job:
         self.shuffle = False
         self.range_object_input = False
         self.pickle_work_function = False
+        self.pickle_arguments = False
+        self.pickle_input_set = False
+        self.pickle_output_set = False
         self.new_context = False # clears the nodejs stream after every job if true
         self.kvin = True # uses the kvin serialization library to decode job results
         # TODO: turn kvin flag default to false after results.fetch serialization fix
@@ -230,7 +233,10 @@ class Job:
             work_function_encoded = self.work_function # TODO: adapt __function_writer for Node.js files
             work_imports_encoded = {}
         else:
-            work_arguments_encoded = self.__pickle_jar(self.work_arguments)
+            if self.pickle_work_arguments == True:
+                work_arguments_encoded = self.__pickle_jar(self.work_arguments)
+            else:
+                work_arguments_encoded = self.work_arguments
             if self.pickle_work_function == True:
                 work_function_encoded = self.__pickle_jar(self.work_function)
             else:
@@ -254,7 +260,7 @@ class Job:
                     'data': False,
                 }
                 if (self.range_object_input == False):
-                    if (self.node_js == False):
+                    if self.node_js == False and self.pickle_input_set == True:
                         input_slice_encoded = self.__pickle_jar(input_slice)
                     else:
                         input_slice_encoded = input_slice # self.__input_encoder(input_slice)
@@ -293,6 +299,9 @@ class Job:
             'python_init_worker': self.python_init,
             'python_compute_worker': self.python_compute,
             'python_pickle_function': self.pickle_work_function,
+            'python_pickle_arguments': self.pickle_work_arguments,
+            'python_pickle_input': self.pickle_input_set,
+            'python_pickle_output': self.pickle_output_set,
         }
 
         node_output = node.run(self.python_deploy, run_parameters)
@@ -300,7 +309,7 @@ class Job:
         result_set = node_output['jobOutput']
 
         for result_index, result_slice in enumerate(result_set):
-            if self.node_js == False:
+            if self.node_js == False and self.pickle_output_set == True:
                 result_slice = self.__unpickle_jar( result_slice )
             else:
                 result_slice = result_slice # self.__input_decoder(result_slice)
