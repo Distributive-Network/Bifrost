@@ -27,7 +27,7 @@ setuptools.setup(
         "cloudpickle",
         "numpy",
         "xxhash",
-        "posix_ipc",
+        "posix_ipc ; os_name == 'posix' and python_version < '3.8'",
     ],
     python='>=3.6'
 )
