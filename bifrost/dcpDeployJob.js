@@ -272,6 +272,9 @@
             python_init_worker,
             python_compute_worker,
             python_pickle_function,
+            python_pickle_arguments,
+            python_pickle_input,
+            python_pickle_output,
         ];
     }
     else

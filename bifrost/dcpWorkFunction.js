@@ -8,6 +8,9 @@ async function workFunction(
     pythonInitWorker,// dcp-provided python function to initialize environment
     pythonComputeWorker,// dpc-provided python function to handle work function
     pythonPickleFunction,// flag which indicates that the work function is a cloudpickle object
+    pythonPickleArguments,// flag which indicates that the shared arguments are a cloudpickle object
+    pythonPickleInput,// flag which indicates that the input slice is a cloudpickle object
+    pythonPickleOutput,// flag which indicates that the output slice should be a cloudpickle object
 )
 {
   const startTime = Date.now();
@@ -236,6 +239,9 @@ async function workFunction(
     progress();
 
     pyodide.globals.set('pickle_function', pythonPickleFunction);
+    pyodide.globals.set('pickle_arguments', pythonPickleArguments);
+    pyodide.globals.set('pickle_input', pythonPickleInput);
+    pyodide.globals.set('pickle_output', pythonPickleOutput);
 
     if (pythonPickleFunction)
     {

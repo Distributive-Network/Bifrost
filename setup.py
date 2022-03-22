@@ -1,8 +1,9 @@
 import setuptools
 from setuptools import find_packages
+from pathlib import Path
 
-with open("./README.md", "r") as fh:
-    long_description = fh.read()
+this_directory = Path(__file__).parent
+long_description = (this_directory / "README.md").read_text()
 
 setuptools.setup(
     name="Bifrost",
@@ -23,7 +24,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3"
     ],
     install_requires=[
-        "cloudpickle>=2.0.0",
+        "cloudpickle",
         "numpy",
         "xxhash",
     ],
