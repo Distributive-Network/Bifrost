@@ -94,7 +94,7 @@ class Job:
         self.node_js = False
         self.shuffle = False
         self.range_object_input = False
-        self.pickle_work_function = True
+        self.pickle_work_function = False
         self.new_context = False # clears the nodejs stream after every job if true
         self.kvin = True # uses the kvin serialization library to decode job results
         # TODO: turn kvin flag default to false after results.fetch serialization fix
