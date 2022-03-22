@@ -10,7 +10,7 @@ else:
   # degenerate pythonic EAFP pattern; consider purging in favour of JsProxy type check
   try:
     parameters_unpickled = input_parameters.to_py()
-  except:
+  except AttributeError:
     parameters_unpickled = input_parameters
 
 if (pickle_input == True):
@@ -21,7 +21,7 @@ else:
   # degenerate pythonic EAFP pattern; consider purging in favour of JsProxy type check
   try:
     data_unpickled = input_data.to_py()
-  except:
+  except AttributeError:
     data_unpickled = input_data
 
 if (pickle_function == True):
