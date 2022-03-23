@@ -56,6 +56,11 @@
             for (let i = 0; i < python_packages.length; i++)
             {
                 let thisPackageName = python_packages[i];
+                if ( thisPackageName == 'scipy' )
+                {
+                    job.requires('pyodide-clapack.data/CLAPACK.data.js');
+                    job.requires('pyodide-clapack.js/CLAPACK.js.js');
+                }
                 let packageDataPath = 'pyodide-' + thisPackageName + '.data/' + thisPackageName + '.data.js';
                 let packageJsPath = 'pyodide-' + thisPackageName + '.js/' + thisPackageName + '.js.js';
                 job.requires(packageDataPath);

@@ -165,6 +165,11 @@ async function workFunction(
     for (let i = 0; i < pythonPackages.length; i++)
     {
       const packageName = pythonPackages[i];
+      if ( packageName == 'scipy' )
+      {
+          pyFiles.push({ filepath: './', filename: 'CLAPACK.data' });
+          pyFiles.push({ filepath: './', filename: 'CLAPACK.js' });
+      }
       const packageFileData = packageName + '.data';
       const packageFileJs = packageName + '.js';
       pyFiles.push({ filepath: './', filename: packageFileData });
@@ -226,6 +231,10 @@ async function workFunction(
 
     for (let i = 0; i < pythonPackages.length; i++)
     {
+      if ( pythonPackages[i] == 'scipy')
+      {
+          if ( Object.keys(pyodide.loadedPackages).indexOf('scipy') === -1 ) await pyodide.loadPackage(['CLAPACK']);
+      }
       if ( Object.keys(pyodide.loadedPackages).indexOf(pythonPackages[i]) === -1 ) await pyodide.loadPackage([pythonPackages[i]]);
 
       progress();
