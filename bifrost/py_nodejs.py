@@ -59,7 +59,7 @@ class Npm():
                 self.js_needs_shm = False
             self.run(npm_install_args)
 
-    def run(self, cmd):
+    def run(self, cmd, warn=False, log=False):
         '''
         Helper function to run some command using npm.
         Useful for managing working directory of npm and where the 
@@ -71,15 +71,19 @@ class Npm():
         process = Popen(
           cmd,
           cwd = self.cwd,
-          stdout = PIPE
+          stdout = PIPE,
+          stderr = PIPE,
         )
 
         while True:
             output = process.stdout.readline().decode('utf-8')
             if output == '' and process.poll() is not None:
                 break
-            if output:
+            if output and log:
                 print(output.strip())
+            error = process.stderr.readline().decode('utf-8')
+            if error and warn:
+                print(error.strip())
         returnCode = process.poll()
         return returnCode
 
