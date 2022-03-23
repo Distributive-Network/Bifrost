@@ -1,6 +1,8 @@
 # MODULES
 
 # python standard library
+import contextlib
+import io
 import json
 import os
 import shutil
@@ -59,7 +61,7 @@ class Npm():
                 self.js_needs_shm = False
             self.run(npm_install_args)
 
-    def run(self, cmd):
+    def run(self, cmd, warn=False, log=False):
         '''
         Helper function to run some command using npm.
         Useful for managing working directory of npm and where the 
@@ -71,15 +73,19 @@ class Npm():
         process = Popen(
           cmd,
           cwd = self.cwd,
-          stdout = PIPE
+          stdout = PIPE,
+          stderr = PIPE,
         )
 
         while True:
             output = process.stdout.readline().decode('utf-8')
             if output == '' and process.poll() is not None:
                 break
-            if output:
+            if output and log:
                 print(output.strip())
+            error = process.stderr.readline().decode('utf-8')
+            if error and warn:
+                print(error.strip())
         returnCode = process.poll()
         return returnCode
 
@@ -90,16 +96,25 @@ class Npm():
         self.run([self.npm_exec_path, '--quiet', 'uninstall', *args])
 
     def list_modules(self, *args):
-        self.run([self.npm_exec_path, 'list', *args])
+        self.run([self.npm_exec_path, 'list', *args], warn=True, log=True)
 
     def package_current_version(self, package_name):
-        version_json = check_output([self.npm_exec_path, 'ls', package_name, '--json=true'], text=True)
+        npm_io = io.StringIO()
+        with contextlib.redirect_stdout(npm_io):
+            self.run([self.npm_exec_path, 'ls', package_name, '--json=true'], warn=True, log=True)
+        version_json = npm_io.getvalue()
         version_dict = json.loads(version_json)
-        version_string = version_dict["dependencies"][package_name]["version"]
+        try:
+            version_string = version_dict["dependencies"][package_name]["version"]
+        except KeyError:
+            version_string = '0.0.0'
         return version_string.strip()
 
     def package_latest_version(self, package_name):
-        version_string = check_output([self.npm_exec_path, 'view', package_name, 'version'], text=True)
+        npm_io = io.StringIO()
+        with contextlib.redirect_stdout(npm_io):
+            self.run([self.npm_exec_path, 'view', package_name, 'version'], warn=True, log=True)
+        version_string = npm_io.getvalue()
         return version_string.strip()
 
 class NodeSTDProc(Thread):

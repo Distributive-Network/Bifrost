@@ -38,8 +38,6 @@ class VariableSync():
         else:
             self.shared = 'fs'
 
-        print('shared', self.shared)
-
         #max size experimentally was 3/4 of 1gb
         #Likely some problem the mmap/shm_open library used
         self.size = int(math.floor( 0.75 *(1024*1024*1024) ))
@@ -47,7 +45,6 @@ class VariableSync():
 
         if self.shared == 'fs':
             self.SHARED_MEMORY_NAME = os.getcwd() + "/bifrost_shared_memory_" + str(uuid.uuid4())
-            print('name', self.SHARED_MEMORY_NAME)
             with open(self.SHARED_MEMORY_NAME, "w+b") as self.file_obj:
                 #truncate the shared memory so that we are not mapping to an empty file
                 self.file_obj.truncate( self.size )
@@ -171,7 +168,7 @@ class VariableSync():
                     assert final_output[var_name] == str, "custom function for type " + var_type + " must return ascii string."
                 else:
                     if warn:
-                        print("variable type no serializeable so skipping -  var type, var name :", var_type, var_name)
+                        print("variable type not serializeable; skipping.\n - var type, var name :", var_type, var_name)
                     continue
 
         return final_output
