@@ -1,6 +1,8 @@
 # MODULES
 
 # python standard library
+import contextlib
+import io
 import json
 import os
 import shutil
@@ -97,23 +99,22 @@ class Npm():
         self.run([self.npm_exec_path, 'list', *args])
 
     def package_current_version(self, package_name):
-        version_json = check_output(
-            [self.npm_exec_path, 'ls', package_name, '--json=true'],
-            cwd = self.cwd,
-            stderr=PIPE,
-            text=True
-        )
+        npm_io = io.StringIO()
+        with contextlib.redirect_stdout(npm_io):
+            self.run([self.npm_exec_path, 'ls', package_name, '--json=true'], warn=True, log=True)
+        version_json = npm_io.getvalue()
         version_dict = json.loads(version_json)
-        version_string = version_dict["dependencies"][package_name]["version"]
+        try:
+            version_string = version_dict["dependencies"][package_name]["version"]
+        except KeyError:
+            version_string = '0.0.0'
         return version_string.strip()
 
     def package_latest_version(self, package_name):
-        version_string = check_output(
-            [self.npm_exec_path, 'view', package_name, 'version'],
-            cwd = self.cwd,
-            stderr=PIPE,
-            text=True
-        )
+        npm_io = io.StringIO()
+        with contextlib.redirect_stdout(npm_io):
+            self.run([self.npm_exec_path, 'view', package_name, 'version'], warn=True, log=True)
+        version_string = npm_io.getvalue()
         return version_string.strip()
 
 class NodeSTDProc(Thread):
