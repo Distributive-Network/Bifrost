@@ -94,10 +94,10 @@ class Job:
         self.node_js = False
         self.shuffle = False
         self.range_object_input = False
-        self.pickle_work_function = False
-        self.pickle_work_arguments = False
-        self.pickle_input_set = False
-        self.pickle_output_set = False
+        self.pickle_work_function = True
+        self.pickle_work_arguments = True
+        self.pickle_input_set = True
+        self.pickle_output_set = True
         self.new_context = False # clears the nodejs stream after every job if true
         self.kvin = True # uses the kvin serialization library to decode job results
         # TODO: turn kvin flag default to false after results.fetch serialization fix
@@ -199,9 +199,12 @@ class Job:
             if '(empty)' in npm_check:
                 print('installing ' + package_name)
                 npm.install(package_name)
-            else:
-                package_latest = npm.package_latest_version(package_name)
-                package_current = npm.package_current_version(package_name)
+            elif not self.dcp_installed:
+                try:
+                    package_latest = npm.package_latest_version(package_name)
+                    package_current = npm.package_current_version(package_name)
+                except ValueError:
+                    print('proceeding with current dcp client version')
 
                 if _parse_version(package_current) < _parse_version(package_latest):
                     print('installing version ' + package_latest + ' of ' + package_name)
@@ -212,6 +215,8 @@ class Job:
         node.run("""
         if ( !globalThis.dcpClient ) globalThis.dcpClient = require("dcp-client").init(scheduler);
         """, { 'scheduler': self.scheduler })
+
+        self.dcp_installed = True
 
     def __dcp_run(self):
 
