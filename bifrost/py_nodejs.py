@@ -100,7 +100,6 @@ class Npm():
         version_json = check_output(
             [self.npm_exec_path, 'ls', package_name, '--json=true'],
             cwd = self.cwd,
-            stdout=PIPE,
             stderr=PIPE,
             text=True
         )
@@ -112,7 +111,6 @@ class Npm():
         version_string = check_output(
             [self.npm_exec_path, 'view', package_name, 'version'],
             cwd = self.cwd,
-            stdout=PIPE,
             stderr=PIPE,
             text=True
         )
