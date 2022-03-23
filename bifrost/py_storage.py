@@ -16,7 +16,7 @@ import numpy as np
 import xxhash
 
 # local modules
-from .py_utils import is_windows, is_notebook, has_mp_shared
+from .py_utils import is_windows, is_notebook, has_mp_shared, is_colab
 
 # PROGRAM
 
@@ -29,23 +29,44 @@ class VariableSync():
         self.windows = is_windows()
         self.notebook = is_notebook()
         self.mp_shared = has_mp_shared()
+        self.colab = is_colab()
+
+        if os.name == 'posix' and not self.mp_shared and not self.colab:
+            self.shared = 'posix_ipc'
+        elif self.mp_shared and not os.name == 'nt':
+            self.shared = 'multiprocessing'
+        else:
+            self.shared = 'fs'
+
+        print('shared', self.shared)
+
         #max size experimentally was 3/4 of 1gb
         #Likely some problem the mmap/shm_open library used
         self.size = int(math.floor( 0.75 *(1024*1024*1024) ))
         #Set some arbitrary name for the file
-        self.SHARED_MEMORY_NAME = "bifrost_shared_memory_" + str(uuid.uuid4())
 
-        if self.windows or not self.mp_shared:
+        if self.shared == 'fs':
+            self.SHARED_MEMORY_NAME = os.getcwd() + "/bifrost_shared_memory_" + str(uuid.uuid4())
+            print('name', self.SHARED_MEMORY_NAME)
             with open(self.SHARED_MEMORY_NAME, "w+b") as self.file_obj:
                 #truncate the shared memory so that we are not mapping to an empty file
                 self.file_obj.truncate( self.size )
                 #map the file to memory
                 self.file_obj.flush()
                 self.mapFile = mmap.mmap(self.file_obj.fileno(), self.size, access=mmap.ACCESS_WRITE)
+        elif self.shared == 'posix_ipc':
+            self.SHARED_MEMORY_NAME = "/bifrost_shared_memory_" + str(uuid.uuid4())
+            import posix_ipc
+            self.memory = posix_ipc.SharedMemory(
+                self.SHARED_MEMORY_NAME,
+                flags=posix_ipc.O_CREX,
+                size=self.size
+            )
+            self.mapFile = mmap.mmap(self.memory.fd, self.memory.size)
+            self.memory.close_fd()
         else:
-
+            self.SHARED_MEMORY_NAME = "bifrost_shared_memory_" + str(uuid.uuid4())
             from multiprocessing.shared_memory import SharedMemory
-
             self.memory = SharedMemory(
               name=self.SHARED_MEMORY_NAME,
               create=True,
@@ -67,8 +88,10 @@ class VariableSync():
 
         try:
             if sys.meta_path:
-                if self.windows or not self.mp_shared:
+                if self.shared == 'fs':
                     os.remove(self.SHARED_MEMORY_NAME)
+                elif self.shared == 'posix_ipc':
+                    posix_ipc.unlink_shared_memory(self.SHARED_MEMORY_NAME)
                 else:
                     self.memory.unlink()
         except:

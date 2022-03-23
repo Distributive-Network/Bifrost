@@ -195,6 +195,7 @@ class Node():
             self.node_exec_path,
             '--max-old-space-size=32000',
             self.replFile,
+            str(self.vs.shared),
             str(self.vs.mp_shared),
             str(self.vs.notebook),
             str(self.vs.windows),

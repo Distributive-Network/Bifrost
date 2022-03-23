@@ -23,6 +23,7 @@ const SHM_FILE_NAME = args[args.length-1];
 const BIFROST_WINDOWS = args[args.length-2];
 const BIFROST_NOTEBOOK = args[args.length-3];
 const BIFROST_MP_SHARED = args[args.length-4];
+const BIFROST_SHARED = args[args.length-5];
 
 // we only pipe the errors through stdout if we are in a NON-WINDOWS AND NON-NOTEBOOK environment
 if ( BIFROST_NOTEBOOK == "False" && BIFROST_WINDOWS == "False" ) process.stderr.pipe(process.stdout);
@@ -45,7 +46,7 @@ class Evaluator{
         this.fd = -1;
         let size= Math.floor( 0.75 * 1024*1024*1024 );
 
-        if ( BIFROST_WINDOWS == "True" || BIFROST_MP_SHARED == "False" )
+        if ( BIFROST_SHARED == "fs")
         {
             const fs = require('fs');
 

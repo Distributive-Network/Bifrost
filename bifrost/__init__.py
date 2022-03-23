@@ -66,8 +66,11 @@ def onEnd():
     except:
         print("Could not close shared memory. May already be dead.")
     try:
-        if node.vs.windows or not node.vs.mp_shared:
+        if node.vs.shared == 'fs':
             os.remove(node.vs.SHARED_MEMORY_NAME)
+        elif node.vs.shared == 'posix_ipc':
+            import posix_ipc
+            posix_ipc.unlink_shared_memory(node.vs.SHARED_MEMORY_NAME)
         else:
             node.vs.memory.unlink()
     except:
