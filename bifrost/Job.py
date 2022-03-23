@@ -199,7 +199,7 @@ class Job:
             if '(empty)' in npm_check:
                 print('installing ' + package_name)
                 npm.install(package_name)
-            elif not self.dcp_installed:
+            else:
                 try:
                     package_latest = npm.package_latest_version(package_name)
                     package_current = npm.package_current_version(package_name)
@@ -215,8 +215,6 @@ class Job:
         node.run("""
         if ( !globalThis.dcpClient ) globalThis.dcpClient = require("dcp-client").init(scheduler);
         """, { 'scheduler': self.scheduler })
-
-        self.dcp_installed = True
 
     def __dcp_run(self):
 
