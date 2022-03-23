@@ -97,13 +97,25 @@ class Npm():
         self.run([self.npm_exec_path, 'list', *args])
 
     def package_current_version(self, package_name):
-        version_json = check_output([self.npm_exec_path, 'ls', package_name, '--json=true'], text=True)
+        version_json = check_output(
+            [self.npm_exec_path, 'ls', package_name, '--json=true'],
+            cwd = self.cwd,
+            stdout=PIPE,
+            stderr=PIPE,
+            text=True
+        )
         version_dict = json.loads(version_json)
         version_string = version_dict["dependencies"][package_name]["version"]
         return version_string.strip()
 
     def package_latest_version(self, package_name):
-        version_string = check_output([self.npm_exec_path, 'view', package_name, 'version'], text=True)
+        version_string = check_output(
+            [self.npm_exec_path, 'view', package_name, 'version'],
+            cwd = self.cwd,
+            stdout=PIPE,
+            stderr=PIPE,
+            text=True
+        )
         return version_string.strip()
 
 class NodeSTDProc(Thread):
