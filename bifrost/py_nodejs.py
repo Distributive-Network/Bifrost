@@ -96,7 +96,7 @@ class Npm():
         self.run([self.npm_exec_path, '--quiet', 'uninstall', *args])
 
     def list_modules(self, *args):
-        self.run([self.npm_exec_path, 'list', *args])
+        self.run([self.npm_exec_path, 'list', *args], warn=True, log=True)
 
     def package_current_version(self, package_name):
         npm_io = io.StringIO()
