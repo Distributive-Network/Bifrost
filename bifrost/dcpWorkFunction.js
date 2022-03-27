@@ -204,7 +204,6 @@ async function workFunction(
     if (!globalThis.pyScope) globalThis.pyScope = {};
     pyScope = {
         setTimeout: globalThis.setTimeout,
-        progress: progress,
     };
 
     if (!globalThis.pyLog) globalThis.pyLog = [];
@@ -225,6 +224,8 @@ async function workFunction(
       }
     );
     progress();
+
+    pyodide.registerJsModule('dcp', { progress: progress });
 
     let packagesKeys = Object.keys(pyodide.loadedPackages);
 
