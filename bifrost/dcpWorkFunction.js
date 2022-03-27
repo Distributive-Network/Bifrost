@@ -202,7 +202,10 @@ async function workFunction(
     progress();
 
     if (!globalThis.pyScope) globalThis.pyScope = {};
-    pyScope = { setTimeout: globalThis.setTimeout };
+    pyScope = {
+        setTimeout: globalThis.setTimeout,
+        progress: progress,
+    };
 
     if (!globalThis.pyLog) globalThis.pyLog = [];
     pyLog = ['// PYTHON LOG START //'];
