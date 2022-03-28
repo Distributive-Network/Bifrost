@@ -277,6 +277,9 @@ async function workFunction(
 
     let sliceOutput = pyodide.globals.get('output_data');
 
+    // TODO: track and verify expected output type, when pickling and encoding are off
+    if ( !pythonPickleOutput && pyodide.isPyProxy(sliceOutput) ) sliceOutput = sliceOutput.toJs();
+
     const stopTime = ((Date.now() - startTime) / 1000).toFixed(2);
 
     let resultObject = {
