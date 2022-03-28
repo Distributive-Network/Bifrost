@@ -11,6 +11,9 @@ async function workFunction(
     pythonPickleArguments,// flag which indicates that the shared arguments are a cloudpickle object
     pythonPickleInput,// flag which indicates that the input slice is a cloudpickle object
     pythonPickleOutput,// flag which indicates that the output slice should be a cloudpickle object
+    pythonEncodeArguments,// flag which indicates that the shared arguments are base64 encoded strings
+    pythonEncodeInput,// flag which indicates that the input slice is a base64 encoded string
+    pythonEncodeOutput,// flag which indicates that the output slice should be a base64 encoded string
 )
 {
   const startTime = Date.now();
@@ -204,6 +207,9 @@ async function workFunction(
     if (!globalThis.pyScope) globalThis.pyScope = {};
     pyScope = {
         setTimeout: globalThis.setTimeout,
+        dcp: {
+            progress: progress,
+        },
     };
 
     if (!globalThis.pyLog) globalThis.pyLog = [];
@@ -224,8 +230,6 @@ async function workFunction(
       }
     );
     progress();
-
-    pyodide.registerJsModule('dcp', { progress: progress });
 
     let packagesKeys = Object.keys(pyodide.loadedPackages);
 
@@ -255,6 +259,10 @@ async function workFunction(
     pyodide.globals.set('pickle_arguments', pythonPickleArguments);
     pyodide.globals.set('pickle_input', pythonPickleInput);
     pyodide.globals.set('pickle_output', pythonPickleOutput);
+
+    pyodide.globals.set('encode_arguments', pythonEncodeArguments);
+    pyodide.globals.set('encode_input', pythonEncodeInput);
+    pyodide.globals.set('encode_output', pythonEncodeOutput);
 
     if (pythonPickleFunction)
     {

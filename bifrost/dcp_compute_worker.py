@@ -3,12 +3,15 @@ import codecs
 import cloudpickle
 
 # js proxy module for dcp progress calls
-import dcp
+from js import dcp
 
 if (pickle_arguments == True):
   # decode and unpickle secondary arguments to compute function
   parameters_decoded = codecs.decode( input_parameters.encode(), 'base64' )
   parameters_unpickled = cloudpickle.loads( parameters_decoded )
+elif (encode_arguments == True):
+  # decode and secondary arguments to compute function
+  parameters_unpickled = codecs.decode( input_parameters.encode(), 'base64' )
 else:
   # degenerate pythonic EAFP pattern; consider purging in favour of JsProxy type check
   try:
@@ -20,6 +23,9 @@ if (pickle_input == True):
   # decode and unpickle primary argument to compute function
   data_decoded = codecs.decode( input_data.encode(), 'base64' )
   data_unpickled = cloudpickle.loads( data_decoded )
+elif (encode_input == True):
+  # decode and primary argument to compute function
+  data_unpickled = codecs.decode( input_data.encode(), 'base64' )
 else:
   # degenerate pythonic EAFP pattern; consider purging in favour of JsProxy type check
   try:
@@ -42,6 +48,8 @@ output_data_raw = compute_function( data_unpickled, **parameters_unpickled )
 if (pickle_output == True):
   output_data_pickled = cloudpickle.dumps( output_data_raw )
   output_data = codecs.encode( output_data_pickled, 'base64' ).decode()
+elif (encode_output == True):
+  output_data = codecs.encode( output_data_raw, 'base64' ).decode()
 else:
   output_data = output_data_raw
 
