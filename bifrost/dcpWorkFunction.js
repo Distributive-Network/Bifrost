@@ -204,7 +204,6 @@ async function workFunction(
     if (!globalThis.pyScope) globalThis.pyScope = {};
     pyScope = {
         setTimeout: globalThis.setTimeout,
-        progress: progress,
     };
 
     if (!globalThis.pyLog) globalThis.pyLog = [];
@@ -225,6 +224,8 @@ async function workFunction(
       }
     );
     progress();
+
+    pyodide.registerJsModule('dcp', { progress: progress });
 
     let packagesKeys = Object.keys(pyodide.loadedPackages);
 
@@ -275,6 +276,9 @@ async function workFunction(
     pyLog.push('// PYTHON LOG STOP //');
 
     let sliceOutput = pyodide.globals.get('output_data');
+
+    // TODO: track and verify expected output type, when pickling and encoding are off
+    if ( !pythonPickleOutput && pyodide.isPyProxy(sliceOutput) ) sliceOutput = sliceOutput.toJs();
 
     const stopTime = ((Date.now() - startTime) / 1000).toFixed(2);
 

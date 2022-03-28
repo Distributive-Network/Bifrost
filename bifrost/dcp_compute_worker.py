@@ -2,6 +2,9 @@
 import codecs
 import cloudpickle
 
+# js proxy module for dcp progress calls
+import dcp
+
 if (pickle_arguments == True):
   # decode and unpickle secondary arguments to compute function
   parameters_decoded = codecs.decode( input_parameters.encode(), 'base64' )
@@ -31,6 +34,8 @@ if (pickle_function == True):
 else:
   # assign compute_function to previously evaluated function definition
   compute_function = locals()[input_function]
+
+dcp.progress()
 
 output_data_raw = compute_function( data_unpickled, **parameters_unpickled )
 
