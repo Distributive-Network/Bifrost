@@ -280,6 +280,9 @@
             python_pickle_arguments,
             python_pickle_input,
             python_pickle_output,
+            python_encode_arguments,
+            python_encode_input,
+            python_encode_output,
         ];
     }
     else
