@@ -98,9 +98,10 @@ class Job:
         self.pickle_work_arguments = True
         self.pickle_input_set = True
         self.pickle_output_set = True
-        self.encode_work_arguments = True
-        self.encode_input_set = True
-        self.encode_output_set = True
+        # TODO: more robust integration of non-pickled encoding
+        self.encode_work_arguments = False
+        self.encode_input_set = False
+        self.encode_output_set = False
         self.new_context = False # clears the nodejs stream after every job if true
         self.kvin = True # uses the kvin serialization library to decode job results
         # TODO: turn kvin flag default to false after results.fetch serialization fix
