@@ -3,7 +3,7 @@ import codecs
 import cloudpickle
 
 # js proxy module for dcp progress calls
-import dcp
+from js import dcp
 
 if (pickle_arguments == True):
   # decode and unpickle secondary arguments to compute function
