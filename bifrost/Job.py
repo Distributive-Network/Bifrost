@@ -103,8 +103,7 @@ class Job:
         self.encode_input_set = False
         self.encode_output_set = False
         self.new_context = False # clears the nodejs stream after every job if true
-        self.kvin = True # uses the kvin serialization library to decode job results
-        # TODO: turn kvin flag default to false after results.fetch serialization fix
+        self.kvin = False # uses the kvin serialization library to decode job results
 
         # work wrapper functions
         self.python_init = dcp_init_worker
