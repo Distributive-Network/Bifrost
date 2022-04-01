@@ -103,10 +103,10 @@ class Job:
         self.encode_work_arguments = False
         self.encode_input_set = False
         self.encode_output_set = False
-        self.compress_work_function = False
-        self.compress_work_arguments = False
-        self.compress_input_set = False
-        self.compress_output_set = False
+        self.compress_work_function = True
+        self.compress_work_arguments = True
+        self.compress_input_set = True
+        self.compress_output_set = True
         self.new_context = False # clears the nodejs stream after every job if true
         self.kvin = False # uses the kvin serialization library to decode job results
 
