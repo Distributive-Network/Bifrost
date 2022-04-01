@@ -283,6 +283,10 @@
             python_encode_arguments,
             python_encode_input,
             python_encode_output,
+            python_compress_function,
+            python_compress_arguments,
+            python_compress_input,
+            python_compress_output,
         ];
     }
     else
