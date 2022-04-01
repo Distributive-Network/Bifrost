@@ -337,6 +337,9 @@ class Job:
             'python_compress_output': self.compress_output_set,
         }
 
+        if self.node_js == False and self.debug == False:
+            self.events['console'] = False
+
         node_output = node.run(self.python_deploy, run_parameters)
 
         result_set = node_output['jobOutput']
