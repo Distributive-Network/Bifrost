@@ -7,6 +7,7 @@ import inspect
 import io
 import random
 import re
+import zlib
 
 # pypi modules
 import cloudpickle
@@ -102,6 +103,10 @@ class Job:
         self.encode_work_arguments = False
         self.encode_input_set = False
         self.encode_output_set = False
+        self.compress_work_function = False
+        self.compress_work_arguments = False
+        self.compress_input_set = False
+        self.compress_output_set = False
         self.new_context = False # clears the nodejs stream after every job if true
         self.kvin = False # uses the kvin serialization library to decode job results
 
@@ -129,7 +134,7 @@ class Job:
 
         return data_decoded
 
-    def __pickle_jar(self, input_data):
+    def __pickle_jar(self, input_data, compress_data = False):
 
         import bifrost
 
@@ -137,14 +142,22 @@ class Job:
             cloudpickle.register_pickle_by_value(bifrost)
 
         data_pickled = cloudpickle.dumps( input_data )
-        data_encoded = self.__input_encoder( data_pickled )
+        if compress_data == True:
+            data_compressed = zlib.compress( data_pickled )
+            data_encoded = self.__input_encoder( data_compressed )
+        else:
+            data_encoded = self.__input_encoder( data_pickled )
 
         return data_encoded
 
-    def __unpickle_jar(self, output_data):
+    def __unpickle_jar(self, output_data, decompress_data = False):
 
         data_decoded = self.__output_decoder( output_data )
-        data_unpickled = cloudpickle.loads( data_decoded )
+        if decompress_data == True:
+            data_decompressed = zlib.decompress( data_decoded )
+            data_unpickled = cloudpickle.loads( data_decompressed )
+        else:
+            data_unpickled = cloudpickle.loads( data_decoded )
 
         return data_unpickled
 
@@ -240,13 +253,13 @@ class Job:
             work_imports_encoded = {}
         else:
             if self.pickle_work_arguments == True:
-                work_arguments_encoded = self.__pickle_jar(self.work_arguments)
+                work_arguments_encoded = self.__pickle_jar(self.work_arguments, self.compress_work_arguments)
             elif self.encode_work_arguments == True:
                 work_arguments_encoded = self.__input_encoder(self.work_arguments)
             else:
                 work_arguments_encoded = self.work_arguments
             if self.pickle_work_function == True:
-                work_function_encoded = self.__pickle_jar(self.work_function)
+                work_function_encoded = self.__pickle_jar(self.work_function, self.compress_work_function)
             else:
                 work_function_encoded = self.__function_writer(self.work_function)
             work_imports_encoded = {}
@@ -270,7 +283,7 @@ class Job:
                 if (self.range_object_input == False):
                     if self.node_js == False:
                         if self.pickle_input_set == True:
-                            input_slice_encoded = self.__pickle_jar(input_slice)
+                            input_slice_encoded = self.__pickle_jar(input_slice, self.compress_input_set)
                         elif self.encode_input_set == True:
                             input_slice_encoded = self.__input_encoder(input_slice)
                         else:
@@ -318,6 +331,10 @@ class Job:
             'python_encode_arguments': self.encode_work_arguments,
             'python_encode_input': self.encode_input_set,
             'python_encode_output': self.encode_output_set,
+            'python_compress_function': self.compress_work_function,
+            'python_compress_arguments': self.compress_work_arguments,
+            'python_compress_input': self.compress_input_set,
+            'python_compress_output': self.compress_output_set,
         }
 
         node_output = node.run(self.python_deploy, run_parameters)
@@ -327,7 +344,7 @@ class Job:
         for result_index, result_slice in enumerate(result_set):
             if self.node_js == False:
                 if self.pickle_output_set == True:
-                    result_slice = self.__unpickle_jar( result_slice )
+                    result_slice = self.__unpickle_jar( result_slice, self.compress_output_set )
                 elif self.encode_output_set == True:
                     result_slice = self.__output_decoder(result_slice)
             result_set[result_index] = result_slice

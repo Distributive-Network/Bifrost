@@ -14,6 +14,10 @@ async function workFunction(
     pythonEncodeArguments,// flag which indicates that the shared arguments are base64 encoded strings
     pythonEncodeInput,// flag which indicates that the input slice is a base64 encoded string
     pythonEncodeOutput,// flag which indicates that the output slice should be a base64 encoded string
+    pythonCompressFunction,// flag which indicates that the work function has been compressed
+    pythonCompressArguments,// flag which indicates that the shared arguments have been compressed
+    pythonCompressInput,// flag which indicates that the input slice has been compressed
+    pythonCompressOutput,// flag which indicates that the output slice should be compressed
 )
 {
   const startTime = Date.now();
@@ -263,6 +267,11 @@ async function workFunction(
     pyodide.globals.set('encode_arguments', pythonEncodeArguments);
     pyodide.globals.set('encode_input', pythonEncodeInput);
     pyodide.globals.set('encode_output', pythonEncodeOutput);
+
+    pyodide.globals.set('compress_function', pythonCompressFunction);
+    pyodide.globals.set('compress_arguments', pythonCompressArguments);
+    pyodide.globals.set('compress_input', pythonCompressInput);
+    pyodide.globals.set('compress_output', pythonCompressOutput);
 
     if (pythonPickleFunction)
     {
