@@ -49,6 +49,16 @@ def is_windows():
   else:
     return False
 
+def is_darwin():
+  """
+  A function that checks to see if we are in a Darwin (MacOS) environment.
+  MacOS has some limitations that need to be addressed during initialization.
+  """
+  if platform.system == 'darwin':
+    return True
+  else:
+    return False
+
 def has_mp_shared():
   """
   A function that checks the current python version number, to check whether
