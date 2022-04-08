@@ -55,7 +55,7 @@ def is_darwin():
   A function that checks to see if we are in a Darwin (MacOS) environment.
   MacOS has some limitations that need to be addressed during initialization.
   """
-  if platform.system == 'darwin':
+  if platform.system == 'Darwin' or sys.platform == 'darwin':
     return True
   else:
     return False
