@@ -8,11 +8,13 @@ import io
 import random
 import re
 import zlib
+from pathlib import Path
 
 # pypi modules
 import cloudpickle
 
 # local modules
+from .py_utils import is_colab
 from .Work import dcp_init_worker, dcp_compute_worker, js_work_function, js_deploy_job
 
 # PROGRAM
@@ -236,6 +238,13 @@ class Job:
 
         from bifrost import node
 
+        if is_colab():
+            # TODO: remove this special behaviour when colab cloudpickle version conflicts are fully resolved
+            self.pickle_work_function = False
+            self.pickle_work_arguments = False
+            self.pickle_input_set = False
+            self.pickle_output_set = False
+
         if self.node_js == True:
             work_arguments_encoded = False # self.__input_encoder(self.work_arguments)
 
@@ -299,6 +308,9 @@ class Job:
 
         if self.shuffle == True:
             random.shuffle(job_input)
+
+        if self.node_js == False and self.debug == False:
+            self.events['console'] = False
 
         run_parameters = {
             'deploy_function': self.python_wrapper,
@@ -365,8 +377,15 @@ class Job:
     def add_event_listener(self, event_name, event_function):
         on(self, event_name, event_function)
 
-    def requires(self, package_name):
-        self.require_path.append(package_name)
+    def requires(self, *package_arguments):
+        for package_element in package_arguments:
+            element_type = type(package_element)
+            if (element_type is str):
+                self.require_path.append(package_element)
+            elif (element_type is list or element_type is tuple):
+                requires(*package_element)
+            else:
+                print('Warning: unsupported format for Job.requires:', element_type)
 
     def set_result_storage(self, remote_storage_location, remote_storage_params = {}):
         self.remote_storage_location = remote_storage_location
