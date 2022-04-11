@@ -14,6 +14,7 @@ from pathlib import Path
 import cloudpickle
 
 # local modules
+from .py_utils import is_colab
 from .Work import dcp_init_worker, dcp_compute_worker, js_work_function, js_deploy_job
 
 # PROGRAM
@@ -236,6 +237,13 @@ class Job:
     def __dcp_run(self):
 
         from bifrost import node
+
+        if is_colab():
+            # TODO: remove this special behaviour when colab cloudpickle version conflicts are fully resolved
+            self.pickle_work_function = False
+            self.pickle_work_arguments = False
+            self.pickle_input_set = False
+            self.pickle_output_set = False
 
         if self.node_js == True:
             work_arguments_encoded = False # self.__input_encoder(self.work_arguments)
