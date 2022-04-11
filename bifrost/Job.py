@@ -369,8 +369,15 @@ class Job:
     def add_event_listener(self, event_name, event_function):
         on(self, event_name, event_function)
 
-    def requires(self, package_name):
-        self.require_path.append(package_name)
+    def requires(self, *package_arguments):
+        for package_element in package_arguments:
+            element_type = type(package_element)
+            if (element_type is str):
+                self.require_path.append(package_element)
+            elif (element_type is list or element_type is tuple):
+                requires(*package_element)
+            else:
+                print('Warning: unsupported format for Job.requires:', element_type)
 
     def set_result_storage(self, remote_storage_location, remote_storage_params = {}):
         self.remote_storage_location = remote_storage_location
