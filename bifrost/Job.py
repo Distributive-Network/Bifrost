@@ -309,6 +309,9 @@ class Job:
         if self.shuffle == True:
             random.shuffle(job_input)
 
+        if self.node_js == False and self.debug == False:
+            self.events['console'] = False
+
         run_parameters = {
             'deploy_function': self.python_wrapper,
             'dcp_data': job_input,
@@ -345,9 +348,6 @@ class Job:
             'python_compress_input': self.compress_input_set,
             'python_compress_output': self.compress_output_set,
         }
-
-        if self.node_js == False and self.debug == False:
-            self.events['console'] = False
 
         node_output = node.run(self.python_deploy, run_parameters)
 
