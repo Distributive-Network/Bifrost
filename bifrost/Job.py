@@ -8,6 +8,7 @@ import io
 import random
 import re
 import zlib
+from pathlib import Path
 
 # pypi modules
 import cloudpickle
