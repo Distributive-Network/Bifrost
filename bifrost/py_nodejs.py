@@ -14,7 +14,7 @@ from threading import Thread, Event
 
 # local modules
 from .py_storage import VariableSync
-from .py_utils import is_windows, has_mp_shared
+from .py_utils import is_windows, is_darwin, has_mp_shared
 from .ReadWriteLock import ReadWriteLock
 
 # PROGRAM
@@ -34,7 +34,7 @@ class Npm():
 
         self.js_needs_mmap = not os.path.exists(cwd + '/node_modules/@raygun-nickj/mmap-io')
         self.js_needs_xxhash = not os.path.exists(cwd + '/node_modules/xxhash-wasm')
-        self.js_needs_shm = has_mp_shared() and not is_windows() and not os.path.exists(cwd + '/node_modules/shmmap')
+        self.js_needs_shm = has_mp_shared() and not is_windows() and not is_darwin() and not os.path.exists(cwd + '/node_modules/shmmap')
 
         # TODO: find better terminology than "js needs", but favour this pattern over the previous not-and-chain approach
         if self.js_needs_mmap or self.js_needs_xxhash or self.js_needs_shm:
@@ -45,21 +45,15 @@ class Npm():
             ]
             self.run(npm_init_args)
 
-            npm_install_args = [
-              self.npm_exec_path,
-              'install',
-              '--quiet',
-            ]
             if self.js_needs_mmap:
-                npm_install_args.append('@raygun-nickj/mmap-io')
+                self.install('@raygun-nickj/mmap-io')
                 self.js_needs_mmap = False
             if self.js_needs_xxhash:
-                npm_install_args.append('xxhash-wasm@0.4.2')
+                self.install('xxhash-wasm@0.4.2')
                 self.js_needs_xxhash = False
             if self.js_needs_shm:
-                npm_install_args.append('git+https://github.com/chris-c-mcintyre/shmmap.js')
+                self.install('git+https://github.com/chris-c-mcintyre/shmmap.js')
                 self.js_needs_shm = False
-            self.run(npm_install_args)
 
     def run(self, cmd, warn=False, log=False):
         '''
