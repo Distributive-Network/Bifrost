@@ -251,6 +251,7 @@ class Job:
 
         if is_colab():
             self.colab_pickling = True
+            self.pickle_work_function = False
 
         if self.node_js == True:
             work_arguments_encoded = False # self.__input_encoder(self.work_arguments)
