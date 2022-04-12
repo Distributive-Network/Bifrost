@@ -163,12 +163,12 @@ class Job:
         if decompress_data == True:
             data_decompressed = zlib.decompress( data_decoded )
             if is_colab():
-                data_unpickled = pickle.loads( data_decompressed, protocol=4 )
+                data_unpickled = pickle.loads( data_decompressed )
             else:
                 data_unpickled = cloudpickle.loads( data_decompressed )
         else:
             if is_colab():
-                data_unpickled = pickle.loads( data_decoded, protocol=4 )
+                data_unpickled = pickle.loads( data_decoded )
             else:
                 data_unpickled = cloudpickle.loads( data_decoded )
 
