@@ -5,6 +5,7 @@ import codecs
 import contextlib
 import inspect
 import io
+import pickle
 import random
 import re
 import zlib

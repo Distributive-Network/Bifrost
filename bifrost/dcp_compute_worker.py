@@ -1,6 +1,7 @@
 # input serialization
 import codecs
 import cloudpickle
+import pickle
 import zlib
 
 # js proxy module for dcp progress calls
