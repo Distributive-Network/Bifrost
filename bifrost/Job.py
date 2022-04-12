@@ -112,6 +112,7 @@ class Job:
         self.compress_output_set = True
         self.new_context = False # clears the nodejs stream after every job if true
         self.kvin = False # uses the kvin serialization library to decode job results
+        self.colab_pickling = False # use non-cloud pickling for colab deployment
 
         # work wrapper functions
         self.python_init = dcp_init_worker
