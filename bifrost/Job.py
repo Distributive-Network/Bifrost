@@ -5,6 +5,7 @@ import codecs
 import contextlib
 import inspect
 import io
+import pickle
 import random
 import re
 import zlib
@@ -111,6 +112,7 @@ class Job:
         self.compress_output_set = True
         self.new_context = False # clears the nodejs stream after every job if true
         self.kvin = False # uses the kvin serialization library to decode job results
+        self.colab_pickling = False # use non-cloud pickling for colab deployment
 
         # work wrapper functions
         self.python_init = dcp_init_worker
@@ -143,7 +145,10 @@ class Job:
         if hasattr(cloudpickle, 'register_pickle_by_value'):
             cloudpickle.register_pickle_by_value(bifrost)
 
-        data_pickled = cloudpickle.dumps( input_data )
+        if is_colab():
+            data_pickled = pickle.dumps( input_data, protocol=4 )
+        else:
+            data_pickled = cloudpickle.dumps( input_data )
         if compress_data == True:
             data_compressed = zlib.compress( data_pickled )
             data_encoded = self.__input_encoder( data_compressed )
@@ -157,9 +162,15 @@ class Job:
         data_decoded = self.__output_decoder( output_data )
         if decompress_data == True:
             data_decompressed = zlib.decompress( data_decoded )
-            data_unpickled = cloudpickle.loads( data_decompressed )
+            if is_colab():
+                data_unpickled = pickle.loads( data_decompressed )
+            else:
+                data_unpickled = cloudpickle.loads( data_decompressed )
         else:
-            data_unpickled = cloudpickle.loads( data_decoded )
+            if is_colab():
+                data_unpickled = pickle.loads( data_decoded )
+            else:
+                data_unpickled = cloudpickle.loads( data_decoded )
 
         return data_unpickled
 
@@ -239,11 +250,8 @@ class Job:
         from bifrost import node
 
         if is_colab():
-            # TODO: remove this special behaviour when colab cloudpickle version conflicts are fully resolved
+            self.colab_pickling = True
             self.pickle_work_function = False
-            self.pickle_work_arguments = False
-            self.pickle_input_set = False
-            self.pickle_output_set = False
 
         if self.node_js == True:
             work_arguments_encoded = False # self.__input_encoder(self.work_arguments)
@@ -347,6 +355,7 @@ class Job:
             'python_compress_arguments': self.compress_work_arguments,
             'python_compress_input': self.compress_input_set,
             'python_compress_output': self.compress_output_set,
+            'python_colab_pickling': self.colab_pickling,
         }
 
         node_output = node.run(self.python_deploy, run_parameters)
