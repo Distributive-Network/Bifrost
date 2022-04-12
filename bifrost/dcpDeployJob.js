@@ -180,7 +180,7 @@
 
                 for ( event in dcp_events )
                 {
-                    if (eventFunctions[event]) job.on(event, eventFunctions[event]);
+                    if (dcp_events[event] && eventFunctions[event]) job.on(event, eventFunctions[event]);
                 }
 
                 let execResults;
@@ -211,7 +211,7 @@
 
         for ( event in dcp_events )
         {
-            job.removeEventListener(event, eventFunctions[event]);
+            if (dcp_events[event] && eventFunctions[event]) job.removeEventListener(event, eventFunctions[event]);
         }
 
         if ( dcpPromiseResults['bifrostResultHandle'] )
