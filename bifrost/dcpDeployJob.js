@@ -287,6 +287,7 @@
             python_compress_arguments,
             python_compress_input,
             python_compress_output,
+            python_colab_pickling,
         ];
     }
     else

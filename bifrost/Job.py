@@ -143,7 +143,10 @@ class Job:
         if hasattr(cloudpickle, 'register_pickle_by_value'):
             cloudpickle.register_pickle_by_value(bifrost)
 
-        data_pickled = cloudpickle.dumps( input_data )
+        if is_colab():
+            data_pickled = pickle.dumps( input_data, protocol=4 )
+        else:
+            data_pickled = cloudpickle.dumps( input_data )
         if compress_data == True:
             data_compressed = zlib.compress( data_pickled )
             data_encoded = self.__input_encoder( data_compressed )
@@ -157,9 +160,15 @@ class Job:
         data_decoded = self.__output_decoder( output_data )
         if decompress_data == True:
             data_decompressed = zlib.decompress( data_decoded )
-            data_unpickled = cloudpickle.loads( data_decompressed )
+            if is_colab():
+                data_unpickled = pickle.loads( data_decompressed, protocol=4 )
+            else:
+                data_unpickled = cloudpickle.loads( data_decompressed )
         else:
-            data_unpickled = cloudpickle.loads( data_decoded )
+            if is_colab():
+                data_unpickled = pickle.loads( data_decoded, protocol=4 )
+            else:
+                data_unpickled = cloudpickle.loads( data_decoded )
 
         return data_unpickled
 
@@ -239,11 +248,7 @@ class Job:
         from bifrost import node
 
         if is_colab():
-            # TODO: remove this special behaviour when colab cloudpickle version conflicts are fully resolved
-            self.pickle_work_function = False
-            self.pickle_work_arguments = False
-            self.pickle_input_set = False
-            self.pickle_output_set = False
+            self.colab_pickling = True
 
         if self.node_js == True:
             work_arguments_encoded = False # self.__input_encoder(self.work_arguments)
@@ -347,6 +352,7 @@ class Job:
             'python_compress_arguments': self.compress_work_arguments,
             'python_compress_input': self.compress_input_set,
             'python_compress_output': self.compress_output_set,
+            'python_colab_pickling': self.colab_pickling,
         }
 
         node_output = node.run(self.python_deploy, run_parameters)

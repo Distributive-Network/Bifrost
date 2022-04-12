@@ -18,6 +18,7 @@ async function workFunction(
     pythonCompressArguments,// flag which indicates that the shared arguments have been compressed
     pythonCompressInput,// flag which indicates that the input slice has been compressed
     pythonCompressOutput,// flag which indicates that the output slice should be compressed
+    pythonColabPickling,// flag which indicates that all pickling was done in a colab without cloudpickle
 )
 {
   const startTime = Date.now();
@@ -272,6 +273,8 @@ async function workFunction(
     pyodide.globals.set('compress_arguments', pythonCompressArguments);
     pyodide.globals.set('compress_input', pythonCompressInput);
     pyodide.globals.set('compress_output', pythonCompressOutput);
+
+    pyodide.globals.set('colab_pickling', pythonColabPickling);
 
     if (pythonPickleFunction)
     {
