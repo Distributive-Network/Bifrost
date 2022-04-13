@@ -57,6 +57,7 @@ class Job:
         self.compute_groups = []
         self.debug = False
         self.estimation_slices = 3
+        self.greedy_estimation = False
         self.multiplier = 1
         self.local_cores = 0
 
@@ -331,6 +332,7 @@ class Job:
             'dcp_local': self.local_cores,
             'dcp_collate': self.collate_results,
             'dcp_estimation': self.estimation_slices,
+            'dcp_greedy': self.greedy_estimation,
             'dcp_groups': self.compute_groups,
             'dcp_public': self.public,
             'dcp_requirements': self.requirements,

@@ -34,6 +34,8 @@
 
         job.estimationSlices = dcp_estimation;
 
+        job.greedyEstimation = dcp_greedy;
+
         job.public = dcp_public;
 
         job.debug = dcp_debug;
