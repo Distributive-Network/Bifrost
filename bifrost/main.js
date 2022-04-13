@@ -195,6 +195,9 @@ class Evaluator{
                 const npArr = npy.parseNumpyFile(abData);
                 obj = npArr;
             }
+            if (!!obj && obj['type'] == 'infinity'){
+                obj = Infinity;
+            }
             this.context[key] = obj;
         }
         this.toSync = Object.keys(jsonVars);

@@ -157,7 +157,12 @@ class VariableSync():
             elif var_type == str:
                 final_output[var_name] = var
             elif var_type == int or var_type==float:
-                final_output[var_name] = var
+                if var == math.inf:
+                    final_output[var_name] = {
+                        'type': 'infinity'
+                    }
+                else:
+                    final_output[var_name] = var
             elif var_type == bool:
                 final_output[var_name] = var
             elif var_type == dict:
