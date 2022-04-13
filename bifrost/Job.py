@@ -232,12 +232,14 @@ class Job:
                 try:
                     package_latest = npm.package_latest_version(package_name)
                     package_current = npm.package_current_version(package_name)
+                    if _parse_version(package_current) < _parse_version(package_latest):
+                        print('installing version ' + package_latest + ' of ' + package_name)
+                        npm.install(package_name + '@' + package_latest)
+                    else:
+                        print('proceeding with currently installed version of ' + package_name)
                 except ValueError:
-                    print('proceeding with current dcp client version')
-
-                if _parse_version(package_current) < _parse_version(package_latest):
-                    print('installing version ' + package_latest + ' of ' + package_name)
-                    npm.install(package_name + '@' + package_latest)
+                    print('installing default npm version of ' + package_name)
+                    npm.install(package_name)
 
         _npm_checker('dcp-client')
 
