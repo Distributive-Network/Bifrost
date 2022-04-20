@@ -63,6 +63,15 @@
                     job.requires('pyodide-clapack.data/CLAPACK.data.js');
                     job.requires('pyodide-clapack.js/CLAPACK.js.js');
                 }
+                else if ( thisPackageName == 'nltk' )
+                {
+                    // TODO: expand to support full nltk corpus library, and automate retrieval via module provision and lazy loading
+                    job.requires('nltk_data-corpora.stopwords.zip/corpora.stopwords.zip.js');
+                    job.requires('nltk_data-corpora.treebank.zip/corpora.treebank.zip.js');
+                    job.requires('nltk_data-corpora.wordnet.zip/corpora.wordnet.zip.js');
+                    job.requires('nltk_data-taggers.averaged_perceptron_tagger.zip/taggers.averaged_perceptron_tagger.zip.js');
+                    job.requires('nltk_data-tokenizers.punkt.zip/tokenizers.punkt.zip.js');
+                }
                 let packageDataPath = 'pyodide-' + thisPackageName + '.data/' + thisPackageName + '.data.js';
                 let packageJsPath = 'pyodide-' + thisPackageName + '.js/' + thisPackageName + '.js.js';
                 job.requires(packageDataPath);

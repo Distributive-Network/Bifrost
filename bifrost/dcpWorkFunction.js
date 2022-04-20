@@ -178,6 +178,14 @@ async function workFunction(
           pyFiles.push({ filepath: './', filename: 'CLAPACK.data' });
           pyFiles.push({ filepath: './', filename: 'CLAPACK.js' });
       }
+      else if ( packageName == 'nltk' )
+      {
+          pyFiles.push({ filepath: './', filename: 'corpora.stopwords.zip' });
+          pyFiles.push({ filepath: './', filename: 'corpora.treebank.zip' });
+          pyFiles.push({ filepath: './', filename: 'corpora.wordnet.zip' });
+          pyFiles.push({ filepath: './', filename: 'taggers.averaged_perceptron_tagger.zip' });
+          pyFiles.push({ filepath: './', filename: 'tokenizers.punkt.zip' });
+      }
       const packageFileData = packageName + '.data';
       const packageFileJs = packageName + '.js';
       pyFiles.push({ filepath: './', filename: packageFileData });
@@ -247,6 +255,24 @@ async function workFunction(
       if ( pythonPackages[i] == 'scipy')
       {
           if ( Object.keys(pyodide.loadedPackages).indexOf('scipy') === -1 ) await pyodide.loadPackage(['CLAPACK']);
+      }
+      else if ( pythonPackages[i] == 'nltk' && Object.keys(pyodide.loadedPackages).indexOf('nltk') === -1 )
+      {
+          pyodide.FS.mkdir('nltk_data');
+
+          // supported corpora
+          pyodide.FS.mkdir('nltk_data/corpora');
+          await pyodide.unpackArchive(pyDcp['./corpora.stopwords.zip'], 'zip', 'nltk_data/corpora');
+          await pyodide.unpackArchive(pyDcp['./corpora.treebank.zip'], 'zip', 'nltk_data/corpora');
+          await pyodide.unpackArchive(pyDcp['./corpora.wordnet.zip'], 'zip', 'nltk_data/corpora');
+
+          // supported taggers
+          pyodide.FS.mkdir('nltk_data/taggers');
+          await pyodide.unpackArchive(pyDcp['./taggers.averaged_perceptron_tagger.zip'], 'zip', 'nltk_data/taggers');
+
+          // supported tokenizers
+          pyodide.FS.mkdir('nltk_data/tokenizers');
+          await pyodide.unpackArchive(pyDcp['./tokenizers.punkt.zip'], 'zip', 'nltk_data/tokenizers');
       }
       if ( Object.keys(pyodide.loadedPackages).indexOf(pythonPackages[i]) === -1 ) await pyodide.loadPackage([pythonPackages[i]]);
 
