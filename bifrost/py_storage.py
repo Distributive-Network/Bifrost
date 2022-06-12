@@ -31,9 +31,10 @@ class VariableSync():
         self.notebook = is_notebook()
         self.mp_shared = has_mp_shared()
         self.colab = is_colab()
+        self.shmmap = os.path.exists(os.getcwd() + '/node_modules/shmmap')
 
         if os.name == 'posix':
-            if self.darwin or self.colab:
+            if self.darwin or self.colab or not self.shmmap:
                 self.shared = 'fs'
             elif self.mp_shared:
                 self.shared = 'multiprocessing'
