@@ -31,10 +31,11 @@ class Npm():
     def __init__(self, cwd = os.getcwd()):
         self.cwd = cwd
         self.npm_exec_path = shutil.which('npm')
+        self.nodejs_major_version = int(self.nodejs_version().split(".")[0])
 
         self.js_needs_mmap = not os.path.exists(cwd + '/node_modules/@raygun-nickj/mmap-io')
         self.js_needs_xxhash = not os.path.exists(cwd + '/node_modules/xxhash-wasm')
-        self.js_needs_shm = has_mp_shared() and not is_windows() and not is_darwin() and not os.path.exists(cwd + '/node_modules/shmmap')
+        self.js_needs_shm = has_mp_shared() and not is_windows() and not is_darwin() and not os.path.exists(cwd + '/node_modules/shmmap') and self.nodejs_major_version < 16
 
         # TODO: find better terminology than "js needs", but favour this pattern over the previous not-and-chain approach
         if self.js_needs_mmap or self.js_needs_xxhash or self.js_needs_shm:
@@ -46,7 +47,10 @@ class Npm():
             self.run(npm_init_args)
 
             if self.js_needs_mmap:
-                self.install('@raygun-nickj/mmap-io')
+                if self.nodejs_major_version < 16:
+                  self.install('@raygun-nickj/mmap-io@1.2.2')
+                else:
+                  self.install('@raygun-nickj/mmap-io@1.3.0')
                 self.js_needs_mmap = False
             if self.js_needs_xxhash:
                 self.install('xxhash-wasm@0.4.2')
@@ -109,6 +113,15 @@ class Npm():
         with contextlib.redirect_stdout(npm_io):
             self.run([self.npm_exec_path, 'view', package_name, 'version'], warn=True, log=True)
         version_string = npm_io.getvalue()
+        return version_string.strip()
+
+    def nodejs_version(self):
+        npm_io = io.StringIO()
+        with contextlib.redirect_stdout(npm_io):
+            self.run([self.npm_exec_path, 'version', '--json=true'], warn=True, log=True)
+        version_json = npm_io.getvalue()
+        version_dict = json.loads(version_json)
+        version_string = version_dict["node"]
         return version_string.strip()
 
 class NodeSTDProc(Thread):

@@ -6,8 +6,8 @@ const stream    = require('stream');
 const vm        = require('vm');
 
 // npm modules
-const mmap      = require('@raygun-nickj/mmap-io');
-const xxhash    = require('xxhash-wasm');
+const mmap      = require(process.cwd() + '/node_modules/' + '@raygun-nickj/mmap-io');
+const xxhash    = require(process.cwd() + '/node_modules/' + 'xxhash-wasm');
 
 // local modules
 const deepEqual = require('./deepEqual.js').deepEqual;
@@ -58,7 +58,7 @@ class Evaluator{
         }
         else
         {
-            const shm = require('shmmap');
+            const shm = require(process.cwd() + '/node_modules/' + 'shmmap');
 
             this.fd = shm.open
             (
