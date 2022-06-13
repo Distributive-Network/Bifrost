@@ -47,7 +47,10 @@ class Npm():
             self.run(npm_init_args)
 
             if self.js_needs_mmap:
-                self.install('@raygun-nickj/mmap-io')
+                if self.nodejs_major_version < 16:
+                  self.install('@raygun-nickj/mmap-io@1.2.2')
+                else:
+                  self.install('@raygun-nickj/mmap-io@1.3.0')
                 self.js_needs_mmap = False
             if self.js_needs_xxhash:
                 self.install('xxhash-wasm@0.4.2')
