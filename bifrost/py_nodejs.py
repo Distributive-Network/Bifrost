@@ -35,7 +35,7 @@ class Npm():
 
         self.js_needs_mmap = not os.path.exists(cwd + '/node_modules/@raygun-nickj/mmap-io')
         self.js_needs_xxhash = not os.path.exists(cwd + '/node_modules/xxhash-wasm')
-        self.js_needs_shm = has_mp_shared() and not is_windows() and not is_darwin() and not os.path.exists(cwd + '/node_modules/shmmap')
+        self.js_needs_shm = has_mp_shared() and not is_windows() and not is_darwin() and not os.path.exists(cwd + '/node_modules/shmmap') and self.nodejs_major_version < 16
 
         # TODO: find better terminology than "js needs", but favour this pattern over the previous not-and-chain approach
         if self.js_needs_mmap or self.js_needs_xxhash or self.js_needs_shm:
