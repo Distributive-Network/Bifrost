@@ -31,6 +31,7 @@ class Npm():
     def __init__(self, cwd = os.getcwd()):
         self.cwd = cwd
         self.npm_exec_path = shutil.which('npm')
+        self.nodejs_major_version = int(self.nodejs_version().split(".")[0])
 
         self.js_needs_mmap = not os.path.exists(cwd + '/node_modules/@raygun-nickj/mmap-io')
         self.js_needs_xxhash = not os.path.exists(cwd + '/node_modules/xxhash-wasm')
@@ -109,6 +110,15 @@ class Npm():
         with contextlib.redirect_stdout(npm_io):
             self.run([self.npm_exec_path, 'view', package_name, 'version'], warn=True, log=True)
         version_string = npm_io.getvalue()
+        return version_string.strip()
+
+    def nodejs_version(self):
+        npm_io = io.StringIO()
+        with contextlib.redirect_stdout(npm_io):
+            self.run([self.npm_exec_path, 'version', '--json=true'], warn=True, log=True)
+        version_json = npm_io.getvalue()
+        version_dict = json.loads(version_json)
+        version_string = version_dict["node"]
         return version_string.strip()
 
 class NodeSTDProc(Thread):
