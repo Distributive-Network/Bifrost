@@ -1,6 +1,6 @@
 {
   "name": "bifrost",
-  "version": "0.5.10",
+  "version": "0.5.11",
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -8,7 +8,7 @@
   "author": "Kings Distributed Systems",
   "license": "ISC",
   "dependencies": {
-    "@raygun-nickj/mmap-io": "latest",
+    "@raygun-nickj/mmap-io": "1.2.2",
     "xxhash-wasm": "0.4.2"
   },
   "description": "An SHM/memmap based python and node communication/evaluation tool."
