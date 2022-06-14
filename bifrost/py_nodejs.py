@@ -68,6 +68,9 @@ class Npm():
         Also helpful to block until command completes.
         '''
 
+        # npm version notice can disrupt parsing of command outputs
+        cmd.append("--no-update-notifier")
+        
         process = Popen(
           cmd,
           cwd = self.cwd,
