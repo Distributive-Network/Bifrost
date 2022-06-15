@@ -7,7 +7,7 @@ long_description = (this_directory / "README.md").read_text()
 
 setuptools.setup(
     name="Bifrost",
-    version="0.5.11",
+    version="0.5.12",
     author="Kings Distributed Systems",
     author_email="toolchains@kingsds.network",
     description="Python to JS intercommunication and execution",
@@ -24,7 +24,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3"
     ],
     install_requires=[
-        "cloudpickle",
+        "cloudpickle<2.1",
         "numpy",
         "xxhash",
         "posix_ipc ; os_name == 'posix' and python_version < '3.8'",
