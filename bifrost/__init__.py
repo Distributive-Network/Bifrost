@@ -39,7 +39,11 @@ if is_notebook():
             ip = get_ipython()
             magics = BifrostMagics(ip, node)
             ip.register_magics(magics)
-            ip.set_hook('shutdown_hook', shutdown_hook)
+            try:
+                ip.set_hook('shutdown_hook', shutdown_hook)
+            except ValueError as possible_deprecated_hook:
+                import atexit
+                atexit.register(shutdown_hook, ip)
     except Exception as e:
         print(e)
         raise EnvironmentError("Environment is not as was expected")
