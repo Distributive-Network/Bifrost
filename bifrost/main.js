@@ -42,6 +42,9 @@ class Evaluator{
         this.context['require']          = require;
         vm.createContext(this.context);
 
+        this.bytesPending = 0;
+        this.fragmentList = [];
+
         this.cache = {};
         this.fd = -1;
         let size= Math.floor( 0.75 * 1024*1024*1024 );
@@ -232,17 +235,46 @@ inputStream._transform = async function(chunk, encoding, done){
         evaluator.hash64 = h64;
     }
 
-    evaluator.syncFrom();
-    try{
-        let scriptJSON = JSON.parse(chunk.toString('utf-8'));
-        let script = scriptJSON['script'];
-        await evaluator.evaluate(script);
+    chunk = chunk.toString('utf-8');
 
-    }catch(err){
-        console.log("Error occured during script running/parsing: ", err);
+    if (evaluator.fragmentList.length == 0)
+    {
+        const headerStart = 0;
+        const headerStop = chunk.indexOf("C");
+
+        if (chunk[headerStart] !== "E" || headerStop < 1) throw("bad message header");
+
+        const scriptLength = parseInt(chunk.slice(headerStart + 1, headerStop), 16);
+
+        evaluator.bytesPending = scriptLength;
+
+        chunk = chunk.slice(headerStop + 1);
     }
-    evaluator.syncTo();
-    console.log('{"type": "done"}')
+
+    evaluator.fragmentList.push(chunk);
+    evaluator.bytesPending = evaluator.bytesPending - chunk.length;
+
+    if (evaluator.bytesPending == 0)
+    {
+        let scriptString = evaluator.fragmentList.join("");
+        evaluator.fragmentList = [];
+
+        evaluator.syncFrom();
+        try{
+            let scriptJSON = JSON.parse(scriptString);
+            let script = scriptJSON['script'];
+            await evaluator.evaluate(script);
+
+        }catch(err){
+            console.log("Error occured during script running/parsing: ", err);
+        }
+        evaluator.syncTo();
+        console.log('{"type": "done"}')
+    }
+    else if (evaluator.bytesPending < 0)
+    {
+        throw("negative pending bytes", evaluator.bytesPending);
+    }
     done();
 }
 

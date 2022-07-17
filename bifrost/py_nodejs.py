@@ -327,10 +327,13 @@ class Node():
         Helper function to submit node script to node process.
         '''
         try:
-            string_to_send = json.dumps(
+            string_json = json.dumps(
                 {'script': s}
             )
-            self.process.stdin.write(string_to_send.encode('utf-8'))
+            string_head = 'E' + str(hex(len(string_json))) + 'C'
+            string_to_send = string_head + string_json
+            string_encoded = string_to_send.encode('utf-8')
+            self.process.stdin.write(string_encoded)
             self.process.stdin.flush()
         except Exception as e:
             global NODE_IS_RUNNING
