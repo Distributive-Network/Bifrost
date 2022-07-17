@@ -232,9 +232,11 @@ inputStream._transform = async function(chunk, encoding, done){
         evaluator.hash64 = h64;
     }
 
+    chunk = chunk.toString('utf-8');
+
     evaluator.syncFrom();
     try{
-        let scriptJSON = JSON.parse(chunk.toString('utf-8'));
+        let scriptJSON = JSON.parse(chunk);
         let script = scriptJSON['script'];
         await evaluator.evaluate(script);
 
