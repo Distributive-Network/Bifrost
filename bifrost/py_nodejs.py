@@ -340,7 +340,7 @@ class Node():
             msg_length_int = len(msg_json)
             msg_length_hex = hex(msg_length_int)
             msg_length_str = str(msg_length_hex)[2:]
-            if (len(msg_length_str) > 8 or msg_length_hex > 0xffffff):
+            if (len(msg_length_str) > 8 or msg_length_int >= 16**8):
               raise("Script size exceeds Node.js string limit:", str(msg_length_int))
             msg_head = 'E' + msg_length_str.zfill(8) + 'C'
             string_to_send = msg_head + msg_json
