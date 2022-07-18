@@ -327,11 +327,16 @@ class Node():
         Helper function to submit node script to node process.
         '''
         try:
-            string_json = json.dumps(
+            msg_json = json.dumps(
                 {'script': s}
             )
-            string_head = 'E' + str(hex(len(string_json))) + 'C'
-            string_to_send = string_head + string_json
+            msg_length_int = len(msg_json)
+            msg_length_hex = hex(msg_length_int)
+            msg_length_str = str(msg_length_hex)[2:]
+            if (len(msg_length_str) > 8 or msg_length_hex > 0xffffff):
+              raise("Script size exceeds Node.js string limit:", str(msg_length_int))
+            msg_head = 'E' + msg_length_str.zfill(8) + 'C'
+            string_to_send = msg_head + msg_json
             string_encoded = string_to_send.encode('utf-8')
             self.process.stdin.write(string_encoded)
             self.process.stdin.flush()

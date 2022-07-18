@@ -239,16 +239,15 @@ inputStream._transform = async function(chunk, encoding, done){
 
     if (evaluator.fragmentList.length == 0)
     {
-        const headerStart = 0;
-        const headerStop = chunk.indexOf("C");
+        const header = chunk.slice(0,10);
 
-        if (chunk[headerStart] !== "E" || headerStop < 1) throw("bad message header");
+        if (header[0] !== "E" || header[9] !== "C") throw("bad message header");
 
-        const scriptLength = parseInt(chunk.slice(headerStart + 1, headerStop), 16);
+        const scriptLength = parseInt(header.slice(1, 9), 16);
 
         evaluator.bytesPending = scriptLength;
 
-        chunk = chunk.slice(headerStop + 1);
+        chunk = chunk.slice(10);
     }
 
     evaluator.fragmentList.push(chunk);
