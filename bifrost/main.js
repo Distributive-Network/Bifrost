@@ -239,6 +239,12 @@ inputStream._transform = async function(chunk, encoding, done){
 
     if (evaluator.fragmentList.length == 0)
     {
+        // Each message begins with header from E00000000C to EffffffffC
+        // : E in position 0, indicating extended message
+        // : C in position 9, indicating concatenated message
+        // : hexademical digits from 0 to f in positions 1 to 8, together indicating message total length
+        // : message length in header includes Bifrost's JSON wrapping, but does not include header itself
+
         const header = chunk.slice(0,10);
 
         if (header[0] !== "E" || header[9] !== "C") throw("bad message header");
