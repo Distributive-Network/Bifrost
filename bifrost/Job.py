@@ -396,7 +396,7 @@ class Job:
             if (element_type is str):
                 self.require_path.append(package_element)
             elif (element_type is list or element_type is tuple):
-                requires(*package_element)
+                self.requires(*package_element)
             else:
                 print('Warning: unsupported format for Job.requires:', element_type)
 
