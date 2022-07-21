@@ -61,7 +61,8 @@ var Util = {
       return true;
     }
 
-    if (expected === undefined) {
+    // Undefined type
+    if (Util._isUndefined(expected)) {
       throw 'undefined value error'
     }
 
