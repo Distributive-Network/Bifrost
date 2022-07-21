@@ -147,7 +147,7 @@ class Evaluator{
                           };
                         };
                     }else{
-                        if (this.context[key] === undefined){
+                        if (typeof this.context[key] === "undefined"){
                           throw 'undefined value error'
                         }
                         let val = JSON.stringify(this.context[key]);
