@@ -15,7 +15,7 @@ from pathlib import Path
 import cloudpickle
 
 # local modules
-from .py_utils import is_colab
+from bifrost.py_utils import is_colab
 from .Work import dcp_init_worker, dcp_compute_worker, js_work_function, js_deploy_job
 
 # PROGRAM
