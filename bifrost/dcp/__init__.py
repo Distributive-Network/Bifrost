@@ -1,5 +1,8 @@
 # MODULES
 
+# python standard library
+import os
+
 # local modules
 from .Dcp import compute_do, compute_for
 
@@ -109,5 +112,12 @@ def dcp_install(scheduler_url = 'https://scheduler.distributed.computer'):
     if ( !globalThis.dcpClient ) globalThis.dcpClient = require("dcp-client").init(scheduler);
     """, { 'scheduler': scheduler_url })
 
-dcp_install()
+env_scheduler = os.environ.get('DCP_SCHEDULER_LOCATION')
+
+if env_scheduler == None:
+    dcp_scheduler = 'https://scheduler.distributed.computer'
+else:
+    dcp_scheduler = env_scheduler
+
+dcp_install(dcp_scheduler)
 
