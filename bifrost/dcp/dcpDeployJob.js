@@ -40,7 +40,7 @@
 
         job.debug = dcp_debug;
 
-        job.requirements = dcp_requirements;
+        job.requirements.discrete = false;
 
         // set module requirements for python job
         if (dcp_node_js == false)
