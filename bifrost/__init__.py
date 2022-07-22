@@ -9,7 +9,6 @@ import warnings
 # local modules
 from .py_utils import is_notebook
 from .py_nodejs import Npm, Node
-from .Dcp import Dcp
 
 # PROGRAM
 
@@ -79,7 +78,4 @@ def onEnd():
             node.vs.memory.unlink()
     except:
         print("Could not unlink shared memory. May already be dead.")
-
-# set up our DCP bridge interface
-dcp = Dcp()
 
