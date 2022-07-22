@@ -3,7 +3,7 @@
 # local modules
 from .Dcp import compute_do, compute_for
 
-# PROGRAM
+# CLASSES
 
 class Url: # Temporary Implementation
 
@@ -66,4 +66,48 @@ class RemoteDataPattern: # Temporary Implementation
             url_object = url_string + str(n) # Url(url_string + str(n))
             remote_data_set.append(url_object)
         self.remote_data_set = remote_data_set
+
+# PROGRAM
+
+def dcp_install(scheduler_url = 'https://scheduler.distributed.computer'):
+
+    # install and initialize dcp-client
+
+    from bifrost import node, npm
+
+    def _parse_version(version_string):
+        version_list = version_string.split('.')
+        version = tuple(int(version_element) for version_element in version_list)
+        return version
+
+    def _npm_checker(package_name):
+
+        npm_io = io.StringIO()
+        with contextlib.redirect_stdout(npm_io):
+            npm.list_modules(package_name)
+        npm_check = npm_io.getvalue()
+
+        if '(empty)' in npm_check:
+            print('installing ' + package_name)
+            npm.install(package_name)
+        else:
+            try:
+                package_latest = npm.package_latest_version(package_name)
+                package_current = npm.package_current_version(package_name)
+                if _parse_version(package_current) < _parse_version(package_latest):
+                    print('installing version ' + package_latest + ' of ' + package_name)
+                    npm.install(package_name + '@' + package_latest)
+                else:
+                    print('proceeding with currently installed version of ' + package_name)
+            except ValueError:
+                print('installing default npm version of ' + package_name)
+                npm.install(package_name)
+
+    _npm_checker('dcp-client')
+
+    node.run("""
+    if ( !globalThis.dcpClient ) globalThis.dcpClient = require("dcp-client").init(scheduler);
+    """, { 'scheduler': scheduler_url })
+
+dcp_install()
 
