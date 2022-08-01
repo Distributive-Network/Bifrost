@@ -44,6 +44,7 @@ class Evaluator{
 
         this.bytesPending = 0;
         this.fragmentList = [];
+        this.fragmentHead = [];
 
         this.cache = {};
         this.fd = -1;
@@ -237,46 +238,76 @@ inputStream._transform = async function(chunk, encoding, done){
 
     chunk = chunk.toString('utf-8');
 
+    const headerTargetLength = 10;
+
     if (evaluator.fragmentList.length == 0)
     {
-        const headerStart = 0;
-        const headerStop = chunk.indexOf("C");
+        if (evaluator.fragmentHead.length < headerTargetLength)
+        {
+            // Each message begins with header from E00000000C to EffffffffC
+            // : E in position 0, indicating extended message
+            // : C in position 9, indicating concatenated message
+            // : hexademical digits from 0 to f in positions 1 to 8, together indicating message total length
+            // : message length in header includes Bifrost's JSON wrapping, but does not include header itself
 
-        if (chunk[headerStart] !== "E" || headerStop < 1) throw("bad message header");
+            const headerBytesToRead = Math.min(headerTargetLength - evaluator.fragmentHead.length, chunk.length);
 
-        const scriptLength = parseInt(chunk.slice(headerStart + 1, headerStop), 16);
+            for (let i = 0; i < headerBytesToRead; i++)
+            {
+                evaluator.fragmentHead.push(chunk[i]);
+            }
+        }
 
-        evaluator.bytesPending = scriptLength;
+        if (evaluator.fragmentHead.length == headerTargetLength)
+        {
+            let myHeader = evaluator.fragmentHead.join("");
 
-        chunk = chunk.slice(headerStop + 1);
+            if (myHeader[0] !== "E" || myHeader[myHeader.length - 1] !== "C") throw("bad message header");
+
+            const messageLength = parseInt(myHeader.slice(1, myHeader.length - 1), 16);
+
+            evaluator.bytesPending = scriptLength;
+
+            chunk = chunk.slice(myHeader.length);
+        }
     }
 
-    evaluator.fragmentList.push(chunk);
-    evaluator.bytesPending = evaluator.bytesPending - chunk.length;
+    if (evaluator.bytesPending > 0)
+    {
+        evaluator.fragmentList.push(chunk);
+        evaluator.bytesPending = evaluator.bytesPending - chunk.length;
+    }
 
     if (evaluator.bytesPending == 0)
     {
         let scriptString = evaluator.fragmentList.join("");
         evaluator.fragmentList = [];
+        evaluator.fragmentHead = [];
 
         evaluator.syncFrom();
-        try{
+
+        try
+        {
             let scriptJSON = JSON.parse(scriptString);
             let script = scriptJSON['script'];
-            await evaluator.evaluate(script);
 
-        }catch(err){
+            await evaluator.evaluate(script);
+        }
+        catch(err)
+        {
             console.log("Error occured during script running/parsing: ", err);
         }
+
         evaluator.syncTo();
+
         console.log('{"type": "done"}')
     }
     else if (evaluator.bytesPending < 0)
     {
         throw("negative pending bytes", evaluator.bytesPending);
     }
+
     done();
 }
-
 
 process.stdin.pipe(inputStream);
