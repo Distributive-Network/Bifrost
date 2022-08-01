@@ -354,6 +354,16 @@ class Job:
             else:
                 print('Warning: unsupported format for Job.requires:', element_type)
 
+    def imports(self, *module_arguments):
+        for module_element in module_arguments:
+            element_type = type(module_element)
+            if (element_type is str):
+                self.python_imports.append(module_element)
+            elif (element_type is list or element_type is tuple):
+                self.imports(*module_element)
+            else:
+                print('Warning: unsupported format for Job.imports:', element_type)
+
     def set_result_storage(self, remote_storage_location, remote_storage_params = {}):
         self.remote_storage_location = remote_storage_location
         self.remote_storage_params = remote_storage_params
