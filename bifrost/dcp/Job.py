@@ -32,7 +32,7 @@ class Job:
         self.initial_slice_profile = False # Not Used
         self.slice_payment_offer = False # TODO
         self.payment_account = False # TODO
-        self.require_path = []
+        self.require_path = [] # dcp pyodide packages (populated via Job.requires)
         self.module_path = False # Not Used
         self.collate_results = True
         self.status = { # Not Used
@@ -93,7 +93,7 @@ class Job:
         }
 
         # bifrost internal job properties
-        self.python_imports = []
+        self.python_imports = [] # local python modules (populated via Job.imports)
         self.node_js = False
         self.shuffle = False
         self.range_object_input = False
@@ -345,6 +345,7 @@ class Job:
         on(self, event_name, event_function)
 
     def requires(self, *package_arguments):
+        # adds dcp pyodide packages to be required in the worker function
         for package_element in package_arguments:
             element_type = type(package_element)
             if (element_type is str):
@@ -355,6 +356,7 @@ class Job:
                 print('Warning: unsupported format for Job.requires:', element_type)
 
     def imports(self, *module_arguments):
+        # adds local python modules to be imported in the worker function
         for module_element in module_arguments:
             element_type = type(module_element)
             if (element_type is str):
