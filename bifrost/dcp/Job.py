@@ -52,7 +52,7 @@ class Job:
 
         # additional job properties
         self.collate_results = True
-        self.compute_groups = []
+        self.compute_groups = [{'joinKey':'public','joinSecret':''}]
         self.debug = False
         self.estimation_slices = 3
         self.greedy_estimation = False
