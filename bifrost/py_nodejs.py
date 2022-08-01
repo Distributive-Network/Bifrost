@@ -327,11 +327,23 @@ class Node():
         Helper function to submit node script to node process.
         '''
         try:
-            string_json = json.dumps(
+            msg_json = json.dumps(
                 {'script': s}
             )
-            string_head = 'E' + str(hex(len(string_json))) + 'C'
-            string_to_send = string_head + string_json
+
+            # Each message begins with header from E00000000C to EffffffffC
+            # : E in position 0, indicating extended message
+            # : C in position 9, indicating concatenated message
+            # : hexademical digits from 0 to f in positions 1 to 8, together indicating message total length
+            # : message length in header includes Bifrost's JSON wrapping, but does not include header itself
+
+            msg_length_int = len(msg_json)
+            msg_length_hex = hex(msg_length_int)
+            msg_length_str = str(msg_length_hex)[2:]
+            if (len(msg_length_str) > 8 or msg_length_int >= 16**8):
+              raise("Script size exceeds Node.js string limit:", str(msg_length_int))
+            msg_head = 'E' + msg_length_str.zfill(8) + 'C'
+            string_to_send = msg_head + msg_json
             string_encoded = string_to_send.encode('utf-8')
             self.process.stdin.write(string_encoded)
             self.process.stdin.flush()
