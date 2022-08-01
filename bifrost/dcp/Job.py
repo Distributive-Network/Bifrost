@@ -52,7 +52,7 @@ class Job:
 
         # additional job properties
         self.collate_results = True
-        self.compute_groups = [{'joinKey':'public','joinSecret':''}]
+        self.compute_groups = [{'opaqueId':'WHhetL7mj1w1mw1XV6dxyC','id':1,'joinKey':'public','joinSecret':''}]
         self.debug = False
         self.estimation_slices = 3
         self.greedy_estimation = False
