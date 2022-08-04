@@ -166,12 +166,21 @@ async function workFunction(
       { filepath: pyPath, filename: 'pyodide_py.tar'},
       { filepath: pyPath, filename: 'packages.json'},
       { filepath: pyPath, filename: 'pyodide.asm.js'},
-      { filepath: pyPath, filename: 'distutils.data'},
-      { filepath: pyPath, filename: 'distutils.js'},
       { filepath: pyPath, filename: 'pyodide.js'},
       { filepath: pyPath, filename: 'cloudpickle.data'},
       { filepath: pyPath, filename: 'cloudpickle.js'},
     ];
+
+    if (pythonPyodideWheels)
+    {
+        pyFiles.push({ filepath: pyPath, filename: 'package.json'});
+        pyFiles.push({ filepath: pyPath, filename: 'distutils.tar'});
+    }
+    else
+    {
+        pyFiles.push({ filepath: pyPath, filename: 'distutils.data'});
+        pyFiles.push({ filepath: pyPath, filename: 'distutils.js'});
+    }
 
     for (let i = 0; i < pythonPackages.length; i++)
     {
