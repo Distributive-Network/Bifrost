@@ -266,7 +266,7 @@ inputStream._transform = async function(chunk, encoding, done){
 
             const messageLength = parseInt(myHeader.slice(1, myHeader.length - 1), 16);
 
-            evaluator.bytesPending = scriptLength;
+            evaluator.bytesPending = messageLength;
 
             chunk = chunk.slice(myHeader.length);
         }
