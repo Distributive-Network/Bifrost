@@ -222,11 +222,11 @@ async function workFunction(
     progress();
 
     if (!globalThis.pyScope) globalThis.pyScope = {};
-    pyScope = {
+    pyScope = pythonPyodideWheels ? globalThis : {
         setTimeout: globalThis.setTimeout,
-        dcp: {
-            progress: progress,
-        },
+    };
+    pyScope['dcp'] = {
+        progress: progress,
     };
 
     if (!globalThis.pyLog) globalThis.pyLog = [];
