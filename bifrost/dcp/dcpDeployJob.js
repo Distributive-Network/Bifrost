@@ -319,7 +319,7 @@
 
         let jobArguments = [];
         nodeSharedArguments.forEach(x => {
-            let myItem = Object.fromEntries(Object.entries(x));
+            let myItem = (Object.prototype.toString.call(x) == '[object Object]') ? Object.fromEntries(Object.entries(x)) : x;
             jobArguments.push(myItem);
             return [];
         });
