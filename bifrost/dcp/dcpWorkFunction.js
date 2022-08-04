@@ -94,7 +94,7 @@ async function workFunction(
             }
             else
             {
-              throw('Missing file:', input, '(xhr.open)');
+              throw('Missing file: ' + input + ' (xhr.open)');
             }
 
             this.status = 200;
@@ -122,7 +122,7 @@ async function workFunction(
         }
         else
         {
-          throw('Missing file:', input, '(fetch.arrayBuffer)');
+          throw('Missing file: ' + input + ' (fetch.arrayBuffer)');
         }
       }
       async function fetchJson()
@@ -133,7 +133,7 @@ async function workFunction(
         }
         else
         {
-          throw('Missing file:', input, '(fetch.json)');
+          throw('Missing file: ' + input + ' (fetch.json)');
         }
       }
       let fetchResponseFunctions = {
@@ -162,7 +162,7 @@ async function workFunction(
             }
             else
             {
-                throw('Missing file:', thisArg, '(importScripts)');
+                throw('Missing file: ' + thisArg + ' (importScripts)');
             }
         }
     }
