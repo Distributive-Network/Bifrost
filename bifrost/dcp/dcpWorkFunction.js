@@ -168,6 +168,8 @@ async function workFunction(
     }
     globalThis.importScripts = importScripts;
 
+    if (pythonPyodideWheels) globalThis.URL = function(...args){ return args[0] };
+
     globalThis.WebAssembly.instantiateStreaming = null;
 
     let pyPath = pythonPyodideWheels ? '/' : './';
