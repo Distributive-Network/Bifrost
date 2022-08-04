@@ -157,18 +157,20 @@ async function workFunction(
 
     globalThis.WebAssembly.instantiateStreaming = null;
 
+    let pyPath = pythonPyodideWheels ? '/' : './';
+
     let pyFiles =
     [
-      { filepath: './', filename: 'pyodide.asm.data'},
-      { filepath: './', filename: 'pyodide.asm.wasm'},
-      { filepath: './', filename: 'pyodide_py.tar'},
-      { filepath: './', filename: 'packages.json'},
-      { filepath: './', filename: 'pyodide.asm.js'},
-      { filepath: './', filename: 'distutils.data'},
-      { filepath: './', filename: 'distutils.js'},
-      { filepath: './', filename: 'pyodide.js'},
-      { filepath: './', filename: 'cloudpickle.data'},
-      { filepath: './', filename: 'cloudpickle.js'},
+      { filepath: pyPath, filename: 'pyodide.asm.data'},
+      { filepath: pyPath', filename: 'pyodide.asm.wasm'},
+      { filepath: pyPath, filename: 'pyodide_py.tar'},
+      { filepath: pyPath, filename: 'packages.json'},
+      { filepath: pyPath, filename: 'pyodide.asm.js'},
+      { filepath: pyPath, filename: 'distutils.data'},
+      { filepath: pyPath, filename: 'distutils.js'},
+      { filepath: pyPath, filename: 'pyodide.js'},
+      { filepath: pyPath, filename: 'cloudpickle.data'},
+      { filepath: pyPath, filename: 'cloudpickle.js'},
     ];
 
     for (let i = 0; i < pythonPackages.length; i++)
@@ -176,13 +178,13 @@ async function workFunction(
       const packageName = pythonPackages[i];
       if ( packageName == 'scipy' )
       {
-          pyFiles.push({ filepath: './', filename: 'CLAPACK.data' });
-          pyFiles.push({ filepath: './', filename: 'CLAPACK.js' });
+          pyFiles.push({ filepath: pyPath, filename: 'CLAPACK.data' });
+          pyFiles.push({ filepath: pyPath, filename: 'CLAPACK.js' });
       }
       const packageFileData = packageName + '.data';
       const packageFileJs = packageName + '.js';
-      pyFiles.push({ filepath: './', filename: packageFileData });
-      pyFiles.push({ filepath: './', filename: packageFileJs });
+      pyFiles.push({ filepath: pyPath, filename: packageFileData });
+      pyFiles.push({ filepath: pyPath, filename: packageFileJs });
     }
 
     if (!globalThis.pyDcp) globalThis.pyDcp = {};
@@ -207,7 +209,7 @@ async function workFunction(
     }
 
     let pyodideLoader = require('pyodide.js.js');
-    await pyodideLoader.packages(pyDcp['./pyodide.js']);
+    await pyodideLoader.packages(pyDcp[pyPath + 'pyodide.js']);
     progress();
 
     if (!globalThis.pyScope) globalThis.pyScope = {};
@@ -229,7 +231,7 @@ async function workFunction(
     if (!globalThis.pyodide) globalThis.pyodide = await loadPyodide
     (
       {
-        indexURL : "./",
+        indexURL : pyPath,
         jsglobals : pyScope,
         stdout: pyLogger,
         stderr: pyLogger,
