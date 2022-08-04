@@ -28,10 +28,23 @@ async function workFunction(
   {
     progress();
 
-    if (typeof location !== "undefined")
+    if (typeof location !== 'undefined')
     {
+      if (pythonPyodideWheels)
+      {
+          location = globalThis.location = {
+              href: 'https://portal.distributed.computer/dcp-client/libexec/sandbox/',
+              hostname: 'portal.distributed.computer',
+              pathname: '/dcp-client/libexec/sandbox/',
+              protocol: 'https:',
+              toString: function(){ return globalThis.location.href },
+          };
+      }
+      else
+      {
         location.href = './';
         location.pathname = '';
+      }
     }
 
     class PyodideXMLHttpRequest
