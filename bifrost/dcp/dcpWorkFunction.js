@@ -19,6 +19,7 @@ async function workFunction(
     pythonCompressInput,// flag which indicates that the input slice has been compressed
     pythonCompressOutput,// flag which indicates that the output slice should be compressed
     pythonColabPickling,// flag which indicates that all pickling was done in a colab without cloudpickle
+    pythonPyodideWheels = false,// indicates a Pyodide version greater than 20, informing the initialization steps
 )
 {
   const startTime = Date.now();

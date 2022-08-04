@@ -112,6 +112,7 @@ class Job:
         self.new_context = False # clears the nodejs stream after every job if true
         self.kvin = False # uses the kvin serialization library to decode job results
         self.colab_pickling = False # use non-cloud pickling for colab deployment
+        self.pyodide_wheels = False # use newer version of pyodide which uses .whl packages
 
         # work wrapper functions
         self.python_init = dcp_init_worker
@@ -314,6 +315,7 @@ class Job:
             'python_compress_input': self.compress_input_set,
             'python_compress_output': self.compress_output_set,
             'python_colab_pickling': self.colab_pickling,
+            'python_pyodide_wheels': self.pyodide_wheels,
         }
 
         node_output = node.run(self.python_deploy, run_parameters)

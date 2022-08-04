@@ -290,6 +290,7 @@
             python_compress_input,
             python_compress_output,
             python_colab_pickling,
+            python_pyodide_wheels,
         ];
     }
     else
