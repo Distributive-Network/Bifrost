@@ -20,12 +20,15 @@ from .Work import dcp_init_worker, dcp_compute_worker, js_work_function, js_depl
 
 class Job:
 
-    def __init__(self, input_set, work_function, work_arguments = {}):
+    def __init__(self, input_set, work_function, work_arguments = [], work_keyword_arguments = {}):
 
         # mandatory job arguments
         self.input_set = input_set
         self.work_function = work_function
-        self.work_arguments = work_arguments
+
+        # alternative job arguments
+        self.work_arguments = work_arguments # positional args, iterable, provided to work function in order
+        self.work_keyword_arguments = work_keyword_arguments # named args, dict, provided to work function after args
 
         # standard job properties
         self.requirements = { 'discrete': False }
