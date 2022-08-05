@@ -181,7 +181,6 @@ async function workFunction(
       { filepath: pyPath, filename: 'pyodide.asm.data'},
       { filepath: pyPath', filename: 'pyodide.asm.wasm'},
       { filepath: pyPath, filename: 'pyodide_py.tar'},
-      { filepath: pyPath, filename: 'packages.json'},
       { filepath: pyPath, filename: 'pyodide.asm.js'},
       { filepath: pyPath, filename: 'pyodide.js'},
     ];
