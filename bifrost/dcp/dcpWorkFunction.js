@@ -284,10 +284,6 @@ async function workFunction(
     );
     progress();
 
-    let packagesKeys = Object.keys(pyodide.loadedPackages);
-
-    progress();
-
     async function loadPyPackage(newPackageKey)
     {
         let packageKey = globalThis.pyodideRequireNames[newPackageKey] || newPackageKey;
