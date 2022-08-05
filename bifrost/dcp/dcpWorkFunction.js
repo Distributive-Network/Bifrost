@@ -28,6 +28,8 @@ async function workFunction(
   {
     progress();
 
+    if (!globalThis.pyDcp) globalThis.pyDcp = {};
+
     if (typeof location !== 'undefined')
     {
       if (pythonPyodideWheels)
@@ -197,6 +199,27 @@ async function workFunction(
         pyFiles.push({ filepath: pyPath, filename: 'distutils.js'});
     }
 
+    let jsonFileName = pythonPyodideWheels ? 'repodata.json' : 'packages.json';
+
+    let jsonFileKey = pyPath + jsonFileName;
+    if (!pyDcp[jsonFileKey])
+    {
+        pyDcp[jsonFileKey] = await requirePyFile(jsonFileName);
+    }
+
+    let pyodideRequireFiles = JSON.parse(pyDcp[jsonFileKey])['packages'];
+    let pyodideRequireFilesKeys = Object.keys(pyodideRequireFiles);
+    let pyodideRequireNames = {};
+    for (let i = 0; i < pyodideRequireFilesKeys.length; i++)
+    {
+        const thatKey = pyodideRequireFilesKeys[i];
+        const thisKey = pyodideRequireFiles[thatKey]['name'];
+        pyodideRequireNames[thisKey] = thatKey;
+    }
+
+    globalThis.pyodideRequireFiles = pyodideRequireFiles;
+    globalThis.pyodideRequireNames = pyodideRequireNames;
+
     for (let i = 0; i < pythonPackages.length; i++)
     {
       const packageName = pythonPackages[i];
@@ -210,8 +233,6 @@ async function workFunction(
       pyFiles.push({ filepath: pyPath, filename: packageFileData });
       pyFiles.push({ filepath: pyPath, filename: packageFileJs });
     }
-
-    if (!globalThis.pyDcp) globalThis.pyDcp = {};
 
     for (let i = 0; i < pyFiles.length; i++)
     {
@@ -269,15 +290,25 @@ async function workFunction(
 
     progress();
 
+    async function loadPyPackage(newPackageKey)
+    {
+        let packageKey = globalThis.pyodideRequireNames[newPackageKey] || newPackageKey;
+        let packageInfo = globalThis.pyodideRequireFiles[packageKey];
+        let packageName = ( packageInfo && typeof packageInfo['name'] !== 'undefined' ) ? packageInfo['name'] : newPackageKey;
+
+        pyLog.push(JSON.stringify(['load py package:', newPackageKey, packageKey, packageName]));
+
+        let loadedKeys = Object.keys(pyodide.loadedPackages);
+        pyLog.push(JSON.stringify(['loaded keys:', loadedKeys]));
+
+        if ( loadedKeys.indexOf(packageName) === -1 ) await pyodide.loadPackage([packageName]);
+    }
+
     for (let i = 0; i < pythonPackages.length; i++)
     {
-      if ( pythonPackages[i] == 'scipy')
-      {
-          if ( Object.keys(pyodide.loadedPackages).indexOf('scipy') === -1 ) await pyodide.loadPackage(['CLAPACK']);
-      }
-      if ( Object.keys(pyodide.loadedPackages).indexOf(pythonPackages[i]) === -1 ) await pyodide.loadPackage([pythonPackages[i]]);
+        await loadPyPackage(pythonPackages[i]); // XXX AWAIT PROMISE ARRAY, IF ORDER CAN BE RESOLVED?
 
-      progress();
+        progress();
     }
 
     pyodide.globals.set('input_imports', pythonImports);
