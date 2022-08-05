@@ -184,8 +184,6 @@ async function workFunction(
       { filepath: pyPath, filename: 'packages.json'},
       { filepath: pyPath, filename: 'pyodide.asm.js'},
       { filepath: pyPath, filename: 'pyodide.js'},
-      { filepath: pyPath, filename: 'cloudpickle.data'},
-      { filepath: pyPath, filename: 'cloudpickle.js'},
     ];
 
     if (pythonPyodideWheels)
@@ -219,6 +217,8 @@ async function workFunction(
 
     globalThis.pyodideRequireFiles = pyodideRequireFiles;
     globalThis.pyodideRequireNames = pyodideRequireNames;
+
+    pythonPackages.push('cloudpickle');
 
     for (let i = 0; i < pythonPackages.length; i++)
     {
@@ -285,8 +285,6 @@ async function workFunction(
     progress();
 
     let packagesKeys = Object.keys(pyodide.loadedPackages);
-
-    if ( Object.keys(pyodide.loadedPackages).indexOf('cloudpickle') === -1 ) await pyodide.loadPackage(['cloudpickle']);
 
     progress();
 
