@@ -10,26 +10,37 @@ from js import dcp
 if (pickle_arguments == True):
   # decode and unpickle secondary arguments to compute function
   parameters_decoded = codecs.decode( input_parameters.encode(), 'base64' )
+  keyword_parameters_decoded = codecs.decode( input_keyword_parameters.encode(), 'base64' )
   if (compress_arguments == True):
     parameters_decompressed = zlib.decompress( parameters_decoded )
+    keyword_parameters_decompressed = zlib.decompress( keyword_parameters_decoded )
     if (colab_pickling == True):
       parameters_unpickled = pickle.loads( parameters_decompressed )
+      keyword_parameters_unpickled = pickle.loads( keyword_parameters_decompressed )
     else:
       parameters_unpickled = cloudpickle.loads( parameters_decompressed )
+      keyword_parameters_unpickled = cloudpickle.loads( keyword_parameters_decompressed )
   else:
     if (colab_pickling == True):
       parameters_unpickled = pickle.loads( parameters_decoded )
+      keyword_parameters_unpickled = pickle.loads( keyword_parameters_decoded )
     else:
       parameters_unpickled = cloudpickle.loads( parameters_decoded )
+      keyword_parameters_unpickled = cloudpickle.loads( keyword_parameters_decoded )
 elif (encode_arguments == True):
   # decode and secondary arguments to compute function
   parameters_unpickled = codecs.decode( input_parameters.encode(), 'base64' )
+  keyword_parameters_unpickled = codecs.decode( keyword_input_parameters.encode(), 'base64' )
 else:
   # degenerate pythonic EAFP pattern; consider purging in favour of JsProxy type check
   try:
     parameters_unpickled = input_parameters.to_py()
   except AttributeError:
     parameters_unpickled = input_parameters
+  try:
+    keyword_parameters_unpickled = keyword_input_parameters.to_py()
+  except AttributeError:
+    keyword_parameters_unpickled = keyword_input_parameters
 
 if (pickle_input == True):
   # decode and unpickle primary argument to compute function
@@ -75,7 +86,7 @@ else:
 
 dcp.progress()
 
-output_data_raw = compute_function( data_unpickled, **parameters_unpickled )
+output_data_raw = compute_function( data_unpickled, *parameters_unpickled, **keyword_parameters_unpickled )
 
 if (pickle_output == True):
   if (colab_pickling == True):
