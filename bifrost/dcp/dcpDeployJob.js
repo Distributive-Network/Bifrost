@@ -30,7 +30,7 @@
 
         job.collateResults = dcp_collate;
 
-        job.computeGroups = dcp_groups;
+        if (dcp_groups.length > 0) job.computeGroups = dcp_groups;
 
         job.estimationSlices = dcp_estimation;
 
