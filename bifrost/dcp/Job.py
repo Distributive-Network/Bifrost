@@ -216,6 +216,9 @@ class Job:
         if self.node_js == True:
             work_arguments_encoded = False # self.__input_encoder(self.work_arguments)
 
+            if len(self.work_keyword_arguments) > 0:
+                self.work_arguments.append(self.work_key_arguments)
+
             node.run("""
             globalThis.nodeSharedArguments = [];
             """)
@@ -226,15 +229,25 @@ class Job:
                 nodeSharedArguments.push( sharedArgument );
                 """, { 'sharedArgument': shared_argument })
 
+            # XXX: named arguments are not supported in JS, so the best we can do is treat them as positionals
+            for argument_keyword in self.work_keyword_arguments:
+                named_argument = self.work_keyword_arguments[argument_keyword]
+                node.run("""
+                nodeSharedArguments.push( named_argument );
+                """, { 'namedArgument': named_argument })
+
             work_function_encoded = self.work_function # TODO: adapt __function_writer for Node.js files
             work_imports_encoded = {}
         else:
             if self.pickle_work_arguments == True:
                 work_arguments_encoded = self.__pickle_jar(self.work_arguments, self.compress_work_arguments)
+                work_keyword_arguments_encoded = self.__pickle_jar(self.work_keyword_arguments, self.compress_work_arguments)
             elif self.encode_work_arguments == True:
                 work_arguments_encoded = self.__input_encoder(self.work_arguments)
+                work_keyword_arguments_encoded = self.__input_encoder(self.work_keyword_arguments)
             else:
                 work_arguments_encoded = self.work_arguments
+                work_keyword_arguments_encoded = self.work_keyword_arguments
             if self.pickle_work_function == True:
                 work_function_encoded = self.__pickle_jar(self.work_function, self.compress_work_function)
             else:
@@ -284,6 +297,7 @@ class Job:
             'deploy_function': self.python_wrapper,
             'dcp_data': job_input,
             'dcp_parameters': work_arguments_encoded,
+            'dcp_keyword_parameters': work_keyword_arguments_encoded,
             'dcp_function': work_function_encoded,
             'dcp_multiplier': self.multiplier,
             'dcp_local': self.local_cores,

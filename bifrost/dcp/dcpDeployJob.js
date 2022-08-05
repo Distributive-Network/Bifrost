@@ -272,6 +272,7 @@
 
         sharedArguments = [
             dcp_parameters,
+            dcp_keyword_parameters,
             dcp_function,
             python_modules,
             python_packages,
