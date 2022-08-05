@@ -218,20 +218,37 @@ async function workFunction(
     globalThis.pyodideRequireFiles = pyodideRequireFiles;
     globalThis.pyodideRequireNames = pyodideRequireNames;
 
+    function addToPyFiles(pyFile, requestAncestors = [])
+    {
+        let packageKey = globalThis.pyodideRequireNames[pyFile] || pyFile;
+        let packageInfo = globalThis.pyodideRequireFiles[packageKey];
+        let packageName = ( packageInfo && typeof packageInfo['name'] !== 'undefined' ) ? packageInfo['name'] : pyFile;
+        let packageDepends = ( packageInfo && typeof packageInfo['depends'] !== 'undefined' ) ? packageInfo['depends'] : [];
+
+        requestAncestors.push(packageKey);
+
+        for (dependency of packageDepends)
+        {
+            if (!requestAncestors.includes(dependency)) addToPyFiles(dependency, requestAncestors);
+        }
+
+        if (!pythonPyodideWheels)
+        {
+            const packageFileData = packageName + '.data';
+            pyFiles.push({ filepath: pyPath, filename: packageFileData });
+        }
+
+        const packageFileJs = packageName + '.js';
+        pyFiles.push({ filepath: pyPath, filename: packageFileJs });
+    }
+
     pythonPackages.push('cloudpickle');
 
     for (let i = 0; i < pythonPackages.length; i++)
     {
       const packageName = pythonPackages[i];
-      if ( packageName == 'scipy' )
-      {
-          pyFiles.push({ filepath: pyPath, filename: 'CLAPACK.data' });
-          pyFiles.push({ filepath: pyPath, filename: 'CLAPACK.js' });
-      }
-      const packageFileData = packageName + '.data';
-      const packageFileJs = packageName + '.js';
-      pyFiles.push({ filepath: pyPath, filename: packageFileData });
-      pyFiles.push({ filepath: pyPath, filename: packageFileJs });
+
+      addToPyFiles(packageName);
     }
 
     for (let i = 0; i < pyFiles.length; i++)
@@ -239,16 +256,7 @@ async function workFunction(
         let fileKey = pyFiles[i].filepath + pyFiles[i].filename;
         if (!pyDcp[fileKey])
         {
-            let fileLoader = require(pyFiles[i].filename + '.js');
-            await fileLoader.download();
-            pyDcp[fileKey] = await fileLoader.decode();
-
-            // source maps are referenced in the last line of some js files; we want to strip these urls out, as the source maps will not be available
-            if (fileLoader.PACKAGE_FORMAT == 'string' && pyFiles[i].filename.includes('.js') && typeof pyDcp[fileKey] == 'string')
-            {
-                let sourceMappingIndex = pyDcp[fileKey].indexOf('//' + '#' + ' ' + 'sourceMappingURL'); // break up the string to avoid a potential resonance cascade
-                if (sourceMappingIndex != -1) pyDcp[fileKey] = pyDcp[fileKey].slice(0, sourceMappingIndex);
-            }
+            pyDcp[fileKey] = await requirePyFile(pyFiles[i].filename);
         }
         progress();
     }
