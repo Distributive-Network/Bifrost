@@ -1,6 +1,7 @@
 async function workFunction(
     sliceData,// input slice, primary arg to user-provided function
-    sliceParameters,// shared parameters, secondary args to user-provided function
+    sliceParameters,// shared positional parameters, secondary args to user-provided function
+    sliceNamedParameters,// shared keyword parameters, tertiary args to user-provided function
     sliceFunction,// user-provided function to be run on input slice
     pythonModules,// user-provided python module scripts to be imported into environment
     pythonPackages,// dcp-provided pyodidie packages to be loaded into environment
@@ -347,6 +348,7 @@ async function workFunction(
 
     pyodide.globals.set('input_data', sliceData['data']);
     pyodide.globals.set('input_parameters', sliceParameters);
+    pyodide.globals.set('input_keyword_parameters', sliceNamedParameters);
 
     await pyodide.runPython(pythonComputeWorker);
 

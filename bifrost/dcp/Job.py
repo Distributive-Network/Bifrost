@@ -20,12 +20,15 @@ from .Work import dcp_init_worker, dcp_compute_worker, js_work_function, js_depl
 
 class Job:
 
-    def __init__(self, input_set, work_function, work_arguments = {}):
+    def __init__(self, input_set, work_function, work_arguments = [], work_keyword_arguments = {}):
 
         # mandatory job arguments
         self.input_set = input_set
         self.work_function = work_function
-        self.work_arguments = work_arguments
+
+        # alternative job arguments
+        self.work_arguments = work_arguments # positional args, iterable, provided to work function in order
+        self.work_keyword_arguments = work_keyword_arguments # named args, dict, provided to work function after args
 
         # standard job properties
         self.requirements = { 'discrete': False }
@@ -52,7 +55,7 @@ class Job:
 
         # additional job properties
         self.collate_results = True
-        self.compute_groups = [{'opaqueId':'WHhetL7mj1w1mw1XV6dxyC','id':1,'joinKey':'public','joinSecret':''}]
+        self.compute_groups = []
         self.debug = False
         self.estimation_slices = 3
         self.greedy_estimation = False
@@ -213,6 +216,10 @@ class Job:
 
         if self.node_js == True:
             work_arguments_encoded = False # self.__input_encoder(self.work_arguments)
+            work_keyword_arguments_encoded = False
+
+            if len(self.work_keyword_arguments) > 0:
+                self.work_arguments.append(self.work_key_arguments)
 
             node.run("""
             globalThis.nodeSharedArguments = [];
@@ -224,15 +231,25 @@ class Job:
                 nodeSharedArguments.push( sharedArgument );
                 """, { 'sharedArgument': shared_argument })
 
+            # XXX: named arguments are not supported in JS, so the best we can do is treat them as positionals
+            for argument_keyword in self.work_keyword_arguments:
+                named_argument = self.work_keyword_arguments[argument_keyword]
+                node.run("""
+                nodeSharedArguments.push( named_argument );
+                """, { 'namedArgument': named_argument })
+
             work_function_encoded = self.work_function # TODO: adapt __function_writer for Node.js files
             work_imports_encoded = {}
         else:
             if self.pickle_work_arguments == True:
                 work_arguments_encoded = self.__pickle_jar(self.work_arguments, self.compress_work_arguments)
+                work_keyword_arguments_encoded = self.__pickle_jar(self.work_keyword_arguments, self.compress_work_arguments)
             elif self.encode_work_arguments == True:
                 work_arguments_encoded = self.__input_encoder(self.work_arguments)
+                work_keyword_arguments_encoded = self.__input_encoder(self.work_keyword_arguments)
             else:
                 work_arguments_encoded = self.work_arguments
+                work_keyword_arguments_encoded = self.work_keyword_arguments
             if self.pickle_work_function == True:
                 work_function_encoded = self.__pickle_jar(self.work_function, self.compress_work_function)
             else:
@@ -282,6 +299,7 @@ class Job:
             'deploy_function': self.python_wrapper,
             'dcp_data': job_input,
             'dcp_parameters': work_arguments_encoded,
+            'dcp_keyword_parameters': work_keyword_arguments_encoded,
             'dcp_function': work_function_encoded,
             'dcp_multiplier': self.multiplier,
             'dcp_local': self.local_cores,

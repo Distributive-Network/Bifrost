@@ -30,7 +30,7 @@
 
         job.collateResults = dcp_collate;
 
-        job.computeGroups = dcp_groups;
+        if (dcp_groups.length > 0) job.computeGroups = dcp_groups;
 
         job.estimationSlices = dcp_estimation;
 
@@ -272,6 +272,7 @@
 
         sharedArguments = [
             dcp_parameters,
+            dcp_keyword_parameters,
             dcp_function,
             python_modules,
             python_packages,
@@ -320,7 +321,7 @@
 
         let jobArguments = [];
         nodeSharedArguments.forEach(x => {
-            let myItem = Object.fromEntries(Object.entries(x));
+            let myItem = (Object.prototype.toString.call(x) == '[object Object]') ? Object.fromEntries(Object.entries(x)) : x;
             jobArguments.push(myItem);
             return [];
         });
