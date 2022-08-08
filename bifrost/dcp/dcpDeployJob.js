@@ -272,6 +272,7 @@
 
         sharedArguments = [
             dcp_parameters,
+            dcp_keyword_parameters,
             dcp_function,
             python_modules,
             python_packages,
@@ -319,7 +320,7 @@
 
         let jobArguments = [];
         nodeSharedArguments.forEach(x => {
-            let myItem = Object.fromEntries(Object.entries(x));
+            let myItem = (Object.prototype.toString.call(x) == '[object Object]') ? Object.fromEntries(Object.entries(x)) : x;
             jobArguments.push(myItem);
             return [];
         });
