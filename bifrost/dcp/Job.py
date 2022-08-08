@@ -215,6 +215,7 @@ class Job:
 
         if self.node_js == True:
             work_arguments_encoded = False # self.__input_encoder(self.work_arguments)
+            work_keyword_arguments_encoded = False
 
             if len(self.work_keyword_arguments) > 0:
                 self.work_arguments.append(self.work_key_arguments)
