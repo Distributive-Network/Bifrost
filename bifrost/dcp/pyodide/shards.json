@@ -4,82 +4,82 @@
   },
   "packages": {
     "bokeh-2.4.3-py3-none-any.whl": [
-      "./bokeh-2.4.3-py3-none-any.whl-shard-0.js",
-      "./bokeh-2.4.3-py3-none-any.whl-shard-1.js",
-      "./bokeh-2.4.3-py3-none-any.whl-shard-2.js",
-      "./bokeh-2.4.3-py3-none-any.whl-shard-3.js",
-      "./bokeh-2.4.3-py3-none-any.whl-shard-4.js",
-      "./bokeh-2.4.3-py3-none-any.whl-shard-5.js",
-      "./bokeh-2.4.3-py3-none-any.whl-shard-6.js"
+      "bokeh-2.4.3-py3-none-any.whl-shard-0.js",
+      "bokeh-2.4.3-py3-none-any.whl-shard-1.js",
+      "bokeh-2.4.3-py3-none-any.whl-shard-2.js",
+      "bokeh-2.4.3-py3-none-any.whl-shard-3.js",
+      "bokeh-2.4.3-py3-none-any.whl-shard-4.js",
+      "bokeh-2.4.3-py3-none-any.whl-shard-5.js",
+      "bokeh-2.4.3-py3-none-any.whl-shard-6.js"
     ],
     "opencv_python-4.6.0.66-cp310-cp310-emscripten_3_1_14_wasm32.whl": [
-      "./opencv_python-4.6.0.66-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-0.js",
-      "./opencv_python-4.6.0.66-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-1.js",
-      "./opencv_python-4.6.0.66-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-2.js",
-      "./opencv_python-4.6.0.66-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-3.js"
+      "opencv_python-4.6.0.66-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-0.js",
+      "opencv_python-4.6.0.66-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-1.js",
+      "opencv_python-4.6.0.66-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-2.js",
+      "opencv_python-4.6.0.66-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-3.js"
     ],
     "pandas-tests.tar": [
-      "./pandas-tests.tar-shard-0.js",
-      "./pandas-tests.tar-shard-1.js",
-      "./pandas-tests.tar-shard-2.js",
-      "./pandas-tests.tar-shard-3.js",
-      "./pandas-tests.tar-shard-4.js"
+      "pandas-tests.tar-shard-0.js",
+      "pandas-tests.tar-shard-1.js",
+      "pandas-tests.tar-shard-2.js",
+      "pandas-tests.tar-shard-3.js",
+      "pandas-tests.tar-shard-4.js"
     ],
     "pyodide.asm.wasm": [
-      "./pyodide.asm.wasm-shard-0.js",
-      "./pyodide.asm.wasm-shard-1.js",
-      "./pyodide.asm.wasm-shard-2.js",
-      "./pyodide.asm.wasm-shard-3.js"
+      "pyodide.asm.wasm-shard-0.js",
+      "pyodide.asm.wasm-shard-1.js",
+      "pyodide.asm.wasm-shard-2.js",
+      "pyodide.asm.wasm-shard-3.js"
     ],
     "scikit_image-0.19.3-cp310-cp310-emscripten_3_1_14_wasm32.whl": [
-      "./scikit_image-0.19.3-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-0.js",
-      "./scikit_image-0.19.3-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-1.js",
-      "./scikit_image-0.19.3-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-2.js",
-      "./scikit_image-0.19.3-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-3.js"
+      "scikit_image-0.19.3-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-0.js",
+      "scikit_image-0.19.3-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-1.js",
+      "scikit_image-0.19.3-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-2.js",
+      "scikit_image-0.19.3-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-3.js"
     ],
     "SciPy-1.8.1-cp310-cp310-emscripten_3_1_14_wasm32.whl": [
-      "./SciPy-1.8.1-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-0.js",
-      "./SciPy-1.8.1-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-1.js",
-      "./SciPy-1.8.1-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-2.js",
-      "./SciPy-1.8.1-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-3.js"
+      "SciPy-1.8.1-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-0.js",
+      "SciPy-1.8.1-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-1.js",
+      "SciPy-1.8.1-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-2.js",
+      "SciPy-1.8.1-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-3.js"
     ],
     "scipy-tests.tar": [
-      "./scipy-tests.tar-shard-0.js",
-      "./scipy-tests.tar-shard-1.js",
-      "./scipy-tests.tar-shard-2.js",
-      "./scipy-tests.tar-shard-3.js",
-      "./scipy-tests.tar-shard-4.js"
+      "scipy-tests.tar-shard-0.js",
+      "scipy-tests.tar-shard-1.js",
+      "scipy-tests.tar-shard-2.js",
+      "scipy-tests.tar-shard-3.js",
+      "scipy-tests.tar-shard-4.js"
     ],
     "statsmodels-tests.tar": [
-      "./statsmodels-tests.tar-shard-0.js",
-      "./statsmodels-tests.tar-shard-1.js",
-      "./statsmodels-tests.tar-shard-2.js",
-      "./statsmodels-tests.tar-shard-3.js",
-      "./statsmodels-tests.tar-shard-4.js",
-      "./statsmodels-tests.tar-shard-5.js"
+      "statsmodels-tests.tar-shard-0.js",
+      "statsmodels-tests.tar-shard-1.js",
+      "statsmodels-tests.tar-shard-2.js",
+      "statsmodels-tests.tar-shard-3.js",
+      "statsmodels-tests.tar-shard-4.js",
+      "statsmodels-tests.tar-shard-5.js"
     ],
     "sympy-tests.tar": [
-      "./sympy-tests.tar-shard-0.js",
-      "./sympy-tests.tar-shard-1.js",
-      "./sympy-tests.tar-shard-2.js",
-      "./sympy-tests.tar-shard-3.js",
-      "./sympy-tests.tar-shard-4.js"
+      "sympy-tests.tar-shard-0.js",
+      "sympy-tests.tar-shard-1.js",
+      "sympy-tests.tar-shard-2.js",
+      "sympy-tests.tar-shard-3.js",
+      "sympy-tests.tar-shard-4.js"
     ],
     "test.tar": [
-      "./test.tar-shard-0.js",
-      "./test.tar-shard-1.js",
-      "./test.tar-shard-2.js",
-      "./test.tar-shard-3.js",
-      "./test.tar-shard-4.js",
-      "./test.tar-shard-5.js",
-      "./test.tar-shard-6.js",
-      "./test.tar-shard-7.js"
+      "test.tar-shard-0.js",
+      "test.tar-shard-1.js",
+      "test.tar-shard-2.js",
+      "test.tar-shard-3.js",
+      "test.tar-shard-4.js",
+      "test.tar-shard-5.js",
+      "test.tar-shard-6.js",
+      "test.tar-shard-7.js"
     ],
     "yt-4.0.4-cp310-cp310-emscripten_3_1_14_wasm32.whl": [
-      "./yt-4.0.4-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-0.js",
-      "./yt-4.0.4-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-1.js",
-      "./yt-4.0.4-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-2.js",
-      "./yt-4.0.4-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-3.js"
+      "yt-4.0.4-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-0.js",
+      "yt-4.0.4-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-1.js",
+      "yt-4.0.4-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-2.js",
+      "yt-4.0.4-cp310-cp310-emscripten_3_1_14_wasm32.whl-shard-3.js"
     ]
   }
 }

@@ -136,7 +136,7 @@
                 }
             }
 
-            requiresPackages.push('cloudpickle');
+            if (python_pyodide_wheels == false) requiresPackages.push('cloudpickle');
 
             for (let i = 0; i < python_packages.length; i++)
             {

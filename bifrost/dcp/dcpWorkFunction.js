@@ -119,7 +119,7 @@ async function workFunction(
     {
       async function fetchArrayBuffer()
       {
-        if (pyDcp[input].buffer)
+        if (pyDcp[input] + pyDcp[input].buffer)
         {
           return pyDcp[input].buffer;
         }
@@ -148,6 +148,16 @@ async function workFunction(
     }
     globalThis.fetch = pyodideFetch;
 
+    async function loadBinaryWrap(indexURL, path, subResourceHash)
+    {
+        let response = await globalThis.fetch(path);
+
+        if (!response.ok) throw new Error(`Failed to load '${path}': request failed.`);
+
+        return new Uint8Array(await response.arrayBuffer());
+    }
+    globalThis.loadBinaryWrap = loadBinaryWrap;
+
     globalThis.AbortController = () => {};
     globalThis.FormData = () => {};
     globalThis.URLSearchParams = () => {};
@@ -175,11 +185,36 @@ async function workFunction(
 
     globalThis.WebAssembly.instantiateStreaming = null;
 
+    function frankenDoctor
+    (
+      frankenBody,
+      frankenHead,
+      frankenBrain = '',
+    )
+    {
+      let frankenNeck = frankenBody.indexOf(frankenHead);
+
+      let frankenMonster = (frankenNeck > -1) ? frankenBody.slice(0, frankenNeck) + frankenBrain + frankenBody.slice(frankenNeck + frankenHead.length) : frankenBody;
+
+      return frankenMonster;
+    }
+
     async function requirePyFile(fileName)
     {
         let fileLoader = require(fileName + '.js');
         await fileLoader.download();
         let fileDecode = await fileLoader.decode();
+
+        if (fileName == 'pyodide.asm.js' || fileName == 'pyodide.js')
+        {
+          let frankenFile = await frankenDoctor
+          (
+            fileDecode,
+            'loadBinaryFile(',
+            'loadBinaryWrap(',
+          );
+          fileDecode = frankenFile;
+        }
 
         // source maps are referenced in the last line of some js files; we want to strip these urls out, as the source maps will not be available
         if (fileLoader.PACKAGE_FORMAT == 'string' && fileName.includes('.js') && typeof fileDecode == 'string')
@@ -254,12 +289,11 @@ async function workFunction(
             pyFiles.push({ filepath: pyPath, filename: packageFileData });
         }
 
-        const packageNameFull = ( packageInfo && typeof packageInfo['file_name'] !== 'undefined' ) ? packageInfo['file_name'] : packageName;
-        const packageFileJs = packageNameFull + '.js';
+        const packageFileJs = ( packageInfo && typeof packageInfo['file_name'] !== 'undefined' ) ? packageInfo['file_name'] : packageName + '.js';
         pyFiles.push({ filepath: pyPath, filename: packageFileJs });
     }
 
-    pythonPackages.push('cloudpickle');
+    if (!pythonPyodideWheels) pythonPackages.push('cloudpickle');
 
     for (let i = 0; i < pythonPackages.length; i++)
     {
@@ -274,6 +308,15 @@ async function workFunction(
         if (!pyDcp[fileKey])
         {
             pyDcp[fileKey] = await requirePyFile(pyFiles[i].filename);
+
+            // supplemental keys for other potential pyodide loading paths
+            pyDcp[pyFiles[i].filename] = pyDcp[fileKey];
+            pyDcp['//' + pyFiles[i].filename] = pyDcp[fileKey];
+            if (typeof location !== 'undefined')
+            {
+                if (typeof location['href'] !== 'undefined') pyDcp[location.href + '/' + pyFiles[i].filename] = pyDcp[fileKey];
+                if (typeof location['pathname'] !== 'undefined') pyDcp[location.pathname + '/' + pyFiles[i].filename] = pyDcp[fileKey];
+            }
         }
         progress();
     }
