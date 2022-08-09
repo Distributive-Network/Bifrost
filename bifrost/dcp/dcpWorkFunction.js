@@ -148,6 +148,16 @@ async function workFunction(
     }
     globalThis.fetch = pyodideFetch;
 
+    async function loadBinaryWrap(indexURL, path, subResourceHash)
+    {
+        let response = await globalThis.fetch(path);
+
+        if (!response.ok) throw new Error(`Failed to load '${path}': request failed.`);
+
+        return new Uint8Array(await response.arrayBuffer());
+    }
+    globalThis.loadBinaryWrap = loadBinaryWrap;
+
     globalThis.AbortController = () => {};
     globalThis.FormData = () => {};
     globalThis.URLSearchParams = () => {};
