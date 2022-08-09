@@ -119,7 +119,7 @@ async function workFunction(
     {
       async function fetchArrayBuffer()
       {
-        if (pyDcp[input].buffer)
+        if (pyDcp[input] + pyDcp[input].buffer)
         {
           return pyDcp[input].buffer;
         }
