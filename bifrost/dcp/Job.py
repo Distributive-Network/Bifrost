@@ -210,6 +210,13 @@ class Job:
 
         from bifrost import node
 
+        if self.pyodide_wheels == True:
+            self.colab_pickling = True
+            self.pickle_work_function = False
+            self.pickle_work_arguments = False
+            self.pickle_input_set = False
+            self.pickle_output_set = False
+
         if is_colab():
             self.colab_pickling = True
             self.pickle_work_function = False

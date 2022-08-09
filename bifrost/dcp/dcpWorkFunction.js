@@ -259,7 +259,7 @@ async function workFunction(
         pyFiles.push({ filepath: pyPath, filename: packageFileJs });
     }
 
-    pythonPackages.push('cloudpickle');
+    if (!pythonPyodideWheels) pythonPackages.push('cloudpickle');
 
     for (let i = 0; i < pythonPackages.length; i++)
     {
