@@ -48,7 +48,7 @@
             let requiresPackages = python_packages;
             let versionNamespace = (python_pyodide_wheels == false) ? 'pyodide' : 'pyodide-0.21.0a2';
 
-            let pyodideShards = (python_pyodide_wheels == false) ? null : require('./pyodide/shards.json');
+            let pyodideShards = (python_pyodide_wheels == false) ? null : require('./dcp/pyodide/shards.json');
 
             function requiresShards(pyFile)
             {
@@ -90,7 +90,7 @@
                 job.requires(versionNamespace + '-repodata.json/repodata.json.js');
             }
 
-            let pyodideDepends = (python_pyodide_wheels == false) ? require('./pyodide/packages.json') : require('./pyodide/repodata.json');
+            let pyodideDepends = (python_pyodide_wheels == false) ? require('./dcp/pyodide/packages.json') : require('./dcp/pyodide/repodata.json');
 
             let pyodideRequireFiles = pyodideDepends.packages;
             let pyodideRequireFilesKeys = Object.keys(pyodideRequireFiles);
