@@ -175,6 +175,22 @@ async function workFunction(
 
     globalThis.WebAssembly.instantiateStreaming = null;
 
+    async function requirePyFile(fileName)
+    {
+        let fileLoader = require(fileName + '.js');
+        await fileLoader.download();
+        let fileDecode = await fileLoader.decode();
+
+        // source maps are referenced in the last line of some js files; we want to strip these urls out, as the source maps will not be available
+        if (fileLoader.PACKAGE_FORMAT == 'string' && fileName.includes('.js') && typeof fileDecode == 'string')
+        {
+            let sourceMappingIndex = fileDecode.indexOf('//' + '#' + ' ' + 'sourceMappingURL'); // break up the string to avoid a potential resonance cascade
+            if (sourceMappingIndex != -1) fileDecode = fileDecode.slice(0, sourceMappingIndex);
+        }
+
+        return fileDecode;
+    }
+
     let pyPath = pythonPyodideWheels ? '/' : './';
 
     let pyFiles =
