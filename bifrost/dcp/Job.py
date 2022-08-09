@@ -35,7 +35,7 @@ class Job:
         self.initial_slice_profile = False # Not Used
         self.slice_payment_offer = False # TODO
         self.payment_account = False # TODO
-        self.require_path = []
+        self.require_path = [] # dcp pyodide packages (populated via Job.requires)
         self.module_path = False # Not Used
         self.collate_results = True
         self.status = { # Not Used
@@ -96,7 +96,7 @@ class Job:
         }
 
         # bifrost internal job properties
-        self.python_imports = []
+        self.python_imports = [] # local python modules (populated via Job.imports)
         self.node_js = False
         self.shuffle = False
         self.range_object_input = False
@@ -115,6 +115,7 @@ class Job:
         self.new_context = False # clears the nodejs stream after every job if true
         self.kvin = False # uses the kvin serialization library to decode job results
         self.colab_pickling = False # use non-cloud pickling for colab deployment
+        self.pyodide_wheels = False # use newer version of pyodide which uses .whl packages
 
         # work wrapper functions
         self.python_init = dcp_init_worker
@@ -332,6 +333,7 @@ class Job:
             'python_compress_input': self.compress_input_set,
             'python_compress_output': self.compress_output_set,
             'python_colab_pickling': self.colab_pickling,
+            'python_pyodide_wheels': self.pyodide_wheels,
         }
 
         node_output = node.run(self.python_deploy, run_parameters)
@@ -363,6 +365,7 @@ class Job:
         on(self, event_name, event_function)
 
     def requires(self, *package_arguments):
+        # adds dcp pyodide packages to be required in the worker function
         for package_element in package_arguments:
             element_type = type(package_element)
             if (element_type is str):
@@ -371,6 +374,17 @@ class Job:
                 self.requires(*package_element)
             else:
                 print('Warning: unsupported format for Job.requires:', element_type)
+
+    def imports(self, *module_arguments):
+        # adds local python modules to be imported in the worker function
+        for module_element in module_arguments:
+            element_type = type(module_element)
+            if (element_type is str):
+                self.python_imports.append(module_element)
+            elif (element_type is list or element_type is tuple):
+                self.imports(*module_element)
+            else:
+                print('Warning: unsupported format for Job.imports:', element_type)
 
     def set_result_storage(self, remote_storage_location, remote_storage_params = {}):
         self.remote_storage_location = remote_storage_location

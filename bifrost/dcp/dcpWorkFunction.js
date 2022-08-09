@@ -20,6 +20,7 @@ async function workFunction(
     pythonCompressInput,// flag which indicates that the input slice has been compressed
     pythonCompressOutput,// flag which indicates that the output slice should be compressed
     pythonColabPickling,// flag which indicates that all pickling was done in a colab without cloudpickle
+    pythonPyodideWheels = false,// indicates a Pyodide version greater than 20, informing the initialization steps
 )
 {
   const startTime = Date.now();
@@ -28,10 +29,25 @@ async function workFunction(
   {
     progress();
 
-    if (typeof location !== "undefined")
+    if (!globalThis.pyDcp) globalThis.pyDcp = {};
+
+    if (typeof location !== 'undefined')
     {
+      if (pythonPyodideWheels)
+      {
+          location = globalThis.location = {
+              href: 'https://portal.distributed.computer/dcp-client/libexec/sandbox/',
+              hostname: 'portal.distributed.computer',
+              pathname: '/dcp-client/libexec/sandbox/',
+              protocol: 'https:',
+              toString: function(){ return globalThis.location.href },
+          };
+      }
+      else
+      {
         location.href = './';
         location.pathname = '';
+      }
     }
 
     class PyodideXMLHttpRequest
@@ -81,7 +97,7 @@ async function workFunction(
             }
             else
             {
-              throw('Missing file:', input, '(xhr.open)');
+              throw('Missing file: ' + input + ' (xhr.open)');
             }
 
             this.status = 200;
@@ -109,7 +125,7 @@ async function workFunction(
         }
         else
         {
-          throw('Missing file:', input, '(fetch.arrayBuffer)');
+          throw('Missing file: ' + input + ' (fetch.arrayBuffer)');
         }
       }
       async function fetchJson()
@@ -120,7 +136,7 @@ async function workFunction(
         }
         else
         {
-          throw('Missing file:', input, '(fetch.json)');
+          throw('Missing file: ' + input + ' (fetch.json)');
         }
       }
       let fetchResponseFunctions = {
@@ -149,73 +165,129 @@ async function workFunction(
             }
             else
             {
-                throw('Missing file:', thisArg, '(importScripts)');
+                throw('Missing file: ' + thisArg + ' (importScripts)');
             }
         }
     }
     globalThis.importScripts = importScripts;
 
+    if (pythonPyodideWheels) globalThis.URL = function(...args){ return args[0] };
+
     globalThis.WebAssembly.instantiateStreaming = null;
+
+    async function requirePyFile(fileName)
+    {
+        let fileLoader = require(fileName + '.js');
+        await fileLoader.download();
+        let fileDecode = await fileLoader.decode();
+
+        // source maps are referenced in the last line of some js files; we want to strip these urls out, as the source maps will not be available
+        if (fileLoader.PACKAGE_FORMAT == 'string' && fileName.includes('.js') && typeof fileDecode == 'string')
+        {
+            let sourceMappingIndex = fileDecode.indexOf('//' + '#' + ' ' + 'sourceMappingURL'); // break up the string to avoid a potential resonance cascade
+            if (sourceMappingIndex != -1) fileDecode = fileDecode.slice(0, sourceMappingIndex);
+        }
+
+        return fileDecode;
+    }
+
+    let pyPath = pythonPyodideWheels ? '/' : './';
 
     let pyFiles =
     [
-      { filepath: './', filename: 'pyodide.asm.data'},
-      { filepath: './', filename: 'pyodide.asm.wasm'},
-      { filepath: './', filename: 'pyodide_py.tar'},
-      { filepath: './', filename: 'packages.json'},
-      { filepath: './', filename: 'pyodide.asm.js'},
-      { filepath: './', filename: 'distutils.data'},
-      { filepath: './', filename: 'distutils.js'},
-      { filepath: './', filename: 'pyodide.js'},
-      { filepath: './', filename: 'cloudpickle.data'},
-      { filepath: './', filename: 'cloudpickle.js'},
+      { filepath: pyPath, filename: 'pyodide.asm.data'},
+      { filepath: pyPath, filename: 'pyodide.asm.wasm'},
+      { filepath: pyPath, filename: 'pyodide_py.tar'},
+      { filepath: pyPath, filename: 'pyodide.asm.js'},
+      { filepath: pyPath, filename: 'pyodide.js'},
     ];
+
+    if (pythonPyodideWheels)
+    {
+        pyFiles.push({ filepath: pyPath, filename: 'package.json'});
+        pyFiles.push({ filepath: pyPath, filename: 'distutils.tar'});
+    }
+    else
+    {
+        pyFiles.push({ filepath: pyPath, filename: 'distutils.data'});
+        pyFiles.push({ filepath: pyPath, filename: 'distutils.js'});
+    }
+
+    let jsonFileName = pythonPyodideWheels ? 'repodata.json' : 'packages.json';
+
+    let jsonFileKey = pyPath + jsonFileName;
+    if (!pyDcp[jsonFileKey])
+    {
+        pyDcp[jsonFileKey] = await requirePyFile(jsonFileName);
+    }
+
+    let pyodideRequireFiles = JSON.parse(pyDcp[jsonFileKey])['packages'];
+    let pyodideRequireFilesKeys = Object.keys(pyodideRequireFiles);
+    let pyodideRequireNames = {};
+    for (let i = 0; i < pyodideRequireFilesKeys.length; i++)
+    {
+        const thatKey = pyodideRequireFilesKeys[i];
+        const thisKey = pyodideRequireFiles[thatKey]['name'];
+        pyodideRequireNames[thisKey] = thatKey;
+    }
+
+    globalThis.pyodideRequireFiles = pyodideRequireFiles;
+    globalThis.pyodideRequireNames = pyodideRequireNames;
+
+    function addToPyFiles(pyFile, requestAncestors = [])
+    {
+        let packageKey = globalThis.pyodideRequireNames[pyFile] || pyFile;
+        let packageInfo = globalThis.pyodideRequireFiles[packageKey];
+        let packageName = ( packageInfo && typeof packageInfo['name'] !== 'undefined' ) ? packageInfo['name'] : pyFile;
+        let packageDepends = ( packageInfo && typeof packageInfo['depends'] !== 'undefined' ) ? packageInfo['depends'] : [];
+
+        requestAncestors.push(packageKey);
+
+        for (dependency of packageDepends)
+        {
+            if (!requestAncestors.includes(dependency)) addToPyFiles(dependency, requestAncestors);
+        }
+
+        if (!pythonPyodideWheels)
+        {
+            const packageFileData = packageName + '.data';
+            pyFiles.push({ filepath: pyPath, filename: packageFileData });
+        }
+
+        const packageNameFull = ( packageInfo && typeof packageInfo['file_name'] !== 'undefined' ) ? packageInfo['file_name'] : packageName;
+        const packageFileJs = packageNameFull + '.js';
+        pyFiles.push({ filepath: pyPath, filename: packageFileJs });
+    }
+
+    pythonPackages.push('cloudpickle');
 
     for (let i = 0; i < pythonPackages.length; i++)
     {
       const packageName = pythonPackages[i];
-      if ( packageName == 'scipy' )
-      {
-          pyFiles.push({ filepath: './', filename: 'CLAPACK.data' });
-          pyFiles.push({ filepath: './', filename: 'CLAPACK.js' });
-      }
-      const packageFileData = packageName + '.data';
-      const packageFileJs = packageName + '.js';
-      pyFiles.push({ filepath: './', filename: packageFileData });
-      pyFiles.push({ filepath: './', filename: packageFileJs });
-    }
 
-    if (!globalThis.pyDcp) globalThis.pyDcp = {};
+      addToPyFiles(packageName);
+    }
 
     for (let i = 0; i < pyFiles.length; i++)
     {
         let fileKey = pyFiles[i].filepath + pyFiles[i].filename;
         if (!pyDcp[fileKey])
         {
-            let fileLoader = require(pyFiles[i].filename + '.js');
-            await fileLoader.download();
-            pyDcp[fileKey] = await fileLoader.decode();
-
-            // source maps are referenced in the last line of some js files; we want to strip these urls out, as the source maps will not be available
-            if (fileLoader.PACKAGE_FORMAT == 'string' && pyFiles[i].filename.includes('.js') && typeof pyDcp[fileKey] == 'string')
-            {
-                let sourceMappingIndex = pyDcp[fileKey].indexOf('//' + '#' + ' ' + 'sourceMappingURL'); // break up the string to avoid a potential resonance cascade
-                if (sourceMappingIndex != -1) pyDcp[fileKey] = pyDcp[fileKey].slice(0, sourceMappingIndex);
-            }
+            pyDcp[fileKey] = await requirePyFile(pyFiles[i].filename);
         }
         progress();
     }
 
     let pyodideLoader = require('pyodide.js.js');
-    await pyodideLoader.packages(pyDcp['./pyodide.js']);
+    await pyodideLoader.packages(pyDcp[pyPath + 'pyodide.js']);
     progress();
 
     if (!globalThis.pyScope) globalThis.pyScope = {};
-    pyScope = {
+    pyScope = pythonPyodideWheels ? globalThis : {
         setTimeout: globalThis.setTimeout,
-        dcp: {
-            progress: progress,
-        },
+    };
+    pyScope['dcp'] = {
+        progress: progress,
     };
 
     if (!globalThis.pyLog) globalThis.pyLog = [];
@@ -229,7 +301,7 @@ async function workFunction(
     if (!globalThis.pyodide) globalThis.pyodide = await loadPyodide
     (
       {
-        indexURL : "./",
+        indexURL : pyPath,
         jsglobals : pyScope,
         stdout: pyLogger,
         stderr: pyLogger,
@@ -237,21 +309,22 @@ async function workFunction(
     );
     progress();
 
-    let packagesKeys = Object.keys(pyodide.loadedPackages);
+    async function loadPyPackage(newPackageKey)
+    {
+        let packageKey = globalThis.pyodideRequireNames[newPackageKey] || newPackageKey;
+        let packageInfo = globalThis.pyodideRequireFiles[packageKey];
+        let packageName = ( packageInfo && typeof packageInfo['name'] !== 'undefined' ) ? packageInfo['name'] : newPackageKey;
 
-    if ( Object.keys(pyodide.loadedPackages).indexOf('cloudpickle') === -1 ) await pyodide.loadPackage(['cloudpickle']);
+        let loadedKeys = Object.keys(pyodide.loadedPackages);
 
-    progress();
+        if ( loadedKeys.indexOf(packageName) === -1 ) await pyodide.loadPackage([packageName]);
+    }
 
     for (let i = 0; i < pythonPackages.length; i++)
     {
-      if ( pythonPackages[i] == 'scipy')
-      {
-          if ( Object.keys(pyodide.loadedPackages).indexOf('scipy') === -1 ) await pyodide.loadPackage(['CLAPACK']);
-      }
-      if ( Object.keys(pyodide.loadedPackages).indexOf(pythonPackages[i]) === -1 ) await pyodide.loadPackage([pythonPackages[i]]);
+        await loadPyPackage(pythonPackages[i]); // XXX AWAIT PROMISE ARRAY, IF ORDER CAN BE RESOLVED?
 
-      progress();
+        progress();
     }
 
     pyodide.globals.set('input_imports', pythonImports);

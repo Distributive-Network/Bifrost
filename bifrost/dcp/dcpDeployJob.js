@@ -45,28 +45,103 @@
         // set module requirements for python job
         if (dcp_node_js == false)
         {
-            job.requires('pyodide-packages.json/packages.json.js');
-            job.requires('pyodide-pyodide.asm.data/pyodide.asm.data.js');
-            job.requires('pyodide-pyodide.asm.wasm/pyodide.asm.wasm.js');
-            job.requires('pyodide-pyodide.asm.js/pyodide.asm.js.js');
-            job.requires('pyodide-pyodide.js/pyodide.js.js');
-            job.requires('pyodide-pyodide_py.tar/pyodide_py.tar.js');
-            job.requires('pyodide-distutils.data/distutils.data.js');
-            job.requires('pyodide-distutils.js/distutils.js.js');
-            job.requires('pyodide-cloudpickle.data/cloudpickle.data.js');
-            job.requires('pyodide-cloudpickle.js/cloudpickle.js.js');
+            let requiresPackages = python_packages;
+            let versionNamespace = (python_pyodide_wheels == false) ? 'pyodide' : 'pyodide-0.21.0a2';
+
+            let pyodideShards = (python_pyodide_wheels == false) ? null : require('./dcp/pyodide/shards.json');
+
+            function requiresShards(pyFile)
+            {
+                if (pyodideShards && typeof pyodideShards['packages'] !== 'undefined' && typeof pyodideShards['packages'][pyFile] !== 'undefined')
+                {
+                    let fileShards = pyodideShards.packages[pyFile];
+
+                    for (let i = 0; i < fileShards.length; i++)
+                    {
+                        let thisFileShard = fileShards[i];
+                        job.requires(versionNamespace + '-' + thisFileShard.toLowerCase() + '/' + thisFileShard);
+                    }
+                    return fileShards.length; // number of file shard packages that are associated with this python file
+                }
+                else
+                {
+                    return 0; // file shard packages are not being used, or this package is not on the list
+                }
+            }
+
+            job.requires(versionNamespace + '-pyodide.asm.data/pyodide.asm.data.js');
+            job.requires(versionNamespace + '-pyodide.asm.wasm/pyodide.asm.wasm.js');
+            job.requires(versionNamespace + '-pyodide_py.tar/pyodide_py.tar.js');
+            job.requires(versionNamespace + '-pyodide.asm.js/pyodide.asm.js.js');
+            job.requires(versionNamespace + '-pyodide.js/pyodide.js.js');
+
+            requiresShards('pyodide.asm.wasm');
+
+            if (python_pyodide_wheels == false)
+            {
+                job.requires(versionNamespace + '-distutils.data/distutils.data.js');
+                job.requires(versionNamespace + '-distutils.js/distutils.js.js');
+                job.requires(versionNamespace + '-packages.json/packages.json.js');
+            }
+            else
+            {
+                job.requires(versionNamespace + '-package.json/package.json.js');
+                job.requires(versionNamespace + '-distutils.tar/distutils.tar.js');
+                job.requires(versionNamespace + '-repodata.json/repodata.json.js');
+            }
+
+            let pyodideDepends = (python_pyodide_wheels == false) ? require('./dcp/pyodide/packages.json') : require('./dcp/pyodide/repodata.json');
+
+            let pyodideRequireFiles = pyodideDepends.packages;
+            let pyodideRequireFilesKeys = Object.keys(pyodideRequireFiles);
+            let pyodideRequireNames = {};
+            for (let i = 0; i < pyodideRequireFilesKeys.length; i++)
+            {
+                const thatKey = pyodideRequireFilesKeys[i];
+                const thisKey = pyodideRequireFiles[thatKey]['name'];
+                pyodideRequireNames[thisKey] = thatKey;
+            }
+
+            function addToJobRequires(pyFile, requestAncestors = ['distutils'])
+            {
+                let packageKey = pyodideRequireNames[pyFile] || pyFile;
+                let packageInfo = pyodideRequireFiles[packageKey];
+                let packageName = ( packageInfo && typeof packageInfo['name'] !== 'undefined' ) ? packageInfo['name'] : pyFile;
+                let packageDepends = ( packageInfo && typeof packageInfo['depends'] !== 'undefined' ) ? packageInfo['depends'] : [];
+
+                requestAncestors.push(packageKey);
+
+                for (dependency of packageDepends)
+                {
+                    if (!requestAncestors.includes(dependency)) addToJobRequires(dependency, requestAncestors);
+                }
+
+                if (python_pyodide_wheels == false)
+                {
+                    const packageFileDataPath = versionNamespace + '-' + packageName.toLowerCase() + '.data/';
+                    const packageFileData = packageName + '.data.js';
+                    job.requires(packageFileDataPath + packageFileData);
+
+                    const packageFileJsPath = versionNamespace + '-' + packageName.toLowerCase() + '.js/';
+                    const packageFileJs = packageName + '.js.js';
+                    job.requires(packageFileJsPath + packageFileJs);
+                }
+                else
+                {
+                    const packageNameFull = ( packageInfo && typeof packageInfo['file_name'] !== 'undefined' ) ? packageInfo['file_name'] : packageName;
+                    const packageFileJsPath = versionNamespace + '-' + packageNameFull.toLowerCase() + '/';
+                    const packageFileJs = packageNameFull + '.js';
+                    job.requires(packageFileJsPath + packageFileJs);
+                    requiresShards(packageNameFull); // check if this file is broken into a package for each shard, and add to job.requires accordingly
+                }
+            }
+
+            requiresPackages.push('cloudpickle');
+
             for (let i = 0; i < python_packages.length; i++)
             {
                 let thisPackageName = python_packages[i];
-                if ( thisPackageName == 'scipy' )
-                {
-                    job.requires('pyodide-clapack.data/CLAPACK.data.js');
-                    job.requires('pyodide-clapack.js/CLAPACK.js.js');
-                }
-                let packageDataPath = 'pyodide-' + thisPackageName + '.data/' + thisPackageName + '.data.js';
-                let packageJsPath = 'pyodide-' + thisPackageName + '.js/' + thisPackageName + '.js.js';
-                job.requires(packageDataPath);
-                job.requires(packageJsPath);
+                addToJobRequires(thisPackageName);
             }
         }
         else
@@ -291,6 +366,7 @@
             python_compress_input,
             python_compress_output,
             python_colab_pickling,
+            python_pyodide_wheels,
         ];
     }
     else
