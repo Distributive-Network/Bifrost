@@ -293,8 +293,7 @@ async function workFunction(
             pyFiles.push({ filepath: pyPath, filename: packageFileData });
         }
 
-        const packageNameFull = ( packageInfo && typeof packageInfo['file_name'] !== 'undefined' ) ? packageInfo['file_name'] : packageName;
-        const packageFileJs = packageNameFull + '.js';
+        const packageFileJs = ( packageInfo && typeof packageInfo['file_name'] !== 'undefined' ) ? packageInfo['file_name'] : packageName + '.js';
         pyFiles.push({ filepath: pyPath, filename: packageFileJs });
     }
 
