@@ -205,6 +205,21 @@ async function workFunction(
         await fileLoader.download();
         let fileDecode = await fileLoader.decode();
 
+        if (fileName == 'pyodide.asm.js' || fileName == 'pyodide.js')
+        {
+          let frankenFile = await frankenDoctor
+          (
+            fileDecode,
+            'loadBinaryFile(',
+            'loadBinaryWrap(',
+          );
+          fileDecode = frankenFile;
+        }
+        else
+        {
+          pyDcp[fileKey] = fileDecode;
+        }
+
         // source maps are referenced in the last line of some js files; we want to strip these urls out, as the source maps will not be available
         if (fileLoader.PACKAGE_FORMAT == 'string' && fileName.includes('.js') && typeof fileDecode == 'string')
         {
