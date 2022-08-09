@@ -274,6 +274,15 @@ async function workFunction(
         if (!pyDcp[fileKey])
         {
             pyDcp[fileKey] = await requirePyFile(pyFiles[i].filename);
+
+            // supplemental keys for other potential pyodide loading paths
+            pyDcp[pyFiles[i].filename] = pyDcp[fileKey];
+            pyDcp['//' + pyFiles[i].filename] = pyDcp[fileKey];
+            if (typeof location !== 'undefined')
+            {
+                if (typeof location['href'] !== 'undefined') pyDcp[location.href + '/' + pyFiles[i].filename] = pyDcp[fileKey];
+                if (typeof location['pathname'] !== 'undefined') pyDcp[location.pathname + '/' + pyFiles[i].filename] = pyDcp[fileKey];
+            }
         }
         progress();
     }
