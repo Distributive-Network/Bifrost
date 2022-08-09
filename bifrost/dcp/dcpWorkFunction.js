@@ -180,7 +180,7 @@ async function workFunction(
     let pyFiles =
     [
       { filepath: pyPath, filename: 'pyodide.asm.data'},
-      { filepath: pyPath', filename: 'pyodide.asm.wasm'},
+      { filepath: pyPath, filename: 'pyodide.asm.wasm'},
       { filepath: pyPath, filename: 'pyodide_py.tar'},
       { filepath: pyPath, filename: 'pyodide.asm.js'},
       { filepath: pyPath, filename: 'pyodide.js'},
