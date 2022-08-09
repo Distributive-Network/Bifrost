@@ -175,6 +175,20 @@ async function workFunction(
 
     globalThis.WebAssembly.instantiateStreaming = null;
 
+    function frankenDoctor
+    (
+      frankenBody,
+      frankenHead,
+      frankenBrain = '',
+    )
+    {
+      let frankenNeck = frankenBody.indexOf(frankenHead);
+
+      let frankenMonster = frankenBody.slice(0, frankenNeck) + frankenBrain + frankenBody.slice(frankenNeck + frankenHead.length);
+
+      return frankenMonster;
+    }
+
     async function requirePyFile(fileName)
     {
         let fileLoader = require(fileName + '.js');
