@@ -48,11 +48,34 @@
             let requiresPackages = python_packages;
             let versionNamespace = (python_pyodide_wheels == false) ? 'pyodide' : 'pyodide-0.21.0a2';
 
+            let pyodideShards = (python_pyodide_wheels == false) ? null : require('./pyodide/shards.json');
+
+            function requiresShards(pyFile)
+            {
+                if (pyodideShards && typeof pyodideShards['packages'] !== 'undefined' && typeof pyodideShards['packages'][pyFile] !== 'undefined')
+                {
+                    let fileShards = pyodideShards.packages[pyFile];
+
+                    for (let i = 0; i < fileShards.length; i++)
+                    {
+                        let thisFileShard = fileShards[i];
+                        job.requires(versionNamespace + '-' + thisFileShard + '/' + thisFileShard);
+                    }
+                    return fileShards.length; // number of file shard packages that are associated with this python file
+                }
+                else
+                {
+                    return 0; // file shard packages are not being used, or this package is not on the list
+                }
+            }
+
             job.requires(versionNamespace + '-pyodide.asm.data/pyodide.asm.data.js');
             job.requires(versionNamespace + '-pyodide.asm.wasm/pyodide.asm.wasm.js');
             job.requires(versionNamespace + '-pyodide_py.tar/pyodide_py.tar.js');
             job.requires(versionNamespace + '-pyodide.asm.js/pyodide.asm.js.js');
             job.requires(versionNamespace + '-pyodide.js/pyodide.js.js');
+
+            requiresShards('pyodide.asm.wasm');
 
             if (python_pyodide_wheels == false)
             {
@@ -109,6 +132,7 @@
                     const packageFileJsPath = versionNamespace + '-' + packageNameFull + '/';
                     const packageFileJs = packageNameFull + '.js';
                     job.requires(packageFileJsPath + packageFileJs);
+                    requiresShards(packageNameFull); // check if this file is broken into a package for each shard, and add to job.requires accordingly
                 }
             }
 
