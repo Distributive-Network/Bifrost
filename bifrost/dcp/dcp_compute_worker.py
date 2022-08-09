@@ -30,7 +30,7 @@ if (pickle_arguments == True):
 elif (encode_arguments == True):
   # decode and secondary arguments to compute function
   parameters_unpickled = codecs.decode( input_parameters.encode(), 'base64' )
-  keyword_parameters_unpickled = codecs.decode( keyword_input_parameters.encode(), 'base64' )
+  keyword_parameters_unpickled = codecs.decode( input_keyword_parameters.encode(), 'base64' )
 else:
   # degenerate pythonic EAFP pattern; consider purging in favour of JsProxy type check
   try:
@@ -38,9 +38,9 @@ else:
   except AttributeError:
     parameters_unpickled = input_parameters
   try:
-    keyword_parameters_unpickled = keyword_input_parameters.to_py()
+    keyword_parameters_unpickled = input_keyword_parameters.to_py()
   except AttributeError:
-    keyword_parameters_unpickled = keyword_input_parameters
+    keyword_parameters_unpickled = input_keyword_parameters
 
 if (pickle_input == True):
   # decode and unpickle primary argument to compute function
