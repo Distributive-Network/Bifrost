@@ -315,10 +315,7 @@ async function workFunction(
         let packageInfo = globalThis.pyodideRequireFiles[packageKey];
         let packageName = ( packageInfo && typeof packageInfo['name'] !== 'undefined' ) ? packageInfo['name'] : newPackageKey;
 
-        pyLog.push(JSON.stringify(['load py package:', newPackageKey, packageKey, packageName]));
-
         let loadedKeys = Object.keys(pyodide.loadedPackages);
-        pyLog.push(JSON.stringify(['loaded keys:', loadedKeys]));
 
         if ( loadedKeys.indexOf(packageName) === -1 ) await pyodide.loadPackage([packageName]);
     }
