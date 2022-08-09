@@ -194,7 +194,7 @@ async function workFunction(
     {
       let frankenNeck = frankenBody.indexOf(frankenHead);
 
-      let frankenMonster = frankenBody.slice(0, frankenNeck) + frankenBrain + frankenBody.slice(frankenNeck + frankenHead.length);
+      let frankenMonster = (frankenNeck > -1) ? frankenBody.slice(0, frankenNeck) + frankenBrain + frankenBody.slice(frankenNeck + frankenHead.length) : frankenBody;
 
       return frankenMonster;
     }
