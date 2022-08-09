@@ -59,7 +59,7 @@
                     for (let i = 0; i < fileShards.length; i++)
                     {
                         let thisFileShard = fileShards[i];
-                        job.requires(versionNamespace + '-' + thisFileShard + '/' + thisFileShard);
+                        job.requires(versionNamespace + '-' + thisFileShard.toLowerCase() + '/' + thisFileShard);
                     }
                     return fileShards.length; // number of file shard packages that are associated with this python file
                 }
@@ -118,18 +118,18 @@
 
                 if (python_pyodide_wheels == false)
                 {
-                    const packageFileDataPath = versionNamespace + '-' + packageName + '.data/';
+                    const packageFileDataPath = versionNamespace + '-' + packageName.toLowerCase() + '.data/';
                     const packageFileData = packageName + '.data.js';
                     job.requires(packageFileDataPath + packageFileData);
 
-                    const packageFileJsPath = versionNamespace + '-' + packageName + '.js/';
+                    const packageFileJsPath = versionNamespace + '-' + packageName.toLowerCase() + '.js/';
                     const packageFileJs = packageName + '.js.js';
                     job.requires(packageFileJsPath + packageFileJs);
                 }
                 else
                 {
                     const packageNameFull = ( packageInfo && typeof packageInfo['file_name'] !== 'undefined' ) ? packageInfo['file_name'] : packageName;
-                    const packageFileJsPath = versionNamespace + '-' + packageNameFull + '/';
+                    const packageFileJsPath = versionNamespace + '-' + packageNameFull.toLowerCase() + '/';
                     const packageFileJs = packageNameFull + '.js';
                     job.requires(packageFileJsPath + packageFileJs);
                     requiresShards(packageNameFull); // check if this file is broken into a package for each shard, and add to job.requires accordingly
