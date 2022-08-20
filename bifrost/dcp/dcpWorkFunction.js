@@ -374,6 +374,8 @@ async function workFunction(
 
     pyodide.globals.set('input_imports', pythonImports);
     pyodide.globals.set('input_modules', pythonModules);
+    pyodide.globals.set('input_files_path', pythonFilesPath);
+    pyodide.globals.set('input_files_data', pythonFilesData);
 
     await pyodide.runPython(pythonInitWorker);
 
