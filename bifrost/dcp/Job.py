@@ -346,6 +346,11 @@ class Job:
 
         node_output = node.run(self.python_deploy, run_parameters)
 
+        try:
+          self.id = node_output['jobId']
+        except:
+          print('Warning : Job ID not found.')
+
         result_set = node_output['jobOutput']
 
         for result_index, result_slice in enumerate(result_set):
