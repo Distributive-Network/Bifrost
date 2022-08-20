@@ -410,6 +410,8 @@
         return [];
     });
 
+    jobId = null;
+
     try
     {
         jobOutput = await dcpPost(inputSet, workFunction, sharedArguments, jobMultiplier, jobLocal);
