@@ -321,6 +321,8 @@
             }
         }
 
+        if (!jobId) jobId = job.id;
+
         // this the end of the redeployment zone
 
         // nothing after this point should ever be called more than once as part of the same user-submitted job.
