@@ -65,6 +65,7 @@ class Job:
 
         # file system api
         self.files_data = {}
+        self.files_path = []
 
         # remote data properties
         self.remote_storage_location = False # TODO
