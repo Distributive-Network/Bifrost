@@ -11,6 +11,9 @@ import sys
 import codecs
 import importlib.abc, importlib.util
 
+# user file loading
+import base64
+
 class StringLoader(importlib.abc.SourceLoader):
 
     def __init__(self, data):
@@ -53,7 +56,7 @@ for file_path in py_input_files_path:
 
     file_data = py_input_files_path[file_path]
 
-    file_bytes = base64.b64decode( file_data, 'base64' )
+    file_bytes = base64.b64decode( file_data )
 
     with open(file_path, 'wb') as file_handle:
         file_handle.write(file_bytes)
