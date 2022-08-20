@@ -416,6 +416,9 @@ class Job:
         # adds files to be made available in the worker virtual file system
         for file_element in file_arguments:
             element_type = type(file_element)
+            # TODO: add support for user-submitted data buffers
+            # TODO: add support for user-submitted byte strings
+            # TODO: add support for user-submitted remote file urls
             if (element_type is str):
                 self.files_path.append(file_element)
                 file_data = self.__file_writer(file_element)
