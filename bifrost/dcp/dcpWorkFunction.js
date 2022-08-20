@@ -21,6 +21,8 @@ async function workFunction(
     pythonCompressOutput,// flag which indicates that the output slice should be compressed
     pythonColabPickling,// flag which indicates that all pickling was done in a colab without cloudpickle
     pythonPyodideWheels = false,// indicates a Pyodide version greater than 20, informing the initialization steps
+    pythonFilesPath = null,// list of filenames for user-submitted files to be saved to virtual file system
+    pythonFilesData = null,// encoded binary data for user-submitted files, with filenames as dict key
 )
 {
   const startTime = Date.now();

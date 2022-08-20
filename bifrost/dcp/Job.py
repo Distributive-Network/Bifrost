@@ -355,6 +355,8 @@ class Job:
             'python_compress_output': self.compress_output_set,
             'python_colab_pickling': self.colab_pickling,
             'python_pyodide_wheels': self.pyodide_wheels,
+            'python_files_path': self.files_path,
+            'python_files_data': self.files_data,
         }
 
         node_output = node.run(self.python_deploy, run_parameters)
