@@ -52,6 +52,7 @@ class Job:
         self.context_id = False # Not Used
         self.scheduler = 'https://scheduler.distributed.computer' # TODO
         self.bank = False # Not Used
+        self.id = None # Assigned on job.accepted
 
         # additional job properties
         self.collate_results = True
