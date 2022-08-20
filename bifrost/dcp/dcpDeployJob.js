@@ -371,6 +371,8 @@
             python_compress_output,
             python_colab_pickling,
             python_pyodide_wheels,
+            python_files_path,
+            python_files_data,
         ];
     }
     else

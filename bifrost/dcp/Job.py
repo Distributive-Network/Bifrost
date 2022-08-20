@@ -63,6 +63,10 @@ class Job:
         self.multiplier = 1
         self.local_cores = 0
 
+        # file system api
+        self.files_data = {}
+        self.files_path = []
+
         # remote data properties
         self.remote_storage_location = False # TODO
         self.remote_storage_params = False # TODO
@@ -207,9 +211,21 @@ class Job:
 
         return module_encoded
 
+    def __file_writer(self, file_name):
+
+        with open(file_name, 'rb') as file_handle:
+            file_data = file_handle.read()
+
+        file_encoded = self.__input_encoder( file_data )
+
+        return file_encoded
+
     def __dcp_run(self):
 
         from bifrost import node
+
+        if len(self.files_data) > 0:
+            self.pickle_work_function = False
 
         if self.pyodide_wheels == True:
             self.colab_pickling = True
@@ -342,6 +358,8 @@ class Job:
             'python_compress_output': self.compress_output_set,
             'python_colab_pickling': self.colab_pickling,
             'python_pyodide_wheels': self.pyodide_wheels,
+            'python_files_path': self.files_path,
+            'python_files_data': self.files_data,
         }
 
         node_output = node.run(self.python_deploy, run_parameters)
@@ -398,6 +416,22 @@ class Job:
                 self.imports(*module_element)
             else:
                 print('Warning: unsupported format for Job.imports:', element_type)
+
+    def files(self, *files_arguments):
+        # adds files to be made available in the worker virtual file system
+        for file_element in files_arguments:
+            element_type = type(file_element)
+            # TODO: add support for user-submitted data buffers
+            # TODO: add support for user-submitted byte strings
+            # TODO: add support for user-submitted remote file urls
+            if (element_type is str):
+                self.files_path.append(file_element)
+                file_data = self.__file_writer(file_element)
+                self.files_data[file_element] = file_data
+            elif (element_type is list or element_type is tuple):
+                self.files(*file_element)
+            else:
+                print('Warning: unsupported format for Job.files:', element_type)
 
     def set_result_storage(self, remote_storage_location, remote_storage_params = {}):
         self.remote_storage_location = remote_storage_location
