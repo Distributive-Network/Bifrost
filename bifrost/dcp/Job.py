@@ -224,6 +224,9 @@ class Job:
 
         from bifrost import node
 
+        if len(self.files_data) > 0:
+            self.pickle_work_function = False
+
         if self.pyodide_wheels == True:
             self.colab_pickling = True
             self.pickle_work_function = False
