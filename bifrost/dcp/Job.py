@@ -418,6 +418,8 @@ class Job:
             element_type = type(file_element)
             if (element_type is str):
                 self.files_path.append(file_element)
+                file_data = self.__file_writer(file_element)
+                self.files_data[file_element] = file_data
             elif (element_type is list or element_type is tuple):
                 self.files(*file_element)
             else:
