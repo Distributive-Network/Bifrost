@@ -403,6 +403,17 @@ class Job:
             else:
                 print('Warning: unsupported format for Job.imports:', element_type)
 
+    def files(self, *files_arguments):
+        # adds files to be made available in the worker virtual file system
+        for file_element in file_arguments:
+            element_type = type(file_element)
+            if (element_type is str):
+                self.files_path.append(file_element)
+            elif (element_type is list or element_type is tuple):
+                self.files(*file_element)
+            else:
+                print('Warning: unsupported format for Job.files:', element_type)
+
     def set_result_storage(self, remote_storage_location, remote_storage_params = {}):
         self.remote_storage_location = remote_storage_location
         self.remote_storage_params = remote_storage_params
