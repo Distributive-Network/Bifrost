@@ -63,6 +63,9 @@ class Job:
         self.multiplier = 1
         self.local_cores = 0
 
+        # file system api
+        self.files_data = {}
+
         # remote data properties
         self.remote_storage_location = False # TODO
         self.remote_storage_params = False # TODO
