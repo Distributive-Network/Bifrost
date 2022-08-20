@@ -211,6 +211,15 @@ class Job:
 
         return module_encoded
 
+    def __file_writer(self, file_name):
+
+        with open(file_name, 'rb') as file_handle:
+            file_data = file_handle.read()
+
+        file_encoded = self.__input_encoder( file_data )
+
+        return file_encoded
+
     def __dcp_run(self):
 
         from bifrost import node
