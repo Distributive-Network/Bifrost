@@ -52,6 +52,7 @@ class Job:
         self.context_id = False # Not Used
         self.scheduler = 'https://scheduler.distributed.computer' # TODO
         self.bank = False # Not Used
+        self.id = None # Assigned on job.accepted
 
         # additional job properties
         self.collate_results = True
@@ -344,6 +345,11 @@ class Job:
         }
 
         node_output = node.run(self.python_deploy, run_parameters)
+
+        try:
+          self.id = node_output['jobId']
+        except:
+          print('Warning : Job ID not found.')
 
         result_set = node_output['jobOutput']
 

@@ -181,6 +181,8 @@
                 {
                     console.log('Accepted :', job.id);
 
+                    jobId = job.id;
+
                     // TODO : make contingent on certain conditions or flags
                     // TODO : configurable result threshold for resolving
                     // TODO : configurable timer value, flag for interval vs single-shot timeout
@@ -319,6 +321,8 @@
             }
         }
 
+        if (!jobId) jobId = job.id;
+
         // this the end of the redeployment zone
 
         // nothing after this point should ever be called more than once as part of the same user-submitted job.
@@ -409,6 +413,8 @@
         inputSet.push(myItem);
         return [];
     });
+
+    jobId = null;
 
     try
     {
