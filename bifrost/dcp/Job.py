@@ -416,7 +416,7 @@ class Job:
 
     def files(self, *files_arguments):
         # adds files to be made available in the worker virtual file system
-        for file_element in file_arguments:
+        for file_element in files_arguments:
             element_type = type(file_element)
             # TODO: add support for user-submitted data buffers
             # TODO: add support for user-submitted byte strings
