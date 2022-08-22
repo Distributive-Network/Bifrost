@@ -378,8 +378,8 @@ async function workFunction(
 
     if (pythonInputSetFiles == true)
     {
-        pythonFilesPath.push(sliceFile['path']);
-        pythonFilesData[sliceFile['path']] = sliceFile['binary'];
+        pythonFilesPath.push(sliceData['path']);
+        pythonFilesData[sliceData['path']] = sliceData['binary'];
     }
 
     pyodide.globals.set('input_files_path', pythonFilesPath);
