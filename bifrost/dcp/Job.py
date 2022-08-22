@@ -66,6 +66,7 @@ class Job:
         # file system api
         self.files_data = {}
         self.files_path = []
+        self.input_set_files = False
 
         # remote data properties
         self.remote_storage_location = False # TODO
@@ -224,6 +225,9 @@ class Job:
 
         from bifrost import node
 
+        if self.input_set_files == True:
+            self.pickle_work_function = False
+
         if len(self.files_data) > 0:
             self.pickle_work_function = False
 
@@ -296,6 +300,9 @@ class Job:
                     'index': slice_index,
                     'data': False,
                 }
+                if (self.input_set_files == True):
+                    slice_object['path'] = input_slice
+                    slice_object['binary'] = self.__file_writer(input_slice)
                 if (self.range_object_input == False):
                     if self.node_js == False:
                         if self.pickle_input_set == True:
@@ -307,6 +314,7 @@ class Job:
                     else:
                         input_slice_encoded = input_slice
                     slice_object['data'] = input_slice_encoded
+
                 input_set_encoded.append(slice_object)
 
         job_input = []
@@ -360,6 +368,7 @@ class Job:
             'python_pyodide_wheels': self.pyodide_wheels,
             'python_files_path': self.files_path,
             'python_files_data': self.files_data,
+            'python_input_set_files': self.input_set_files,
         }
 
         node_output = node.run(self.python_deploy, run_parameters)
