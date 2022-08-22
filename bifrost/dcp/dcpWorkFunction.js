@@ -21,8 +21,8 @@ async function workFunction(
     pythonCompressOutput,// flag which indicates that the output slice should be compressed
     pythonColabPickling,// flag which indicates that all pickling was done in a colab without cloudpickle
     pythonPyodideWheels = false,// indicates a Pyodide version greater than 20, informing the initialization steps
-    pythonFilesPath = null,// list of filenames for user-submitted files to be saved to virtual file system
-    pythonFilesData = null,// encoded binary data for user-submitted files, with filenames as dict key
+    pythonFilesPath = [],// list of filenames for user-submitted files to be saved to virtual file system
+    pythonFilesData = {},// encoded binary data for user-submitted files, with filenames as dict key
     pythonInputSetFiles = false,// flag which indicates the input slice includes a file binary
 )
 {
@@ -378,21 +378,8 @@ async function workFunction(
 
     if (pythonInputSetFiles == true)
     {
-        if((sliceData['files'].length == 1) && (typeof sliceData['files']['path'] !== 'undefined') && (typeof sliceData['files']['data'] !== 'undefined'))
-        {
-            let sliceFile = sliceData['files'];
-            pythonFilesPath.push(sliceFile['path']);
-            pythonFilesData.push(sliceFile['data']);
-        }
-        else
-        {
-            for (let i = 0; i < sliceData['files'].length; i++)
-            {
-                let sliceFile = sliceData['files'][i];
-                pythonFilesPath.push(sliceFile['path']);
-                pythonFilesData.push(sliceFile['data']);
-            }
-        }
+        pythonFilesPath.push(sliceFile['path']);
+        pythonFilesData[sliceFile['path']] = sliceFile['binary'];
     }
 
     pyodide.globals.set('input_files_path', pythonFilesPath);

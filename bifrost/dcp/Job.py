@@ -301,7 +301,8 @@ class Job:
                     'data': False,
                 }
                 if (self.input_set_files == True):
-                    slice_object['files'] = self.input_files(input_slice)
+                    slice_object['path'] = input_slice
+                    slice_object['binary'] = self.__file_writer(input_slice)
                 if (self.range_object_input == False):
                     if self.node_js == False:
                         if self.pickle_input_set == True:
@@ -440,33 +441,6 @@ class Job:
                 self.files(*file_element)
             else:
                 print('Warning: unsupported format for Job.files:', element_type)
-
-    def input_files(self, slice_files=[], *files_arguments):
-        if len(slice_files) == 0 and len(files_arguments) == 1 and type(files_arguments[0]) is str:
-            # if provided input for this slice was only a single string, return file object directly
-            file_path = files_arguments[0]
-            file_data = self.__file_writer(file_path)
-            slice_file = {
-                'path': file_path,
-                'data': file_data,
-            }
-            return slice_file
-        else:
-            # returns list of file names and data for an input_set slice
-            for file_element in files_arguments:
-                element_type = type(file_element)
-                if (element_type is str):
-                    file_data = self.__file_writer(file_element)
-                    slice_file = {
-                        'path': file_element,
-                        'data': file_data,
-                    }
-                    slice_files.append(slice_file)
-                elif (element_type is list or element_type is tuple):
-                    slice_files = self.input_files(slice_files, *file_element)
-                else:
-                    print('Warning: unsupported format for input files:', element_type)
-        return slice_files
 
     def set_result_storage(self, remote_storage_location, remote_storage_params = {}):
         self.remote_storage_location = remote_storage_location
