@@ -23,6 +23,7 @@ async function workFunction(
     pythonPyodideWheels = false,// indicates a Pyodide version greater than 20, informing the initialization steps
     pythonFilesPath = null,// list of filenames for user-submitted files to be saved to virtual file system
     pythonFilesData = null,// encoded binary data for user-submitted files, with filenames as dict key
+    pythonInputSetFiles = false,// flag which indicates the input slice includes a file binary
 )
 {
   const startTime = Date.now();
@@ -374,6 +375,26 @@ async function workFunction(
 
     pyodide.globals.set('input_imports', pythonImports);
     pyodide.globals.set('input_modules', pythonModules);
+
+    if (pythonInputSetFiles == true)
+    {
+        if((sliceData['files'].length == 1) && (typeof sliceData['files']['path'] !== 'undefined') && (typeof sliceData['files']['data'] !== 'undefined'))
+        {
+            let sliceFile = sliceData['files'];
+            pythonFilesPath.push(sliceFile['path']);
+            pythonFilesData.push(sliceFile['data']);
+        }
+        else
+        {
+            for (let i = 0; i < sliceData['files'].length; i++)
+            {
+                let sliceFile = sliceData['files'][i];
+                pythonFilesPath.push(sliceFile['path']);
+                pythonFilesData.push(sliceFile['data']);
+            }
+        }
+    }
+
     pyodide.globals.set('input_files_path', pythonFilesPath);
     pyodide.globals.set('input_files_data', pythonFilesData);
 
