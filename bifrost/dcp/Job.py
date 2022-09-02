@@ -122,6 +122,7 @@ class Job:
         self.kvin = False # uses the kvin serialization library to decode job results
         self.colab_pickling = False # use non-cloud pickling for colab deployment
         self.pyodide_wheels = False # use newer version of pyodide which uses .whl packages
+        self.show_timings = False # per-slice worker, per-slice client, and total overall
 
         # work wrapper functions
         self.python_init = dcp_init_worker
@@ -345,6 +346,7 @@ class Job:
             'dcp_node_js': self.node_js,
             'dcp_events': self.events,
             'dcp_kvin': self.kvin,
+            'dcp_show_timings': self.show_timings,
             'dcp_remote_flags': self.remote,
             'dcp_remote_storage_location': self.remote_storage_location,
             'dcp_remote_storage_params': self.remote_storage_params,
