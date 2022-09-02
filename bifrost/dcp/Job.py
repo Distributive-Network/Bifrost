@@ -52,6 +52,7 @@ class Job:
         self.context_id = False # Not Used
         self.scheduler = 'https://scheduler.distributed.computer' # TODO
         self.bank = False # Not Used
+        self.id = None # Assigned on job.accepted
 
         # additional job properties
         self.collate_results = True
@@ -61,6 +62,11 @@ class Job:
         self.greedy_estimation = False
         self.multiplier = 1
         self.local_cores = 0
+
+        # file system api
+        self.files_data = {}
+        self.files_path = []
+        self.input_set_files = False
 
         # remote data properties
         self.remote_storage_location = False # TODO
@@ -116,6 +122,7 @@ class Job:
         self.kvin = False # uses the kvin serialization library to decode job results
         self.colab_pickling = False # use non-cloud pickling for colab deployment
         self.pyodide_wheels = False # use newer version of pyodide which uses .whl packages
+        self.show_timings = False # per-slice worker, per-slice client, and total overall
 
         # work wrapper functions
         self.python_init = dcp_init_worker
@@ -165,12 +172,12 @@ class Job:
         data_decoded = self.__output_decoder( output_data )
         if decompress_data == True:
             data_decompressed = zlib.decompress( data_decoded )
-            if is_colab():
+            if is_colab() or self.colab_pickling == True:
                 data_unpickled = pickle.loads( data_decompressed )
             else:
                 data_unpickled = cloudpickle.loads( data_decompressed )
         else:
-            if is_colab():
+            if is_colab() or self.colab_pickling == True:
                 data_unpickled = pickle.loads( data_decoded )
             else:
                 data_unpickled = cloudpickle.loads( data_decoded )
@@ -206,16 +213,31 @@ class Job:
 
         return module_encoded
 
+    def __file_writer(self, file_name):
+
+        with open(file_name, 'rb') as file_handle:
+            file_data = file_handle.read()
+
+        file_encoded = self.__input_encoder( file_data )
+
+        return file_encoded
+
     def __dcp_run(self):
 
         from bifrost import node
+
+        if self.input_set_files == True:
+            self.pickle_work_function = False
+
+        if len(self.files_data) > 0:
+            self.pickle_work_function = False
 
         if self.pyodide_wheels == True:
             self.colab_pickling = True
             self.pickle_work_function = False
             self.pickle_work_arguments = False
             self.pickle_input_set = False
-            self.pickle_output_set = False
+            self.pickle_output_set = True
 
         if is_colab():
             self.colab_pickling = True
@@ -279,6 +301,9 @@ class Job:
                     'index': slice_index,
                     'data': False,
                 }
+                if (self.input_set_files == True):
+                    slice_object['path'] = input_slice
+                    slice_object['binary'] = self.__file_writer(input_slice)
                 if (self.range_object_input == False):
                     if self.node_js == False:
                         if self.pickle_input_set == True:
@@ -290,6 +315,7 @@ class Job:
                     else:
                         input_slice_encoded = input_slice
                     slice_object['data'] = input_slice_encoded
+
                 input_set_encoded.append(slice_object)
 
         job_input = []
@@ -320,6 +346,7 @@ class Job:
             'dcp_node_js': self.node_js,
             'dcp_events': self.events,
             'dcp_kvin': self.kvin,
+            'dcp_show_timings': self.show_timings,
             'dcp_remote_flags': self.remote,
             'dcp_remote_storage_location': self.remote_storage_location,
             'dcp_remote_storage_params': self.remote_storage_params,
@@ -341,9 +368,17 @@ class Job:
             'python_compress_output': self.compress_output_set,
             'python_colab_pickling': self.colab_pickling,
             'python_pyodide_wheels': self.pyodide_wheels,
+            'python_files_path': self.files_path,
+            'python_files_data': self.files_data,
+            'python_input_set_files': self.input_set_files,
         }
 
         node_output = node.run(self.python_deploy, run_parameters)
+
+        try:
+          self.id = node_output['jobId']
+        except:
+          print('Warning : Job ID not found.')
 
         result_set = node_output['jobOutput']
 
@@ -392,6 +427,22 @@ class Job:
                 self.imports(*module_element)
             else:
                 print('Warning: unsupported format for Job.imports:', element_type)
+
+    def files(self, *files_arguments):
+        # adds files to be made available in the worker virtual file system
+        for file_element in files_arguments:
+            element_type = type(file_element)
+            # TODO: add support for user-submitted data buffers
+            # TODO: add support for user-submitted byte strings
+            # TODO: add support for user-submitted remote file urls
+            if (element_type is str):
+                self.files_path.append(file_element)
+                file_data = self.__file_writer(file_element)
+                self.files_data[file_element] = file_data
+            elif (element_type is list or element_type is tuple):
+                self.files(*file_element)
+            else:
+                print('Warning: unsupported format for Job.files:', element_type)
 
     def set_result_storage(self, remote_storage_location, remote_storage_params = {}):
         self.remote_storage_location = remote_storage_location

@@ -181,6 +181,8 @@
                 {
                     console.log('Accepted :', job.id);
 
+                    jobId = job.id;
+
                     // TODO : make contingent on certain conditions or flags
                     // TODO : configurable result threshold for resolving
                     // TODO : configurable timer value, flag for interval vs single-shot timeout
@@ -319,18 +321,23 @@
             }
         }
 
+        if (!jobId) jobId = job.id;
+
         // this the end of the redeployment zone
 
         // nothing after this point should ever be called more than once as part of the same user-submitted job.
         // time metrics especially must account for all redeployment attempts, and can never reset in between.
 
-        const averageSliceTime = jobTimings.reduce((a, b) => a + b) / jobResults.length;
-        const totalJobTime = Date.now() - jobStartTime;
+        if (dcp_show_timings)
+        {
+            const averageSliceTime = jobTimings.reduce((a, b) => a + b) / jobResults.length;
+            const totalJobTime = Date.now() - jobStartTime;
 
-        console.log('Total Elapsed Job Time: ' + (totalJobTime / 1000).toFixed(2) + ' s');
-        console.log('Mean Elapsed Worker Time Per Slice: ' + averageSliceTime + ' s');
-        console.log('Mean Elapsed Client Time Per Unique Slice: ' + ((totalJobTime / 1000) / jobResults.length).toFixed(2) + ' s');
-
+            console.log('Total Elapsed Job Time: ' + (totalJobTime / 1000).toFixed(2) + ' s');
+            console.log('Mean Elapsed Worker Time Per Slice: ' + averageSliceTime + ' s');
+            console.log('Mean Elapsed Client Time Per Unique Slice: ' + ((totalJobTime / 1000) / jobResults.length).toFixed(2) + ' s');
+        }
+        
         return jobResults;
     }
 
@@ -367,6 +374,9 @@
             python_compress_output,
             python_colab_pickling,
             python_pyodide_wheels,
+            python_files_path,
+            python_files_data,
+            python_input_set_files,
         ];
     }
     else
@@ -409,6 +419,8 @@
         inputSet.push(myItem);
         return [];
     });
+
+    jobId = null;
 
     try
     {
