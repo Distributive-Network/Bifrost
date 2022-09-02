@@ -346,6 +346,7 @@ class Job:
             'dcp_node_js': self.node_js,
             'dcp_events': self.events,
             'dcp_kvin': self.kvin,
+            'dcp_show_timings': self.show_timings,
             'dcp_remote_flags': self.remote,
             'dcp_remote_storage_location': self.remote_storage_location,
             'dcp_remote_storage_params': self.remote_storage_params,
