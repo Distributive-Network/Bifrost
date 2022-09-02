@@ -328,13 +328,16 @@
         // nothing after this point should ever be called more than once as part of the same user-submitted job.
         // time metrics especially must account for all redeployment attempts, and can never reset in between.
 
-        const averageSliceTime = jobTimings.reduce((a, b) => a + b) / jobResults.length;
-        const totalJobTime = Date.now() - jobStartTime;
+        if (dcp_show_timings)
+        {
+            const averageSliceTime = jobTimings.reduce((a, b) => a + b) / jobResults.length;
+            const totalJobTime = Date.now() - jobStartTime;
 
-        console.log('Total Elapsed Job Time: ' + (totalJobTime / 1000).toFixed(2) + ' s');
-        console.log('Mean Elapsed Worker Time Per Slice: ' + averageSliceTime + ' s');
-        console.log('Mean Elapsed Client Time Per Unique Slice: ' + ((totalJobTime / 1000) / jobResults.length).toFixed(2) + ' s');
-
+            console.log('Total Elapsed Job Time: ' + (totalJobTime / 1000).toFixed(2) + ' s');
+            console.log('Mean Elapsed Worker Time Per Slice: ' + averageSliceTime + ' s');
+            console.log('Mean Elapsed Client Time Per Unique Slice: ' + ((totalJobTime / 1000) / jobResults.length).toFixed(2) + ' s');
+        }
+        
         return jobResults;
     }
 
