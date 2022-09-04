@@ -1,29 +1,7 @@
 async function workFunction(
     sliceData,// input slice, primary arg to user-provided function
-    sliceParameters,// shared positional parameters, secondary args to user-provided function
-    sliceNamedParameters,// shared keyword parameters, tertiary args to user-provided function
-    sliceFunction,// user-provided function to be run on input slice
-    pythonModules,// user-provided python module scripts to be imported into environment
-    pythonPackages,// dcp-provided pyodidie packages to be loaded into environment
-    pythonImports,// user-provided list of python import names to be imported into environment
-    pythonInitWorker,// dcp-provided python function to initialize environment
-    pythonComputeWorker,// dpc-provided python function to handle work function
-    pythonPickleFunction,// flag which indicates that the work function is a cloudpickle object
-    pythonPickleArguments,// flag which indicates that the shared arguments are a cloudpickle object
-    pythonPickleInput,// flag which indicates that the input slice is a cloudpickle object
-    pythonPickleOutput,// flag which indicates that the output slice should be a cloudpickle object
-    pythonEncodeArguments,// flag which indicates that the shared arguments are base64 encoded strings
-    pythonEncodeInput,// flag which indicates that the input slice is a base64 encoded string
-    pythonEncodeOutput,// flag which indicates that the output slice should be a base64 encoded string
-    pythonCompressFunction,// flag which indicates that the work function has been compressed
-    pythonCompressArguments,// flag which indicates that the shared arguments have been compressed
-    pythonCompressInput,// flag which indicates that the input slice has been compressed
-    pythonCompressOutput,// flag which indicates that the output slice should be compressed
-    pythonColabPickling,// flag which indicates that all pickling was done in a colab without cloudpickle
-    pythonPyodideWheels = false,// indicates a Pyodide version greater than 20, informing the initialization steps
-    pythonFilesPath = [],// list of filenames for user-submitted files to be saved to virtual file system
-    pythonFilesData = {},// encoded binary data for user-submitted files, with filenames as dict key
-    pythonInputSetFiles = false,// flag which indicates the input slice includes a file binary
+    workerParameters,// dictionary of supplemental args, libraries, functions, and files
+    workerConfigFlags,// dictionary of boolean flags prescribing various encoding-related behaviours
 )
 {
   const startTime = Date.now();
@@ -36,7 +14,7 @@ async function workFunction(
 
     if (typeof location !== 'undefined')
     {
-      if (pythonPyodideWheels)
+      if (workerConfigFlags['pyodide']['wheels'])
       {
           location = globalThis.location = {
               href: 'https://portal.distributed.computer/dcp-client/libexec/sandbox/',
@@ -184,7 +162,7 @@ async function workFunction(
     }
     globalThis.importScripts = importScripts;
 
-    if (pythonPyodideWheels) globalThis.URL = function(...args){ return args[0] };
+    if (workerConfigFlags['pyodide']['wheels']) globalThis.URL = function(...args){ return args[0] };
 
     globalThis.WebAssembly.instantiateStreaming = null;
 
@@ -229,7 +207,7 @@ async function workFunction(
         return fileDecode;
     }
 
-    let pyPath = pythonPyodideWheels ? '/' : './';
+    let pyPath = workerConfigFlags['pyodide']['wheels'] ? '/' : './';
 
     let pyFiles =
     [
@@ -240,7 +218,7 @@ async function workFunction(
       { filepath: pyPath, filename: 'pyodide.js'},
     ];
 
-    if (pythonPyodideWheels)
+    if (workerConfigFlags['pyodide']['wheels'])
     {
         pyFiles.push({ filepath: pyPath, filename: 'package.json'});
         pyFiles.push({ filepath: pyPath, filename: 'distutils.tar'});
@@ -251,7 +229,7 @@ async function workFunction(
         pyFiles.push({ filepath: pyPath, filename: 'distutils.js'});
     }
 
-    let jsonFileName = pythonPyodideWheels ? 'repodata.json' : 'packages.json';
+    let jsonFileName = workerConfigFlags['pyodide']['wheels'] ? 'repodata.json' : 'packages.json';
 
     let jsonFileKey = pyPath + jsonFileName;
     if (!pyDcp[jsonFileKey])
@@ -286,7 +264,7 @@ async function workFunction(
             if (!requestAncestors.includes(dependency)) addToPyFiles(dependency, requestAncestors);
         }
 
-        if (!pythonPyodideWheels)
+        if (!workerConfigFlags['pyodide']['wheels'])
         {
             const packageFileData = packageName + '.data';
             pyFiles.push({ filepath: pyPath, filename: packageFileData });
@@ -296,11 +274,11 @@ async function workFunction(
         pyFiles.push({ filepath: pyPath, filename: packageFileJs });
     }
 
-    if (!pythonPyodideWheels) pythonPackages.push('cloudpickle');
+    if ( workerConfigFlags['pyodide']['wheels'] == false && workerConfigFlags['cloudpickle'] == true ) workerParameters['python_packages'].push('cloudpickle');
 
-    for (let i = 0; i < pythonPackages.length; i++)
+    for (let i = 0; i < workerParameters['python_packages'].length; i++)
     {
-      const packageName = pythonPackages[i];
+      const packageName = workerParameters['python_packages'][i];
 
       addToPyFiles(packageName);
     }
@@ -329,7 +307,7 @@ async function workFunction(
     progress();
 
     if (!globalThis.pyScope) globalThis.pyScope = {};
-    pyScope = pythonPyodideWheels ? globalThis : {
+    pyScope = workerConfigFlags['pyodide']['wheels'] ? globalThis : {
         setTimeout: globalThis.setTimeout,
     };
     pyScope['dcp'] = {
@@ -366,60 +344,61 @@ async function workFunction(
         if ( loadedKeys.indexOf(packageName) === -1 ) await pyodide.loadPackage([packageName]);
     }
 
-    for (let i = 0; i < pythonPackages.length; i++)
+    for (let i = 0; i < workerParameters['python_packages'].length; i++)
     {
-        await loadPyPackage(pythonPackages[i]); // XXX AWAIT PROMISE ARRAY, IF ORDER CAN BE RESOLVED?
+        await loadPyPackage(workerParameters['python_packages'][i]); // XXX AWAIT PROMISE ARRAY, IF ORDER CAN BE RESOLVED?
 
         progress();
     }
 
-    pyodide.globals.set('input_imports', pythonImports);
-    pyodide.globals.set('input_modules', pythonModules);
+    pyodide.globals.set('input_imports', workerParameters['python_imports']);
+    pyodide.globals.set('input_modules', workerParameters['python_modules']);
 
-    if (pythonInputSetFiles == true)
+    if (workerConfigFlags['files']['input'])
     {
-        pythonFilesPath.push(sliceData['path']);
-        pythonFilesData[sliceData['path']] = sliceData['binary'];
+        workerParameters['python_files']['files_path'].push(sliceData['path']);
+        workerParameters['python_files']['files_data'][sliceData['path']] = sliceData['binary'];
     }
 
-    pyodide.globals.set('input_files_path', pythonFilesPath);
-    pyodide.globals.set('input_files_data', pythonFilesData);
+    pyodide.globals.set('input_files_path', workerParameters['python_files']['files_path']);
+    pyodide.globals.set('input_files_data', workerParameters['python_files']['files_data']);
 
-    await pyodide.runPython(pythonInitWorker);
+    await pyodide.runPython(workerParameters['python_functions']['init']);
+
+    /*
+    progress(1);
+
+    pyLog.push('// PYTHON LOG STOP //');
+
+    const stopTime = ((Date.now() - startTime) / 1000).toFixed(2);
+
+    return {
+        output: 0,
+        index: sliceData['index'],
+        elapsed: stopTime,
+        stdout: pyLog,
+    };
+    */
 
     progress();
 
-    pyodide.globals.set('pickle_function', pythonPickleFunction);
-    pyodide.globals.set('pickle_arguments', pythonPickleArguments);
-    pyodide.globals.set('pickle_input', pythonPickleInput);
-    pyodide.globals.set('pickle_output', pythonPickleOutput);
+    pyodide.globals.set('worker_config_flags', workerConfigFlags);
 
-    pyodide.globals.set('encode_arguments', pythonEncodeArguments);
-    pyodide.globals.set('encode_input', pythonEncodeInput);
-    pyodide.globals.set('encode_output', pythonEncodeOutput);
-
-    pyodide.globals.set('compress_function', pythonCompressFunction);
-    pyodide.globals.set('compress_arguments', pythonCompressArguments);
-    pyodide.globals.set('compress_input', pythonCompressInput);
-    pyodide.globals.set('compress_output', pythonCompressOutput);
-
-    pyodide.globals.set('colab_pickling', pythonColabPickling);
-
-    if (pythonPickleFunction)
+    if (workerConfigFlags['pickle']['function'])
     {
-        pyodide.globals.set('input_function', sliceFunction);
+        pyodide.globals.set('input_function', workerParameters['slice_workload']['workload_function']);
     }
     else
     {
-        await pyodide.runPython(sliceFunction['code']);
-        pyodide.globals.set('input_function', sliceFunction['name']);
+        await pyodide.runPython(workerParameters['slice_workload']['workload_function']['code']);
+        pyodide.globals.set('input_function', workerParameters['slice_workload']['workload_function']['name']);
     }
 
     pyodide.globals.set('input_data', sliceData['data']);
-    pyodide.globals.set('input_parameters', sliceParameters);
-    pyodide.globals.set('input_keyword_parameters', sliceNamedParameters);
+    pyodide.globals.set('input_parameters', workerParameters['slice_workload']['workload_arguments']);
+    pyodide.globals.set('input_keyword_parameters', workerParameters['slice_workload']['workload_named_arguments']);
 
-    await pyodide.runPython(pythonComputeWorker);
+    await pyodide.runPython(workerParameters['python_functions']['compute']);
 
     progress(1);
 
@@ -428,7 +407,7 @@ async function workFunction(
     let sliceOutput = pyodide.globals.get('output_data');
 
     // TODO: track and verify expected output type, when pickling and encoding are off
-    if ( !pythonPickleOutput && pyodide.isPyProxy(sliceOutput) ) sliceOutput = sliceOutput.toJs();
+    if ( !workerConfigFlags['pickle']['output'] && pyodide.isPyProxy(sliceOutput) ) sliceOutput = sliceOutput.toJs();
 
     const stopTime = ((Date.now() - startTime) / 1000).toFixed(2);
 

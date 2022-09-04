@@ -111,6 +111,7 @@ class Job:
         self.pickle_input_set = True
         self.pickle_output_set = True
         # TODO: more robust integration of non-pickled encoding
+        self.encode_work_function = False
         self.encode_work_arguments = False
         self.encode_input_set = False
         self.encode_output_set = False
@@ -120,7 +121,7 @@ class Job:
         self.compress_output_set = True
         self.new_context = False # clears the nodejs stream after every job if true
         self.kvin = False # uses the kvin serialization library to decode job results
-        self.colab_pickling = False # use non-cloud pickling for colab deployment
+        self.cloudpickle = True # use non-cloud pickling for colab deployment
         self.pyodide_wheels = False # use newer version of pyodide which uses .whl packages
         self.show_timings = False # per-slice worker, per-slice client, and total overall
 
@@ -152,12 +153,11 @@ class Job:
 
         import bifrost
 
-        if hasattr(cloudpickle, 'register_pickle_by_value'):
-            cloudpickle.register_pickle_by_value(bifrost)
-
-        if is_colab():
+        if is_colab() or self.cloudpickle == False:
             data_pickled = pickle.dumps( input_data, protocol=4 )
         else:
+            if hasattr(cloudpickle, 'register_pickle_by_value'):
+                cloudpickle.register_pickle_by_value(bifrost)
             data_pickled = cloudpickle.dumps( input_data )
         if compress_data == True:
             data_compressed = zlib.compress( data_pickled )
@@ -172,12 +172,12 @@ class Job:
         data_decoded = self.__output_decoder( output_data )
         if decompress_data == True:
             data_decompressed = zlib.decompress( data_decoded )
-            if is_colab() or self.colab_pickling == True:
+            if is_colab() or self.cloudpickle == False:
                 data_unpickled = pickle.loads( data_decompressed )
             else:
                 data_unpickled = cloudpickle.loads( data_decompressed )
         else:
-            if is_colab() or self.colab_pickling == True:
+            if is_colab() or self.cloudpickle == False:
                 data_unpickled = pickle.loads( data_decoded )
             else:
                 data_unpickled = cloudpickle.loads( data_decoded )
@@ -233,14 +233,13 @@ class Job:
             self.pickle_work_function = False
 
         if self.pyodide_wheels == True:
-            self.colab_pickling = True
-            self.pickle_work_function = False
-            self.pickle_work_arguments = False
-            self.pickle_input_set = False
+            self.cloudpickle = False
             self.pickle_output_set = True
 
         if is_colab():
-            self.colab_pickling = True
+            self.cloudpickle = False
+
+        if self.cloudpickle == False:
             self.pickle_work_function = False
 
         if self.node_js == True:
@@ -328,49 +327,87 @@ class Job:
         if self.node_js == False and self.debug == False:
             self.events['console'] = False
 
-        run_parameters = {
-            'deploy_function': self.python_wrapper,
+        dcp_parameters = {
             'dcp_data': job_input,
-            'dcp_parameters': work_arguments_encoded,
-            'dcp_keyword_parameters': work_keyword_arguments_encoded,
-            'dcp_function': work_function_encoded,
-            'dcp_multiplier': self.multiplier,
-            'dcp_local': self.local_cores,
-            'dcp_collate': self.collate_results,
-            'dcp_estimation': self.estimation_slices,
-            'dcp_greedy': self.greedy_estimation,
-            'dcp_groups': self.compute_groups,
-            'dcp_public': self.public,
-            'dcp_requirements': self.requirements,
+            'dcp_wrapper': self.python_wrapper,
             'dcp_debug': self.debug,
-            'dcp_node_js': self.node_js,
             'dcp_events': self.events,
             'dcp_kvin': self.kvin,
+            'dcp_local': self.local_cores,
+            'dcp_multiplier': self.multiplier,
+            'dcp_node_js': self.node_js,
             'dcp_show_timings': self.show_timings,
             'dcp_remote_flags': self.remote,
             'dcp_remote_storage_location': self.remote_storage_location,
             'dcp_remote_storage_params': self.remote_storage_params,
-            'python_packages': self.require_path,
+        }
+
+        job_parameters = {
+            'job_collate': self.collate_results,
+            'job_debug': self.debug,
+            'job_estimation': self.estimation_slices,
+            'job_greedy': self.greedy_estimation,
+            'job_groups': self.compute_groups,
+            'job_public': self.public,
+            'job_requirements': self.requirements,
+        }
+
+        worker_parameters = {
+            'slice_workload': {
+                'workload_function': work_function_encoded,
+                'workload_arguments': work_arguments_encoded,
+                'workload_named_arguments': work_keyword_arguments_encoded,
+            },
             'python_modules': work_imports_encoded,
             'python_imports': self.python_imports,
-            'python_init_worker': self.python_init,
-            'python_compute_worker': self.python_compute,
-            'python_pickle_function': self.pickle_work_function,
-            'python_pickle_arguments': self.pickle_work_arguments,
-            'python_pickle_input': self.pickle_input_set,
-            'python_pickle_output': self.pickle_output_set,
-            'python_encode_arguments': self.encode_work_arguments,
-            'python_encode_input': self.encode_input_set,
-            'python_encode_output': self.encode_output_set,
-            'python_compress_function': self.compress_work_function,
-            'python_compress_arguments': self.compress_work_arguments,
-            'python_compress_input': self.compress_input_set,
-            'python_compress_output': self.compress_output_set,
-            'python_colab_pickling': self.colab_pickling,
-            'python_pyodide_wheels': self.pyodide_wheels,
-            'python_files_path': self.files_path,
-            'python_files_data': self.files_data,
-            'python_input_set_files': self.input_set_files,
+            'python_packages': self.require_path,
+            'python_files': {
+                'files_path': self.files_path,
+                'files_data': self.files_data,
+            },
+            'python_functions': {
+                'init': self.python_init,
+                'compute': self.python_compute,
+            },
+        }
+
+        worker_config_flags = {
+            'pickle': {
+                'function': self.pickle_work_function,
+                'arguments': self.pickle_work_arguments,
+                'input': self.pickle_input_set,
+                'output': self.pickle_output_set,
+            },
+            'encode': {
+                'function': self.encode_work_function,
+                'arguments': self.encode_work_arguments,
+                'input': self.encode_input_set,
+                'output': self.encode_output_set,
+            },
+            'compress': {
+                'function': self.compress_work_function,
+                'arguments': self.compress_work_arguments,
+                'input': self.compress_input_set,
+                'output': self.compress_output_set,
+            },
+            'files': {
+                'input': self.input_set_files,
+            },
+            'pyodide': {
+                'wheels': self.pyodide_wheels,
+            },
+            'cloudpickle': self.cloudpickle,
+        }
+
+        run_parameters = {
+            #'client_parameters': {
+            #    'bifrost': dcp_parameters,
+            #    'job_handle': job_parameters,
+            #}
+            'dcp_parameters': dcp_parameters,
+            'job_parameters': job_parameters,
+            'worker_parameters': worker_parameters,
+            'worker_config_flags': worker_config_flags,
         }
 
         node_output = node.run(self.python_deploy, run_parameters)

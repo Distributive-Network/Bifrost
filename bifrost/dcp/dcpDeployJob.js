@@ -10,9 +10,9 @@
 
         let compute = await require('dcp/compute');
 
-        if (dcp_debug) console.log('DCP Client Build :', await require('dcp/build'));
+        if (dcp_parameters['dcp_debug']) console.log('DCP Client Build :', await require('dcp/build'));
 
-        let kvin = (dcp_kvin) ? require('kvin') : null;
+        let kvin = (dcp_parameters['dcp_kvin']) ? require('kvin') : null;
 
         // bifrost can decide to force redeployments at any point during the job's runtime.
         // this can be done to save a job from failing, or to expedite its completion.
@@ -28,27 +28,27 @@
 
         let job = compute.for(inputSet, workFunction, sharedArguments);
 
-        job.collateResults = dcp_collate;
+        job.collateResults = job_parameters['job_collate'];
 
-        if (dcp_groups.length > 0) job.computeGroups = dcp_groups;
+        if (job_parameters['job_groups'].length > 0) job.computeGroups = job_parameters['job_groups'];
 
-        job.estimationSlices = dcp_estimation;
+        job.estimationSlices = job_parameters['job_estimation'];
 
-        job.greedyEstimation = dcp_greedy;
+        job.greedyEstimation = job_parameters['job_greedy'];
 
-        job.public = dcp_public;
+        job.public = job_parameters['job_public'];
 
-        job.debug = dcp_debug;
+        job.debug = job_parameters['job_debug'];
 
         job.requirements.discrete = false;
 
         // set module requirements for python job
-        if (dcp_node_js == false)
+        if (dcp_parameters['dcp_node_js'] == false)
         {
-            let requiresPackages = python_packages;
-            let versionNamespace = (python_pyodide_wheels == false) ? 'pyodide' : 'pyodide-0.21.0a2';
+            let requiresPackages = worker_parameters['python_packages'];
+            let versionNamespace = (worker_config_flags['pyodide']['wheels'] == false) ? 'pyodide' : 'pyodide-0.21.0a2';
 
-            let pyodideShards = (python_pyodide_wheels == false) ? null : require('./dcp/pyodide/shards.json');
+            let pyodideShards = (worker_config_flags['pyodide']['wheels'] == false) ? null : require('./dcp/pyodide/shards.json');
 
             function requiresShards(pyFile)
             {
@@ -77,7 +77,7 @@
 
             requiresShards('pyodide.asm.wasm');
 
-            if (python_pyodide_wheels == false)
+            if (worker_config_flags['pyodide']['wheels'] == false)
             {
                 job.requires(versionNamespace + '-distutils.data/distutils.data.js');
                 job.requires(versionNamespace + '-distutils.js/distutils.js.js');
@@ -90,7 +90,7 @@
                 job.requires(versionNamespace + '-repodata.json/repodata.json.js');
             }
 
-            let pyodideDepends = (python_pyodide_wheels == false) ? require('./dcp/pyodide/packages.json') : require('./dcp/pyodide/repodata.json');
+            let pyodideDepends = (worker_config_flags['pyodide']['wheels'] == false) ? require('./dcp/pyodide/packages.json') : require('./dcp/pyodide/repodata.json');
 
             let pyodideRequireFiles = pyodideDepends.packages;
             let pyodideRequireFilesKeys = Object.keys(pyodideRequireFiles);
@@ -116,7 +116,7 @@
                     if (!requestAncestors.includes(dependency)) addToJobRequires(dependency, requestAncestors);
                 }
 
-                if (python_pyodide_wheels == false)
+                if (worker_config_flags['pyodide']['wheels'] == false)
                 {
                     const packageFileDataPath = versionNamespace + '-' + packageName.toLowerCase() + '.data/';
                     const packageFileData = packageName + '.data.js';
@@ -136,19 +136,19 @@
                 }
             }
 
-            if (python_pyodide_wheels == false) requiresPackages.push('cloudpickle');
+            if (worker_config_flags['pyodide']['wheels'] == false && worker_config_flags['cloudpickle'] == true) requiresPackages.push('cloudpickle');
 
-            for (let i = 0; i < python_packages.length; i++)
+            for (let i = 0; i < worker_parameters['python_packages'].length; i++)
             {
-                let thisPackageName = python_packages[i];
+                let thisPackageName = worker_parameters['python_packages'][i];
                 addToJobRequires(thisPackageName);
             }
         }
         else
         {
-            for (let i = 0; i < python_packages.length; i++)
+            for (let i = 0; i < worker_parameters['python_packages'].length; i++)
             {
-                let thisPackageName = python_packages[i];
+                let thisPackageName = worker_parameters['python_packages'][i];
                 job.requires(thisPackageName);
             }
         }
@@ -170,7 +170,7 @@
             const fetchResultCount = Array.from(job.results).length;
             if ( job.debug ) console.log('Job Result Fetch Count', ':', fetchResultCount, ':', Date.now());
             // TODO : support for (myMultiplier > 1)
-            if ( !dcp_kvin && fetchResultCount >= inputSet.length ) resolve({ bifrostResultHandle: job.results });
+            if ( !dcp_parameters['dcp_kvin'] && fetchResultCount >= inputSet.length ) resolve({ bifrostResultHandle: job.results });
         }
 
         async function dcpPromise()
@@ -217,7 +217,7 @@
                 {
                     let kvinMimeString = 'data:application/x-kvin,';
 
-                    if (dcp_kvin && typeof myResult.result == 'string' && myResult.result.includes(kvinMimeString)) myResult.result = kvin.deserialize(myResult.result.slice(kvinMimeString.length));
+                    if (dcp_parameters['dcp_kvin'] && typeof myResult.result == 'string' && myResult.result.includes(kvinMimeString)) myResult.result = kvin.deserialize(myResult.result.slice(kvinMimeString.length));
 
                     if (myResult.result.hasOwnProperty('output'))
                     {
@@ -231,7 +231,7 @@
 
                             console.log('Computed : ' + percentComputed + '%');
 
-                            if ( (dcp_node_js == false) && job.debug ) console.log(myResult.result.index, ': Python Log :', myResult.result.stdout);
+                            if ( (dcp_parameters['dcp_node_js'] == false) && job.debug ) console.log(myResult.result.index, ': Python Log :', myResult.result.stdout);
                         }
 
                         let emptyIndexArray = jobResults.filter(thisResult => thisResult.length == 0);
@@ -246,7 +246,7 @@
                     else if (myResult.result.hasOwnProperty('error'))
                     {
                         console.log(myResult.result.index, ': Slice Error :', myResult.result.error);
-                        if (dcp_node_js == false) console.log(myResult.result.index, ': Python Log :', myResult.result.stdout);
+                        if (dcp_parameters['dcp_node_js'] == false) console.log(myResult.result.index, ': Python Log :', myResult.result.stdout);
                     }
                     else
                     {
@@ -257,9 +257,9 @@
                     jobResultInterval = setInterval(resultIntervalFunction, 60000);
                 }
 
-                for ( event in dcp_events )
+                for ( event in dcp_parameters['dcp_events'] )
                 {
-                    if (dcp_events[event] && eventFunctions[event]) job.on(event, eventFunctions[event]);
+                    if (dcp_parameters['dcp_events'][event] && eventFunctions[event]) job.on(event, eventFunctions[event]);
                 }
 
                 let execResults;
@@ -288,9 +288,9 @@
 
         clearInterval(jobResultInterval);
 
-        for ( event in dcp_events )
+        for ( event in dcp_parameters['dcp_events'] )
         {
-            if (dcp_events[event] && eventFunctions[event]) job.removeEventListener(event, eventFunctions[event]);
+            if (dcp_parameters['dcp_events'][event] && eventFunctions[event]) job.removeEventListener(event, eventFunctions[event]);
         }
 
         if ( dcpPromiseResults['bifrostResultHandle'] )
@@ -312,7 +312,7 @@
                 else if (myResult.hasOwnProperty('error'))
                 {
                     console.log(myResult.index, ': Slice Error :', myResult.error);
-                    if (dcp_node_js == false) console.log(myResult.index, ': Python Log :', myResult.stdout);
+                    if (dcp_parameters['dcp_node_js'] == false) console.log(myResult.index, ': Python Log :', myResult.stdout);
                 }
                 else
                 {
@@ -328,7 +328,7 @@
         // nothing after this point should ever be called more than once as part of the same user-submitted job.
         // time metrics especially must account for all redeployment attempts, and can never reset in between.
 
-        if (dcp_show_timings)
+        if (dcp_parameters['dcp_show_timings'])
         {
             const averageSliceTime = jobTimings.reduce((a, b) => a + b) / jobResults.length;
             const totalJobTime = Date.now() - jobStartTime;
@@ -341,42 +341,20 @@
         return jobResults;
     }
 
-    let jobData = dcp_data;
-    let jobMultiplier = dcp_multiplier;
-    let jobLocal = dcp_local;
+    let jobData = dcp_parameters['dcp_data'];
+    let jobMultiplier = dcp_parameters['dcp_multiplier'];
+    let jobLocal = dcp_parameters['dcp_local'];
 
     let workFunction;
     let sharedArguments;
 
-    if (dcp_node_js == false)
+    if (dcp_parameters['dcp_node_js'] == false)
     {
-        workFunction = deploy_function;
+        workFunction = dcp_parameters['dcp_wrapper'];
 
         sharedArguments = [
-            dcp_parameters,
-            dcp_keyword_parameters,
-            dcp_function,
-            python_modules,
-            python_packages,
-            python_imports,
-            python_init_worker,
-            python_compute_worker,
-            python_pickle_function,
-            python_pickle_arguments,
-            python_pickle_input,
-            python_pickle_output,
-            python_encode_arguments,
-            python_encode_input,
-            python_encode_output,
-            python_compress_function,
-            python_compress_arguments,
-            python_compress_input,
-            python_compress_output,
-            python_colab_pickling,
-            python_pyodide_wheels,
-            python_files_path,
-            python_files_data,
-            python_input_set_files,
+            worker_parameters,
+            worker_config_flags,
         ];
     }
     else
@@ -387,7 +365,7 @@
             {
                 const startTime = Date.now();
                 progress(0);
-                let sliceFunction = ${dcp_function};
+                let sliceFunction = ${worker_parameters['slice_workload']['workload_function']};
                 let sliceOutput = await sliceFunction(sliceData.data, ...sliceParameters);
                 progress(1);
                 const stopTime = ((Date.now() - startTime) / 1000).toFixed(2);
