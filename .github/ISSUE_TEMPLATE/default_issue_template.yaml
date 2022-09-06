@@ -30,6 +30,7 @@ body:
       description: Bifrost installed from
       options:
         - source
+        - wheel
         #- Pypi
     validations:
       required: true
