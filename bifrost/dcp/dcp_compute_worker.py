@@ -58,17 +58,11 @@ def cereal_box(target_name, target_data):
 
   return target_data
 
-# deserialization of args and kwargs
+# deserialization of compute elements
 
 compute_args = cereal_bowl('arguments', input_parameters)
 compute_kargs = cereal_bowl('arguments', input_keyword_parameters)
-
-# deserialization of input slice
-
 compute_data = cereal_bowl('input', input_data)
-
-# deserialization of work function
-
 compute_function = cereal_bowl('function', input_function)
 
 # run compute function with slice input and args
