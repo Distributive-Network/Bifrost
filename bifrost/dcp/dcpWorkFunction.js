@@ -27,10 +27,14 @@ async function workFunction(
 )
 {
   const startTime = Date.now();
-
+    
   try
   {
     progress();
+
+    // temporary emergency fix to offset impact of broken string serialization
+    if (pythonInitWorker[0] == '"') pythonInitWorker = pythonInitWorker.slice(1,-1);
+    if (pythonComputeWorker[0] == '"') pythonComputeWorker = pythonComputeWorker.slice(1,-1);
 
     if (!globalThis.pyDcp) globalThis.pyDcp = {};
 
