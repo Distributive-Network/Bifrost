@@ -9,8 +9,7 @@ on:
   pull_request:
 
 jobs:
-  run_tests:
-    name: "run-tests"
+  test:
     runs-on: ubuntu-latest
     test_matrix:
       strategy:
