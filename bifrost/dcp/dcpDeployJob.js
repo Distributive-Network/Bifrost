@@ -45,7 +45,6 @@
         // set module requirements for python job
         if (dcp_parameters['dcp_node_js'] == false)
         {
-            let requiresPackages = worker_parameters['python_packages'];
             let versionNamespace = (worker_config_flags['pyodide']['wheels'] == false) ? 'pyodide' : 'pyodide-0.21.0a2';
 
             let pyodideShards = (worker_config_flags['pyodide']['wheels'] == false) ? null : require('./dcp/pyodide/shards.json');
@@ -136,7 +135,7 @@
                 }
             }
 
-            if (worker_config_flags['pyodide']['wheels'] == false && worker_config_flags['cloudpickle'] == true) requiresPackages.push('cloudpickle');
+            if (worker_config_flags['pyodide']['wheels'] == false && worker_config_flags['cloudpickle'] == true) worker_parameters['python_packages'].push('cloudpickle');
 
             for (let i = 0; i < worker_parameters['python_packages'].length; i++)
             {
