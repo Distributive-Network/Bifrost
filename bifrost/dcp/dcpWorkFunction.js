@@ -10,6 +10,8 @@ async function workFunction(
   {
     progress();
 
+    if (typeof workerParameters == 'string') workerParameters = JSON.parse(workerParameters);
+
     if (!globalThis.pyDcp) globalThis.pyDcp = {};
 
     if (typeof location !== 'undefined')
