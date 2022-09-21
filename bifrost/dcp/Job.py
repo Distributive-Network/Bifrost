@@ -111,10 +111,10 @@ class Job:
         self.pickle_input_set = True
         self.pickle_output_set = True
         # TODO: more robust integration of non-pickled encoding
-        self.encode_work_function = False
-        self.encode_work_arguments = False
-        self.encode_input_set = False
-        self.encode_output_set = False
+        self.encode_work_function = True
+        self.encode_work_arguments = True
+        self.encode_input_set = True
+        self.encode_output_set = True
         self.compress_work_function = True
         self.compress_work_arguments = True
         self.compress_input_set = True
