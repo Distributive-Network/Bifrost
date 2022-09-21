@@ -153,7 +153,7 @@
         }
         job.requires('aitf-compress/pako');
 
-        job.requires('kvin');
+        job.requires('bifrost-kvin/bf-kvin.js');
 
         let eventFunctions = {
             accepted: () => {},

@@ -16,7 +16,7 @@ async function workFunction(
       if (typeof inputParameter == 'string') inputParameter = JSON.parse(inputParameter);
       if (inputParameter["_serializeVerId"])
       {
-        inputParameter = require('kvin').unmarshal(inputParameter);
+        inputParameter = require('bf-kvin.js').unmarshal(inputParameter);
       }
       return inputParameter;
     }
