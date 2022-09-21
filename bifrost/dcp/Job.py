@@ -226,6 +226,16 @@ class Job:
 
         from bifrost import node
 
+        # zlib compression makes string encoding mandatory for any given input in the present workflow
+        if self.compress_work_function == True:
+          self.encode_work_function == True
+        if self.compress_work_arguments == True:
+          self.encode_work_arguments == True
+        if self.compress_input_set == True:
+          self.encode_input_set == True
+        if self.compress_output_set == True:
+          self.encode_output_set == True
+
         if self.input_set_files == True:
             self.pickle_work_function = False
 
