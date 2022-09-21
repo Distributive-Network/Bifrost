@@ -5,11 +5,12 @@ async function workFunction(
 )
 {
   const startTime = Date.now();
-
+    
   try
   {
     progress();
 
+    // temporary emergency fix to offset impact of broken string serialization
     function parameterValidation(inputParameter)
     {
       if (typeof inputParameter == 'string') inputParameter = JSON.parse(inputParameter);
@@ -19,7 +20,6 @@ async function workFunction(
       }
       return inputParameter;
     }
-
     sliceData = parameterValidation(sliceData);
     workerParameters = parameterValidation(workerParameters);
     workerConfigFlags = parameterValidation(workerConfigFlags);

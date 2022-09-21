@@ -30,6 +30,7 @@ body:
       description: Bifrost installed from
       options:
         - source
+        - wheel
         #- Pypi
     validations:
       required: true
@@ -82,7 +83,6 @@ body:
       description: Also tell us, what did you expect to happen?
       placeholder: Tell us what you see!
       value: "A bug happened!"
-      render: shell
     validations:
       required: true
   - type: textarea
