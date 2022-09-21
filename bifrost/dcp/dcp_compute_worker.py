@@ -31,15 +31,11 @@ def cereal_bowl(target_name, target_data):
   if config_flags['pickle'][target_name] == True:
     target_data = pickle_in( target_data )
   else:
-    if target_name == 'function':
-      # assign compute_function to previously evaluated function definition
-      target_data = locals()[target_data]
-    else:
-      # degenerate pythonic EAFP pattern; consider purging in favour of JsProxy type check
-      try:
-        target_data = target_data.to_py()
-      except AttributeError:
-        target_data = target_data
+    # degenerate pythonic EAFP pattern; consider purging in favour of JsProxy type check
+    try:
+      target_data = target_data.to_py()
+    except AttributeError:
+      target_data = target_data
 
   dcp.progress()
 
@@ -63,7 +59,11 @@ def cereal_box(target_name, target_data):
 compute_args = cereal_bowl('arguments', input_parameters)
 compute_kargs = cereal_bowl('arguments', input_keyword_parameters)
 compute_data = cereal_bowl('input', input_data)
-compute_function = cereal_bowl('function', input_function)
+
+if config_flags['pickle']['function'] == True:
+  compute_function = cereal_bowl('function', input_function)
+else:
+  compute_function = locals()[input_function]
 
 # run compute function with slice input and args
 
