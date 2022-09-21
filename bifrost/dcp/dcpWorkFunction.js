@@ -10,26 +10,19 @@ async function workFunction(
   {
     progress();
 
-    if (typeof sliceData == 'string') sliceData = JSON.parse(sliceData);
-    if (sliceData["_serializeVerId"])
+    function parameterValidation(inputParameter)
     {
-      const kvin = require('kvin');
-      sliceData = kvin.unmarshal(sliceData);
+      if (typeof inputParameter == 'string') inputParameter = JSON.parse(inputParameter);
+      if (inputParameter["_serializeVerId"])
+      {
+        inputParameter = require('kvin').unmarshal(inputParameter);
+      }
+      return inputParameter;
     }
 
-    if (typeof workerParameters == 'string') workerParameters = JSON.parse(workerParameters);
-    if (workerParameters["_serializeVerId"])
-    {
-      const kvin = require('kvin');
-      workerParameters = kvin.unmarshal(workerParameters);
-    }
-
-    if (typeof workerConfigFlags == 'string') workerConfigFlags = JSON.parse(workerConfigFlags);
-    if (workerConfigFlags["_serializeVerId"])
-    {
-      const kvin = require('kvin');
-      workerConfigFlags = kvin.unmarshal(workerConfigFlags);
-    }
+    sliceData = parameterValidation(sliceData);
+    workerParameters = parameterValidation(workerParameters);
+    workerConfigFlags = parameterValidation(workerConfigFlags);
 
     if (!globalThis.pyDcp) globalThis.pyDcp = {};
 
