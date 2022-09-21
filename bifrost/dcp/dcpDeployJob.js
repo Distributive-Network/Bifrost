@@ -153,6 +153,8 @@
         }
         job.requires('aitf-compress/pako');
 
+        job.requires('kvin');
+
         let eventFunctions = {
             accepted: () => {},
             complete: () => {},

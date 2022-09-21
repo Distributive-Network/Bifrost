@@ -11,6 +11,11 @@ async function workFunction(
     progress();
 
     if (typeof workerParameters == 'string') workerParameters = JSON.parse(workerParameters);
+    if (workerParameters["_serializeVerId"])
+    {
+      const kvin = require('kvin');
+      workerParameters = kvin.unmarshal(workerParameters);
+    }
 
     if (!globalThis.pyDcp) globalThis.pyDcp = {};
 
