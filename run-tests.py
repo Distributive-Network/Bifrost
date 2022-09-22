@@ -35,7 +35,7 @@ if __name__ == "__main__":
         parsed_filenames = [ 
             os.path.realpath(os.path.join( cwd, dirpath, filename) )
             for filename in filenames
-            if '.py' in filename
+            if '.test.py' in filename
         ]
         files_to_test += parsed_filenames
 
