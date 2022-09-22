@@ -5,19 +5,14 @@ import subprocess
 class bcolors:
     OKGREEN = '\033[92m'
     FAIL = '\033[91m'
+    ENDC = '\033[0m'
 
-
-def run_test(test_file):
-    process = subprocess.Popen(['python3', test_file], stdout = subprocess.PIPE, 
-            stderr=subprocess.PIPE)
+def run_test(test_file, cwd):
     try:
-        outs, errs = process.communicate(timeout=max_timeout)
-    except Exception as e:
-        process.kill()
-        outs, errs = process.communicate()
-    print(outs)
-    print(errs)
-    return process.returncode
+        retCode = subprocess.check_output(f"python3 {test_file}", shell=True, cwd = cwd)
+        return retCode
+    except subprocess.CalledProcessError as e:
+        return e.returncode
 
 
 
@@ -31,10 +26,22 @@ if __name__ == "__main__":
     parser.add_argument('--directory', type=str)
     args = parser.parse_args()
 
-    for dirpath, dirnames, filenames in os.walk(args.directory):
-        filenames = [ os.path.join( dirpath, filename) for filename in filenames ]
-        for test_file in filenames:
-            retcode = run_test(test_file, cwd=cwd)
-            print(retcode)
+    test_dir = os.path.realpath( args.directory )
+
+    files_to_test = []
+    for dirpath, dirnames, filenames in os.walk(test_dir):
+        if 'node_module' in dirpath:
+            continue
+        parsed_filenames = [ 
+            os.path.realpath(os.path.join( cwd, dirpath, filename) )
+            for filename in filenames
+            if '.py' in filename
+        ]
+        files_to_test += parsed_filenames
+
+    for i, test_file in enumerate(files_to_test):
+        print(f'{i+1}/{len(files_to_test)} - Beginning test of {test_file}')
+        retcode = run_test(test_file, cwd=test_dir)
+        print(retcode)
 
 

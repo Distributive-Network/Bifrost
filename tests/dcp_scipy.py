@@ -1,9 +1,13 @@
 from bifrost import dcp
 
 def work_function(input_slice, fs, N):
-
-  from js import dcp
-  dcp.progress()
+  dcp_available = False
+  try:
+    from js import dcp
+    dcp.progress()
+    dcp_available = True
+  except Exception as e:
+    pass
 
   import numpy as np
   from scipy import signal
@@ -24,13 +28,14 @@ def work_function(input_slice, fs, N):
   x[int(N//2):int(N//2)+10] *= 50.
   f, Pxx_den = signal.welch(x, fs, nperseg=4096)
 
-  dcp.progress()
+  if dcp_available:
+    dcp.progress()
 
   f_med, Pxx_den_med = signal.welch(x, fs, nperseg=4096, average='median')
 
   return { 'f_med': f_med, 'Pxx_den_med': Pxx_den_med, }
 
-input_set = range(25)
+input_set = list(range(25))
 
 shared_arguments = {'fs': 10e3, 'N': 1e5}
 

@@ -22,7 +22,7 @@ work_function = """function workFunction(b,N){
   return I;
 }"""
 
-input_set = range(25)
+input_set = list(range(25))
 
 shared_arguments = [ 100000 ]
 
@@ -32,6 +32,7 @@ job.node_js = True
 
 output_set = job.exec()
 
+node.run(work_function)
 node_output = node.run("""
 
   var compareSet = [];

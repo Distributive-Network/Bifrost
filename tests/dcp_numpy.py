@@ -8,7 +8,7 @@ def work_function(b,N):
   I = Delta_x * np.sum(np.exp(-x_left_endpoints**2))
   return I
 
-input_set = range(25)
+input_set = list(range(25))
 
 shared_arguments = [100000]
 

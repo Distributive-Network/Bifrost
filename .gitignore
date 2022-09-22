@@ -2,6 +2,9 @@
 # Python             #
 ######################
 
+tests/package.json
+tests/package-lock.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
