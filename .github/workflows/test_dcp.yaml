@@ -23,7 +23,8 @@ jobs:
           node-version: ${{ matrix.node_version }}
       - run: python3 -m pip install -r ./dev-requirements.txt
       - run: python3 ./setup.py install
-      - env:
+      - name: run tests
+        env:
           DCP_ACCOUNT_KEYSTORE: ${{ env.ACCOUNT_KEYSTORE }}
           DCP_ID_KEYSTORE: ${{ env.ID_KEYSTORE }}
         run: |
