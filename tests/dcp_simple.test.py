@@ -13,6 +13,7 @@ for idx, val in enumerate(list(input_string)):
 
 job = dcp.compute_for(input_set, work_function)
 job.public['name'] = "Bifrost DCP Testing : Spongecase"
+job.pickle_work_function = False
 
 output_set = job.exec()
 

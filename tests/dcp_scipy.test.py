@@ -42,6 +42,7 @@ shared_arguments = {'fs': 10e3, 'N': 1e5}
 job = dcp.compute_for(input_set, work_function, shared_arguments)
 job.requires(['scipy'])
 job.public['name'] = "Bifrost DCP Testing : Scipy Signal"
+job.pickle_work_function = False
 
 output_set = job.exec()
 

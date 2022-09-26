@@ -16,7 +16,14 @@ class bcolors:
 
 def run_test(test_file, cwd):
     try:
-        p = subprocess.Popen(f"python3 {test_file}", shell=True, cwd=cwd, stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
+        p = subprocess.Popen(
+            f"python3 {test_file}",
+            shell=True,
+            cwd=cwd,
+            stdout = subprocess.PIPE,
+            stderr = subprocess.STDOUT,
+            stdin=sys.stdin
+        )
         retcode = -1
         while True:
             retcode = p.poll()
@@ -27,8 +34,6 @@ def run_test(test_file, cwd):
         return retcode
     except subprocess.CalledProcessError as cpe:
         return cpe.returncode
-
-
 
 if __name__ == "__main__":
     import argparse

@@ -15,6 +15,8 @@ shared_arguments = [100000]
 job = dcp.compute_for(input_set, work_function, shared_arguments)
 job.requires('numpy')
 job.public['name'] = "Bifrost DCP Testing : Numpy Riemann Sums"
+job.pickle_work_function = False
+
 
 output_set = job.exec()
 
