@@ -342,6 +342,8 @@ class Job:
             self.estimation_slices = -1
         elif self.estimation_slices < 0:
             self.estimation_slices = -1
+        elif isinstance(self.estimation_slices, str) and self.estimation_slices.lower() == 'all':
+            self.estimation_slices = -1
 
         dcp_parameters = {
             'dcp_data': job_input,
