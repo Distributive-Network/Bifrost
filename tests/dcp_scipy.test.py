@@ -1,4 +1,5 @@
 from bifrost import dcp
+import numpy as np
 
 def work_function(input_slice, fs, N):
   dcp_available = False
@@ -14,7 +15,7 @@ def work_function(input_slice, fs, N):
 
   np.random.seed(0)
 
-  rng = np.random.default_rng()
+  rng = np.random.default_rng(seed=0)
 
   freq = input_slice
 
@@ -51,5 +52,9 @@ for compare_slice in input_set:
   compare_result = work_function(compare_slice, **shared_arguments)
   compare_set.append(compare_result)
 
-assert output_set == compare_set
 
+for slice_ind in range(len(output_set)):
+    cur_output_set = output_set[slice_ind]
+    cur_compare_set = compare_set[slice_ind]
+    for key in cur_output_set.keys():
+        assert np.allclose( output_set[slice_ind][key], compare_set[slice_ind][key] ), f"Return values differ at slice {slice_ind} and key {key}"

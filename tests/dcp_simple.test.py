@@ -15,6 +15,8 @@ job = dcp.compute_for(input_set, work_function)
 job.public['name'] = "Bifrost DCP Testing : Spongecase"
 job.pickle_work_function = False
 
+job.compute_groups.append( { 'joinKey': 'parcae', 'joinSecret': 'fate' })
+
 output_set = job.exec()
 
 compare_set = []

@@ -1,4 +1,5 @@
 from bifrost import dcp
+import numpy as np
 
 def work_function(b,N):
   import numpy as np
@@ -17,7 +18,6 @@ job.requires('numpy')
 job.public['name'] = "Bifrost DCP Testing : Numpy Riemann Sums"
 job.pickle_work_function = False
 
-
 output_set = job.exec()
 
 compare_set = []
@@ -25,5 +25,7 @@ for compare_slice in input_set:
   compare_result = work_function(compare_slice, *shared_arguments)
   compare_set.append(compare_result)
 
-assert output_set == compare_set
+output_set = np.array(output_set)
+compare_set = np.array(compare_set)
 
+assert np.allclose( output_set, compare_set ), "Arrays are not equal!"
