@@ -31,6 +31,9 @@ jobs:
           echo $DCP_ACCOUNT_KEYSTORE > ~/.dcp/default.keystore
           echo $DCP_ID_KEYSTORE > ~/.dcp/id.keystore 
           chmod og-w ~/.dcp -R
-          echo $(ls -lah ~/.dcp)
           echo "READY TO RUN TESTS"
-          echo ./run-tests.sh
+          ./run-tests.sh
+      - name: clean up
+        if: always()
+        run: |
+          rm -rf ~/.dcp
