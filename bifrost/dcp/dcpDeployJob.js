@@ -32,7 +32,14 @@
 
         if (job_parameters['job_groups'].length > 0) job.computeGroups = job_parameters['job_groups'];
 
-        job.estimationSlices = job_parameters['job_estimation'];
+        if (job_parameters['job_estimation'] == -1)
+        {
+          job.estimationSlices = Infinity;
+        }
+        else
+        {
+          job.estimationSlices = job_parameters['job_estimation'];
+        }
 
         job.greedyEstimation = job_parameters['job_greedy'];
 

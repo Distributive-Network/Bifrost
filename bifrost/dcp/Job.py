@@ -337,6 +337,12 @@ class Job:
         if self.node_js == False and self.debug == False:
             self.events['console'] = False
 
+        import math
+        if self.estimation_slices == math.inf:
+            self.estimation_slices = -1
+        elif self.estimation_slices < 0:
+            self.estimation_slices = -1
+
         dcp_parameters = {
             'dcp_data': job_input,
             'dcp_wrapper': self.python_wrapper,
