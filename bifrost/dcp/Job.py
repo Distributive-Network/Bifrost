@@ -122,7 +122,7 @@ class Job:
         self.new_context = False # clears the nodejs stream after every job if true
         self.kvin = False # uses the kvin serialization library to decode job results
         self.cloudpickle = True # use non-cloud pickling for colab deployment
-        self.pyodide_wheels = False # use newer version of pyodide which uses .whl packages
+        self.pyodide_wheels = True # use newer version of pyodide which uses .whl packages
         self.show_timings = False # per-slice worker, per-slice client, and total overall
 
         # work wrapper functions
