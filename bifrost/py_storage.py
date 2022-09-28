@@ -134,6 +134,8 @@ class VariableSync():
         for var_name in keys:
             var = var_dict[var_name]
             var_type = type(var)
+            # XXX: python caching needs to be safe for recursion before it is reactivated
+            '''
             try:
                 b, hsh = self.inCache(var_name, var, var_type)
                 if b:
@@ -143,6 +145,7 @@ class VariableSync():
             except Exception as e:
                 # TODO: this control flow pattern needs to be purged
                 pass
+            '''
             if var_type == np.ndarray:
                 #Numpy is a special case and requires some managing to get data into a buffer
                 outBytes = BytesIO()
