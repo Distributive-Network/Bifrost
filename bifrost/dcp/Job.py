@@ -34,7 +34,7 @@ class Job:
         self.requirements = { 'discrete': False }
         self.initial_slice_profile = False # Not Used
         self.slice_payment_offer = False # TODO
-        self.payment_account = False # TODO
+        self.payment_account = False
         self.require_path = [] # dcp pyodide packages (populated via Job.requires)
         self.module_path = False # Not Used
         self.collate_results = True
@@ -368,6 +368,7 @@ class Job:
             'job_groups': self.compute_groups,
             'job_public': self.public,
             'job_requirements': self.requirements,
+            'job_payment_account': self.payment_account,
         }
 
         worker_parameters = {
@@ -527,5 +528,5 @@ class Job:
         self.slice_payment_offer = slice_payment_offer
 
     def set_payment_account_keystore(self, payment_account_keystore):
-        self.payment_account_keystore = payment_account_keystore
+        self.payment_account = payment_account_keystore
 
