@@ -349,6 +349,18 @@
         return jobResults;
     }
 
+    async function addKeystore(keystoreInput)
+    {
+      let dcpWallet = await require('dcp/wallet');
+
+      let walletKeystore = (typeof keystoreInput == 'string') ? new dcpWallet.IdKeystore(JSON.parse(keystoreInput)) : new dcpWallet.IdKeystore(keystoreInput);
+
+      await dcpWallet.add(walletKeystore);
+      await dcpWallet.addId(walletKeystore);
+    }
+
+    if (job_parameters['job_payment_account'] !== false) await addKeystore(job_parameters['job_payment_account']);
+
     let jobData = dcp_parameters['dcp_data'];
     let jobMultiplier = dcp_parameters['dcp_multiplier'];
     let jobLocal = dcp_parameters['dcp_local'];
