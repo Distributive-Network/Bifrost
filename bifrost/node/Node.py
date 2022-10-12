@@ -7,7 +7,7 @@ import shutil
 import signal
 import time
 from pathlib import Path
-from subprocess import Popen, PIPE, check_output
+from subprocess import Popen, PIPE
 
 # local modules
 from .VariableSync import VariableSync
