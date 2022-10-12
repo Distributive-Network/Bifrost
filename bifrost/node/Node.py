@@ -11,7 +11,7 @@ from subprocess import Popen, PIPE, check_output
 
 # local modules
 from bifrost.py_storage import VariableSync
-from bifrost.ReadWriteLock import ReadWriteLock
+from .ReadWriteLock import ReadWriteLock
 from .NodeSTDProc import NodeSTDProc
 
 # PROGRAM

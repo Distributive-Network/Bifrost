@@ -1,7 +1,7 @@
 # MODULES
 
 # local modules
-from bifrost.ReadWriteLock import ReadWriteLock
+from .ReadWriteLock import ReadWriteLock
 from .NodeSTDProc import NodeSTDProc
 from .Node import Node
 
