@@ -9,7 +9,7 @@ import shutil
 from subprocess import Popen, PIPE
 
 # local modules
-from .py_utils import is_windows, is_darwin, has_mp_shared
+from bifrost.py_utils import is_windows, is_darwin, has_mp_shared
 
 # PROGRAM
 
