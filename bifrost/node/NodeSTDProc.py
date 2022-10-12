@@ -5,15 +5,7 @@ import json
 from subprocess import Popen, PIPE
 from threading import Thread, Event
 
-# local modules
-from bifrost.ReadWriteLock import ReadWriteLock
-
 # PROGRAM
-
-#Simple python global read write lock
-NODE_LOCK       = ReadWriteLock()
-#variable that is being locked
-NODE_IS_RUNNING = False
 
 class NodeSTDProc(Thread):
     '''

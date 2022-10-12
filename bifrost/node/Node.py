@@ -16,11 +16,6 @@ from .NodeSTDProc import NodeSTDProc
 
 # PROGRAM
 
-#Simple python global read write lock
-NODE_LOCK       = ReadWriteLock()
-#variable that is being locked
-NODE_IS_RUNNING = False
-
 class Node():
     '''
     This class is a helper class to manage the node process. 
