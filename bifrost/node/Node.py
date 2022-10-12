@@ -10,7 +10,7 @@ from pathlib import Path
 from subprocess import Popen, PIPE, check_output
 
 # local modules
-from bifrost.py_storage import VariableSync
+from .VariableSync import VariableSync
 from .ReadWriteLock import ReadWriteLock
 from .NodeSTDProc import NodeSTDProc
 
