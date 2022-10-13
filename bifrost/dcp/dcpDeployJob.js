@@ -1,4 +1,105 @@
-(async function()
+exports.pythonWrap = require('fs').readFileSync('./dcpWorkFunction.js').toString();
+
+exports.pythonInit = require('fs').readFileSync('./dcp_init_worker.py').toString();
+
+exports.pythonCompute = require('fs').readFileSync('./dcp_compute_worker.py').toString();
+
+exports.jobParameters = {
+    'job_collate': true,
+    'job_debug': false,
+    'job_greedy': false,
+    'job_estimation': 3,
+    'job_groups': [],
+    'job_public': {
+        'name': 'DCP PyJs Deployment',
+        'description': false,
+        'link': false,
+    },
+    'job_requirements': {
+        'discrete': false
+    },
+};
+
+exports.dcpParameters = {
+    'dcp_data': null,
+    'dcp_events': {
+        'accepted': true,
+        'complete': true,
+        'console': true,
+        'error': true,
+        'readystatechange': true,
+        'result': true,
+    },
+    'dcp_debug': false,
+    'dcp_kvin': false,
+    'dcp_node_js': false,
+    'dcp_show_timings': false,
+    'dcp_remote_storage_location': false,
+    'dcp_remote_storage_params': false,
+    'dcp_remote_flags': {
+        'input_set': false,
+        'work_function': false,
+        'work_arguments': false,
+        'results': false,
+    },
+    'dcp_multiplier': 1,
+    'dcp_local': 0,
+    'dcp_wrapper': exports.pythonWrap,
+};
+
+exports.workerParameters = {
+    'slice_workload': {
+        'workload_function': null,
+        'workload_arguments': [],
+        'workload_named_arguments': {},
+    },
+    'python_modules': {},
+    'python_imports': [],
+    'python_packages': [],
+    'python_files': {
+        'files_path': [],
+        'files_data': {},
+    },
+    'python_functions': {
+        'init': exports.pythonInit,
+        'compute': exports.pythonCompute,
+    },
+};
+
+exports.workerConfigFlags = {
+    'pickle': {
+        'function': false,
+        'arguments': false,
+        'input': false,
+        'output': false,
+    },
+    'encode': {
+        'function': false,
+        'arguments': false,
+        'input': false,
+        'output': false,
+    },
+    'compress': {
+        'function': false,
+        'arguments': false,
+        'input': false,
+        'output': false,
+    },
+    'files': {
+        'input': false,
+    },
+    'pyodide': {
+        'wheels': true,
+    },
+    'cloudpickle': false,
+};
+
+exports.deploy = async function pyjsDeployJob(
+    job_parameters,
+    dcp_parameters,
+    worker_parameters,
+    worker_config_flags,
+)
 {
     async function dcpPost(inputSet, workFunction, sharedArguments, myMultiplier, myLocal)
     {
@@ -13,6 +114,8 @@
         if (dcp_parameters['dcp_debug']) console.log('DCP Client Build :', await require('dcp/build'));
 
         let kvin = (dcp_parameters['dcp_kvin']) ? require('kvin') : null;
+
+        // TODO: fully implement the redeployment specifications as articulated below
 
         // bifrost can decide to force redeployments at any point during the job's runtime.
         // this can be done to save a job from failing, or to expedite its completion.
@@ -428,4 +531,4 @@
     {
         console.log('Deploy Job Error :', error);
     }
-})();
+};
