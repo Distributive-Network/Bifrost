@@ -129,9 +129,7 @@ class Job:
         self.python_init = dcp_init_worker
         self.python_compute = dcp_compute_worker
         self.python_wrapper = js_work_function
-        self.python_deploy = js_deploy_job
-
-        # TODO: address deprecated usage of python_deploy in Job.py and Work.py
+        self.python_deploy = None
 
     def __getitem__(self, item):
         return getattr(self, item)
