@@ -54,7 +54,7 @@
         {
             let versionNamespace = (worker_config_flags['pyodide']['wheels'] == false) ? 'pyodide' : 'pyodide-0.21.0a2';
 
-            let pyodideShards = (worker_config_flags['pyodide']['wheels'] == false) ? null : require('./dcp/pyodide/shards.json');
+            let pyodideShards = (worker_config_flags['pyodide']['wheels'] == false) ? null : require('../dcp/pyodide/shards.json');
 
             function requiresShards(pyFile)
             {
@@ -96,7 +96,7 @@
                 job.requires(versionNamespace + '-repodata.json/repodata.json.js');
             }
 
-            let pyodideDepends = (worker_config_flags['pyodide']['wheels'] == false) ? require('./dcp/pyodide/packages.json') : require('./dcp/pyodide/repodata.json');
+            let pyodideDepends = (worker_config_flags['pyodide']['wheels'] == false) ? require('../dcp/pyodide/packages.json') : require('../dcp/pyodide/repodata.json');
 
             let pyodideRequireFiles = pyodideDepends.packages;
             let pyodideRequireFilesKeys = Object.keys(pyodideRequireFiles);
