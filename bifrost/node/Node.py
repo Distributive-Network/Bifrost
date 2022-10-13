@@ -29,6 +29,11 @@ class Node():
         self.replFile = os.path.dirname(os.path.realpath(__file__)) + '/main.js'
         #The variable synchronization manager
         self.vs = VariableSync()
+        #The process lock flags
+        self.lock = {
+          'NODE_LOCK': ReadWriteLock(),
+          'NODE_IS_RUNNING': False
+        }
 
         self.init_process()
 
@@ -61,7 +66,7 @@ class Node():
         )
 
         #ready the node stdout manager
-        self.nstdproc = NodeSTDProc(self.process)
+        self.nstdproc = NodeSTDProc(self.process, lock = self.lock)
 
     def register_custom_serializer(self, func, var_type):
         '''
@@ -101,11 +106,9 @@ class Node():
         self.vs.syncto(vars, self.serializer_custom_funcs, warn=False)
 
         #get the lock and mark as running.
-        global NODE_IS_RUNNING
-        global NODE_LOCK
-        NODE_LOCK.acquire_write()
-        NODE_IS_RUNNING = True
-        NODE_LOCK.release_write()
+        self.lock['NODE_LOCK'].acquire_write()
+        self.lock['NODE_IS_RUNNING'] = True
+        self.lock['NODE_LOCK'].release_write()
         #Send script to process.
         retCode = self.write(script)
 
@@ -117,25 +120,25 @@ class Node():
         #NODE_IS_RUNNING to False.
         #This is a little dangerous as we need to make sure that NODE_IS_RUNNING
         #Will, at some point, resolve to False.
-        flag = NODE_IS_RUNNING
+        flag = self.lock['NODE_IS_RUNNING']
         start = time.time()
         while flag:
             try:
-                NODE_LOCK.acquire_read()
-                flag = NODE_IS_RUNNING
-                NODE_LOCK.release_read()
+                self.lock['NODE_LOCK'].acquire_read()
+                flag = self.lock['NODE_IS_RUNNING']
+                self.lock['NODE_LOCK'].release_read()
                 if timeout is not None:
                     if (time.time() - start) > timeout:
                         self.cancel()
-                        NODE_LOCK.acquire_write()
-                        NODE_IS_RUNNING = False
-                        NODE_LOCK.release_write()
+                        self.lock['NODE_LOCK'].acquire_write()
+                        self.lock['NODE_IS_RUNNING'] = False
+                        self.lock['NODE_LOCK'].release_write()
                         print("Process took longer than " + str(timeout))
             except KeyboardInterrupt:
                 self.cancel()
-                NODE_LOCK.acquire_write()
-                NODE_IS_RUNNING = False
-                NODE_LOCK.release_write()
+                self.lock['NODE_LOCK'].acquire_write()
+                self.lock['NODE_IS_RUNNING'] = False
+                self.lock['NODE_LOCK'].release_write()
                 print("Process was interrupted.")
                 raise KeyboardInterrupt
         new_vars = self.vs.syncfrom(self.deserializer_custom_funcs, warn=False)
@@ -144,10 +147,8 @@ class Node():
         return vars
 
     def clean_lock(self):
-        global NODE_LOCK
-        global NODE_IS_RUNNING
-        NODE_IS_RUNNING = False
-        NODE_LOCK = ReadWriteLock()
+        self.lock['NODE_IS_RUNNING'] = False
+        self.lock['NODE_LOCK'] = ReadWriteLock()
 
 
     def write(self, s):
@@ -176,8 +177,6 @@ class Node():
             self.process.stdin.write(string_encoded)
             self.process.stdin.flush()
         except Exception as e:
-            global NODE_IS_RUNNING
-            global NODE_LOCK
             if 'Broken pipe' in str(e):
                 self.cancel()
                 print("Pipe broke and was restarted")
@@ -185,9 +184,9 @@ class Node():
                 self.cancel()
                 print("Pipe died for some reason: ")
                 print(str(e))
-            NODE_LOCK.acquire_write()
-            NODE_IS_RUNNING = False
-            NODE_LOCK.release_write()
+            self.lock['NODE_LOCK'].acquire_write()
+            self.lock['NODE_IS_RUNNING'] = False
+            self.lock['NODE_LOCK'].release_write()
             return -1
         return 1
 

@@ -9,7 +9,7 @@ import warnings
 # local modules
 from .py_utils import is_notebook
 from .npm import Npm
-from .node import Node
+from .node import Node, ReadWriteLock
 
 # PROGRAM
 
