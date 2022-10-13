@@ -16,7 +16,7 @@ import numpy as np
 import xxhash
 
 # local modules
-from .py_utils import is_windows, is_darwin, is_notebook, has_mp_shared, is_colab
+from bifrost.py_utils import is_windows, is_darwin, is_notebook, has_mp_shared, is_colab
 
 # PROGRAM
 

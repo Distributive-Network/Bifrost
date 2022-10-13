@@ -131,6 +131,8 @@ class Job:
         self.python_wrapper = js_work_function
         self.python_deploy = js_deploy_job
 
+        # TODO: address deprecated usage of python_deploy in Job.py and Work.py
+
     def __getitem__(self, item):
         return getattr(self, item)
 
@@ -429,7 +431,15 @@ class Job:
             'worker_config_flags': worker_config_flags,
         }
 
-        node_output = node.run(self.python_deploy, run_parameters)
+        node_output = node.run("""
+        const dcpDeploy = require('../dcp/dcpDeployJob.js').deploy;
+        dcpDeploy(
+          job_parameters,
+          dcp_parameters,
+          worker_parameters,
+          worker_config_flags
+        );
+        """, run_parameters)
 
         try:
           self.id = node_output['jobId']

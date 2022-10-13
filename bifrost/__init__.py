@@ -8,7 +8,8 @@ import warnings
 
 # local modules
 from .py_utils import is_notebook
-from .py_nodejs import Npm, Node
+from .npm import Npm
+from .node import Node
 
 # PROGRAM
 
