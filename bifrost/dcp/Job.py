@@ -432,7 +432,7 @@ class Job:
         }
 
         node_output = node.run("""
-        const dcpDeploy = require('../dcp/deployDcp.js').deploy;
+        const dcpDeploy = require('../dcp/dcpDeployJob.js').deploy;
         dcpDeploy(
           job_parameters,
           dcp_parameters,
