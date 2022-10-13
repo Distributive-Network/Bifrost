@@ -1,8 +1,8 @@
-exports.pythonWrap = require('fs').readFileSync('../dcp/dcpWorkFunction.js').toString();
+exports.pythonWrap = null; // require('fs').readFileSync('../dcp/dcpWorkFunction.js').toString();
 
-exports.pythonInit = require('fs').readFileSync('../dcp/dcp_init_worker.py').toString();
+exports.pythonInit = null; // require('fs').readFileSync('../dcp/dcp_init_worker.py').toString();
 
-exports.pythonCompute = require('fs').readFileSync('../dcp/dcp_compute_worker.py').toString();
+exports.pythonCompute = null; // require('fs').readFileSync('../dcp/dcp_compute_worker.py').toString();
 
 exports.jobParameters = {
     'job_collate': true,
