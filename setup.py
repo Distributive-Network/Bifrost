@@ -8,8 +8,8 @@ long_description = (this_directory / "README.md").read_text()
 setuptools.setup(
     name="Bifrost",
     version="0.8.0",
-    author="Kings Distributed Systems",
-    author_email="toolchains@kingsds.network",
+    author="Distributive",
+    author_email="toolchains@distributive.network",
     description="Python to JS intercommunication and execution",
     long_description=long_description,
     long_description_content_type="text/markdown",
