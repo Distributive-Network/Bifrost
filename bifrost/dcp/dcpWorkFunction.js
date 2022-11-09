@@ -389,21 +389,6 @@ async function workFunction(
 
     await pyodide.runPython(workerParameters['python_functions']['init']);
 
-    /*
-    progress(1);
-
-    pyLog.push('// PYTHON LOG STOP //');
-
-    const stopTime = ((Date.now() - startTime) / 1000).toFixed(2);
-
-    return {
-        output: 0,
-        index: sliceData['index'],
-        elapsed: stopTime,
-        stdout: pyLog,
-    };
-    */
-
     progress();
 
     pyodide.globals.set('worker_config_flags', workerConfigFlags);
