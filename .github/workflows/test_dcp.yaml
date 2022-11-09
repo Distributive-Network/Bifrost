@@ -1,0 +1,62 @@
+name: 'Test DCP Deploy'
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ 'ubuntu-latest' ] # , 'windows-latest', 'macos-latest' ]
+        python_version: [ '3.11', '3.10', '3.8', '3.6' ]
+        node_version: [ 14, 16 ]
+      max-parallel: 1
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python_version }}
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node_version }}
+      - run: python3 -m pip install -r ./dev-requirements.txt
+      - run: python3 ./setup.py install
+      - name: run tests
+        shell: 'script -q -e -c "bash {0}"'
+        env:
+          DCP_ACCOUNT_KEYSTORE: ${{ secrets.ACCOUNT_KEYSTORE }}
+          DCP_ID_KEYSTORE: ${{ secrets.ID_KEYSTORE }}
+          DCP_ARTIFACTS_TOKEN: ${{ secrets.ARTIFACTS_ACCESS_TOKEN }}
+          DCP_CG_PASS: ${{ secrets.CG_PASS }}
+        run: |
+          mkdir -p ~/.dcp
+          echo $DCP_ACCOUNT_KEYSTORE > ~/.dcp/default.keystore
+          echo $DCP_ID_KEYSTORE > ~/.dcp/id.keystore
+          chmod og-w ~/.dcp -R
+          echo "Prep Native Worker"
+          sudo npm i dcp-worker -g &> /dev/null 
+          curl --output ./artifacts.zip --location --header "PRIVATE-TOKEN: ${DCP_ARTIFACTS_TOKEN}" "https://gitlab.com/api/v4/projects/25835277/jobs/3293593922/artifacts"
+          unzip ./artifacts.zip &> /dev/null
+          unzip ./dcp-native-1.2.0-Linux.zip &> /dev/null
+          rm -rf ./artifacts.zip ./dcp-native-1.2.0-Linux.zip
+          echo "Native worker downloaded"
+          echo "Starting evaluator"
+          dcp-evaluator-start -e $(realpath ./artifacts/binary/Release/dcp-evaluator) -l $(realpath ./artifacts/binary/Release/) -p 9000 &
+          sleep 10
+          dcp-worker --paymentAddress 0x998bff312587c856676460e49cd5777e2bf8d187 --port 9000 -c 1 -g github-actions,${DCP_CG_PASS} --leavePublicGroup --output console &
+          sleep 10
+          echo "READY TO RUN TESTS"
+          ./run-tests.sh
+          export EXIT_CODE=$?
+          kill %1
+          kill %2
+          exit $EXIT_CODE
+      - name: clean up
+        if: always()
+        run: |
+          rm -rf ~/.dcp

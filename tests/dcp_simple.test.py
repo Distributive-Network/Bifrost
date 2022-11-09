@@ -1,3 +1,4 @@
+import os
 from bifrost import dcp
 
 def work_function(input_slice):
@@ -13,6 +14,8 @@ for idx, val in enumerate(list(input_string)):
 
 job = dcp.compute_for(input_set, work_function)
 job.public['name'] = "Bifrost DCP Testing : Spongecase"
+job.pickle_work_function = False
+job.compute_groups = [{'joinKey': 'github-actions', 'joinSecret': os.environ['DCP_CG_PASS']}]
 
 output_set = job.exec()
 

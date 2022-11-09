@@ -3,14 +3,22 @@ import numpy as np
 from bifrost import node, npm
 
 def check_equals(in_vals, out_vals):
-    flag = False
+    """
+    Returns true if both values given are equal
+    """
+    flag = True
     for key in in_vals.keys(): 
         if key in out_vals:
-            if (out_vals[key] != in_vals[key]):
-                print(key, " is not equivalent! problem during serialization")
-                flag = True
+            if isinstance(in_vals[key], dict):
+                if (not check_equals(in_vals[key], out_vals[key])):
+                    return False
+            elif isinstance(in_vals[key], np.ndarray):
+                if (not np.isclose(in_vals[key], out_vals[key])):
+                    return False
             else:
-                continue
+                if (out_vals[key] != in_vals[key]):
+                    print(key, " is not equivalent! problem during serialization")
+                    return False
     return flag
 
 
@@ -42,10 +50,11 @@ for i in range(10):
 
 
     print("serialization round: ", str(i), end=" - ")
-    if (not check_equals(vals, out_vals)):
+    if (check_equals(vals, out_vals)):
         print("No problem found")
     else:
-        print("Problem during initial serialization")
+        raise ValueError("Problem occured during serialization")
+        #print("Problem during initial serialization")
 
 
 vals = {
@@ -58,6 +67,7 @@ for i in range(5):
     """, vals)
     end = time.time()
     print("Took: ", end - start, " seconds")
+    assert np.allclose( out_vals['a'], vals['a'] ), "numpy array de/serialization did not work"
 
 
 
@@ -79,15 +89,5 @@ for i in range(5):
     """, vals)
     end = time.time()
     print("Took: ", end - start, " seconds")
+    assert check_equals(vals, out_vals), "various parameter space de/serialization failed."
 
-
-vals = node.run("""
-
-console.log(a);
-
-a['value'] = 0.0;
-
-console.log(b, typeof b, typeof b[0]);
-""",{'a': {'hello': 'world'}, 'b': [ [1,2,3],[3,2,1] ]})
-
-print(vals)

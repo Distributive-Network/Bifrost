@@ -1,4 +1,6 @@
+import os
 from bifrost import dcp, node
+
 
 # Compute left Riemann sum of exp(-x^2) from 0 to b with N subintervals.
 work_function = """function workFunction(b,N){
@@ -22,16 +24,18 @@ work_function = """function workFunction(b,N){
   return I;
 }"""
 
-input_set = range(25)
+input_set = list(range(25))
 
 shared_arguments = [ 100000 ]
 
 job = dcp.compute_for(input_set, work_function, shared_arguments)
 job.public['name'] = "Bifrost DCP Testing : Javascript Riemann Sums"
 job.node_js = True
+job.compute_groups = [{'joinKey': 'github-actions', 'joinSecret': os.environ['DCP_CG_PASS']}]
 
 output_set = job.exec()
 
+node.run(work_function)
 node_output = node.run("""
 
   var compareSet = [];

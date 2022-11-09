@@ -8,8 +8,20 @@
   "author": "Distributive",
   "license": "ISC",
   "dependencies": {
-    "@raygun-nickj/mmap-io": "1.2.2",
-    "xxhash-wasm": "0.4.2"
+    "@raygun-nickj/mmap-io": "^1.3.0",
+    "xxhash-wasm": "^0.4.2"
   },
-  "description": "An SHM/memmap based python and node communication/evaluation tool."
+  "description": "An SHM/memmap based python and node communication/evaluation tool.",
+  "directories": {
+    "test": "tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kings-Distributed-Systems/Bifrost.git"
+  },
+  "keywords": [],
+  "bugs": {
+    "url": "https://github.com/Kings-Distributed-Systems/Bifrost/issues"
+  },
+  "homepage": "https://github.com/Kings-Distributed-Systems/Bifrost#readme"
 }
