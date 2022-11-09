@@ -41,6 +41,7 @@ jobs:
           #rm -rf ./artifacts.zip ./dcp-native-1.2.0-Linux.zip
           #echo "Native worker downloaded"
           #echo "Starting evaluator"
+          echo "PRIVATE TOKEN HAS SIZE: " ${#DCP_ARTIFACTS_TOKEN}
           ls -lah ./
           #dcp-evaluator-start -e /artifacts/binary/Release/dcp-evaluator -l /artifacts/binary/Release/ -p 9000 &
           #sleep 10
