@@ -1,3 +1,4 @@
+import os
 from bifrost import dcp
 import numpy as np
 
@@ -17,6 +18,7 @@ job = dcp.compute_for(input_set, work_function, shared_arguments)
 job.requires('numpy')
 job.public['name'] = "Bifrost DCP Testing : Numpy Riemann Sums"
 job.pickle_work_function = False
+job.compute_groups = [{'joinKey': 'github-actions', 'joinSecret': os.environ['DCP_CG_PASS']}]
 
 output_set = job.exec()
 

@@ -47,10 +47,12 @@ jobs:
           sleep 10
           dcp-worker --paymentAddress 0x998bff312587c856676460e49cd5777e2bf8d187 --port 9000 -c 1 -g github-actions,${DCP_CG_PASS} --leavePublicGroup --output console &
           sleep 10
-          #echo "READY TO RUN TESTS"
-          #./run-tests.sh
+          echo "READY TO RUN TESTS"
+          ./run-tests.sh
+          export EXIT_CODE=$?
           kill %1
           kill %2
+          exit $EXIT_CODE
       - name: clean up
         if: always()
         run: |
