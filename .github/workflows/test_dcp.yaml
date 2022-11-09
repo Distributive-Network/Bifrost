@@ -37,12 +37,11 @@ jobs:
           echo "Prep Native Worker"
           sudo npm i dcp-worker -g &> /dev/null 
           curl --output ./artifacts.zip --location --header "PRIVATE-TOKEN: ${DCP_ARTIFACTS_TOKEN}" "https://gitlab.com/api/v4/projects/25835277/jobs/3293593922/artifacts"
-          cat ./artifacts.zip
           #unzip ./artifacts.zip && unzip ./dcp-native-1.2.0-Linux.zip
           #rm -rf ./artifacts.zip ./dcp-native-1.2.0-Linux.zip
           #echo "Native worker downloaded"
           #echo "Starting evaluator"
-          ls ./
+          ls -lah ./
           #dcp-evaluator-start -e /artifacts/binary/Release/dcp-evaluator -l /artifacts/binary/Release/ -p 9000 &
           #sleep 10
           #kill %1
