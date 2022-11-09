@@ -45,13 +45,12 @@ jobs:
           echo "Starting evaluator"
           dcp-evaluator-start -e $(realpath ./artifacts/binary/Release/dcp-evaluator) -l $(realpath ./artifacts/binary/Release/) -p 9000 &
           sleep 10
-          dcp-worker --paymentAddress 0x998bff312587c856676460e49cd5777e2bf8d187 --port 9000 -c 1 -g github-actions,${DCP_CG_PASS} --leavePublicGroup &
+          dcp-worker --paymentAddress 0x998bff312587c856676460e49cd5777e2bf8d187 --port 9000 -c 1 -g github-actions,${DCP_CG_PASS} --leavePublicGroup --output console &
           sleep 10
-          kill %1
-          kill %2
-
           #echo "READY TO RUN TESTS"
           #./run-tests.sh
+          kill %1
+          kill %2
       - name: clean up
         if: always()
         run: |
