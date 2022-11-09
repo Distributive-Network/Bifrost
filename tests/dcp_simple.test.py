@@ -1,3 +1,4 @@
+import os
 from bifrost import dcp
 
 def work_function(input_slice):
