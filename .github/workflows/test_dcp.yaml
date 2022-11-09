@@ -42,7 +42,7 @@ jobs:
           rm -rf ./artifacts.zip ./dcp-native-1.2.0-Linux.zip
           echo "Native worker downloaded"
           echo "Starting evaluator"
-          dcp-evaluator-start -e /artifacts/binary/Release/dcp-evaluator -l /artifacts/binary/Release/ -p 9000 &
+          dcp-evaluator-start -e $(realpath ./artifacts/binary/Release/dcp-evaluator) -l $(realpath ./artifacts/binary/Release/) -p 9000 &
           sleep 10
           kill %1
           #echo "READY TO RUN TESTS"
