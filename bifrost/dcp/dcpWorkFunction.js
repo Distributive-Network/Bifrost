@@ -178,6 +178,16 @@ async function workFunction(
 
     if (workerConfigFlags['pyodide']['wheels']) globalThis.URL = function(...args){ return args[0] };
 
+    async function wasmInstantiate(binary, info)
+    {
+      const ourModule = await new WebAssembly.Module(binary);
+      const ourInstance = await new WebAssembly.Instance(ourModule, info);
+      return {
+        module: ourModule,
+        instance: ourInstance
+      };
+    }
+    globalThis.WebAssembly.instantiate = wasmInstantiate;
     globalThis.WebAssembly.instantiateStreaming = null;
 
     function frankenDoctor
