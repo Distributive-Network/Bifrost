@@ -178,6 +178,16 @@ async function workFunction(
 
     if (workerConfigFlags['pyodide']['wheels']) globalThis.URL = function(...args){ return args[0] };
 
+    async function wasmInstantiate(binary, info)
+    {
+      const ourModule = await new WebAssembly.Module(binary);
+      const ourInstance = await new WebAssembly.Instance(ourModule, info);
+      return {
+        module: ourModule,
+        instance: ourInstance
+      };
+    }
+    globalThis.WebAssembly.instantiate = wasmInstantiate;
     globalThis.WebAssembly.instantiateStreaming = null;
 
     function frankenDoctor
@@ -378,21 +388,6 @@ async function workFunction(
     pyodide.globals.set('input_files_data', workerParameters['python_files']['files_data']);
 
     await pyodide.runPython(workerParameters['python_functions']['init']);
-
-    /*
-    progress(1);
-
-    pyLog.push('// PYTHON LOG STOP //');
-
-    const stopTime = ((Date.now() - startTime) / 1000).toFixed(2);
-
-    return {
-        output: 0,
-        index: sliceData['index'],
-        elapsed: stopTime,
-        stdout: pyLog,
-    };
-    */
 
     progress();
 
