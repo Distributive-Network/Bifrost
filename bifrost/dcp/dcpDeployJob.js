@@ -1,4 +1,105 @@
-(async function()
+exports.pythonWrap = null; // require('fs').readFileSync('../dcp/dcpWorkFunction.js').toString();
+
+exports.pythonInit = null; // require('fs').readFileSync('../dcp/dcp_init_worker.py').toString();
+
+exports.pythonCompute = null; // require('fs').readFileSync('../dcp/dcp_compute_worker.py').toString();
+
+exports.jobParameters = {
+    'job_collate': true,
+    'job_debug': false,
+    'job_greedy': false,
+    'job_estimation': 3,
+    'job_groups': [],
+    'job_public': {
+        'name': 'DCP PyJs Deployment',
+        'description': false,
+        'link': false,
+    },
+    'job_requirements': {
+        'discrete': false
+    },
+};
+
+exports.dcpParameters = {
+    'dcp_data': null,
+    'dcp_events': {
+        'accepted': true,
+        'complete': true,
+        'console': true,
+        'error': true,
+        'readystatechange': true,
+        'result': true,
+    },
+    'dcp_debug': false,
+    'dcp_kvin': false,
+    'dcp_node_js': false,
+    'dcp_show_timings': false,
+    'dcp_remote_storage_location': false,
+    'dcp_remote_storage_params': false,
+    'dcp_remote_flags': {
+        'input_set': false,
+        'work_function': false,
+        'work_arguments': false,
+        'results': false,
+    },
+    'dcp_multiplier': 1,
+    'dcp_local': 0,
+    'dcp_wrapper': exports.pythonWrap,
+};
+
+exports.workerParameters = {
+    'slice_workload': {
+        'workload_function': null,
+        'workload_arguments': [],
+        'workload_named_arguments': {},
+    },
+    'python_modules': {},
+    'python_imports': [],
+    'python_packages': [],
+    'python_files': {
+        'files_path': [],
+        'files_data': {},
+    },
+    'python_functions': {
+        'init': exports.pythonInit,
+        'compute': exports.pythonCompute,
+    },
+};
+
+exports.workerConfigFlags = {
+    'pickle': {
+        'function': false,
+        'arguments': false,
+        'input': false,
+        'output': false,
+    },
+    'encode': {
+        'function': false,
+        'arguments': false,
+        'input': false,
+        'output': false,
+    },
+    'compress': {
+        'function': false,
+        'arguments': false,
+        'input': false,
+        'output': false,
+    },
+    'files': {
+        'input': false,
+    },
+    'pyodide': {
+        'wheels': true,
+    },
+    'cloudpickle': false,
+};
+
+exports.deploy = async function pyjsDeployJob(
+    job_parameters,
+    dcp_parameters,
+    worker_parameters,
+    worker_config_flags,
+)
 {
     async function dcpPost(inputSet, workFunction, sharedArguments, myMultiplier, myLocal)
     {
@@ -13,6 +114,8 @@
         if (dcp_parameters['dcp_debug']) console.log('DCP Client Build :', await require('dcp/build'));
 
         let kvin = (dcp_parameters['dcp_kvin']) ? require('kvin') : null;
+
+        // TODO: fully implement the redeployment specifications as articulated below
 
         // bifrost can decide to force redeployments at any point during the job's runtime.
         // this can be done to save a job from failing, or to expedite its completion.
@@ -54,7 +157,7 @@
         {
             let versionNamespace = (worker_config_flags['pyodide']['wheels'] == false) ? 'pyodide' : 'pyodide-0.21.0a2';
 
-            let pyodideShards = (worker_config_flags['pyodide']['wheels'] == false) ? null : require('./dcp/pyodide/shards.json');
+            let pyodideShards = (worker_config_flags['pyodide']['wheels'] == false) ? null : require('../dcp/pyodide/shards.json');
 
             function requiresShards(pyFile)
             {
@@ -96,7 +199,7 @@
                 job.requires(versionNamespace + '-repodata.json/repodata.json.js');
             }
 
-            let pyodideDepends = (worker_config_flags['pyodide']['wheels'] == false) ? require('./dcp/pyodide/packages.json') : require('./dcp/pyodide/repodata.json');
+            let pyodideDepends = (worker_config_flags['pyodide']['wheels'] == false) ? require('../dcp/pyodide/packages.json') : require('../dcp/pyodide/repodata.json');
 
             let pyodideRequireFiles = pyodideDepends.packages;
             let pyodideRequireFilesKeys = Object.keys(pyodideRequireFiles);
@@ -349,6 +452,18 @@
         return jobResults;
     }
 
+    async function addKeystore(keystoreInput)
+    {
+      let dcpWallet = await require('dcp/wallet');
+
+      let walletKeystore = (typeof keystoreInput == 'string') ? new dcpWallet.IdKeystore(JSON.parse(keystoreInput)) : new dcpWallet.IdKeystore(keystoreInput);
+
+      await dcpWallet.add(walletKeystore);
+      await dcpWallet.addId(walletKeystore);
+    }
+
+    if (job_parameters['job_payment_account'] !== false) await addKeystore(job_parameters['job_payment_account']);
+
     let jobData = dcp_parameters['dcp_data'];
     let jobMultiplier = dcp_parameters['dcp_multiplier'];
     let jobLocal = dcp_parameters['dcp_local'];
@@ -416,4 +531,4 @@
     {
         console.log('Deploy Job Error :', error);
     }
-})();
+};

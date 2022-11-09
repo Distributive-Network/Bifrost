@@ -34,7 +34,7 @@ class Job:
         self.requirements = { 'discrete': False }
         self.initial_slice_profile = False # Not Used
         self.slice_payment_offer = False # TODO
-        self.payment_account = False # TODO
+        self.payment_account = False
         self.require_path = [] # dcp pyodide packages (populated via Job.requires)
         self.module_path = False # Not Used
         self.collate_results = True
@@ -122,7 +122,7 @@ class Job:
         self.new_context = False # clears the nodejs stream after every job if true
         self.kvin = False # uses the kvin serialization library to decode job results
         self.cloudpickle = True # use non-cloud pickling for colab deployment
-        self.pyodide_wheels = False # use newer version of pyodide which uses .whl packages
+        self.pyodide_wheels = True # use newer version of pyodide which uses .whl packages
         self.show_timings = False # per-slice worker, per-slice client, and total overall
 
         # work wrapper functions
@@ -130,6 +130,8 @@ class Job:
         self.python_compute = dcp_compute_worker
         self.python_wrapper = js_work_function
         self.python_deploy = js_deploy_job
+
+        # TODO: address deprecated usage of python_deploy in Job.py and Work.py
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -368,6 +370,7 @@ class Job:
             'job_groups': self.compute_groups,
             'job_public': self.public,
             'job_requirements': self.requirements,
+            'job_payment_account': self.payment_account,
         }
 
         worker_parameters = {
@@ -428,7 +431,15 @@ class Job:
             'worker_config_flags': worker_config_flags,
         }
 
-        node_output = node.run(self.python_deploy, run_parameters)
+        node_output = node.run("""
+        const dcpDeploy = require('../dcp/dcpDeployJob.js').deploy;
+        dcpDeploy(
+          job_parameters,
+          dcp_parameters,
+          worker_parameters,
+          worker_config_flags
+        );
+        """, run_parameters)
 
         try:
           self.id = node_output['jobId']
@@ -527,5 +538,5 @@ class Job:
         self.slice_payment_offer = slice_payment_offer
 
     def set_payment_account_keystore(self, payment_account_keystore):
-        self.payment_account_keystore = payment_account_keystore
+        self.payment_account = payment_account_keystore
 

@@ -16,7 +16,7 @@ import numpy as np
 import xxhash
 
 # local modules
-from .py_utils import is_windows, is_darwin, is_notebook, has_mp_shared, is_colab
+from bifrost.py_utils import is_windows, is_darwin, is_notebook, has_mp_shared, is_colab
 
 # PROGRAM
 
@@ -126,14 +126,16 @@ class VariableSync():
         '''Empty the cache'''
         self.cache = {}
 
-    def parse_variables(self, var_dict, keys, custom_funcs, warn=False):
+    def parse_variables(self, final_output, var_dict, keys, custom_funcs, warn=False):
         '''
         Parse variables into a JSON serializable dictionary.
         '''
-        final_output = {}
+
         for var_name in keys:
             var = var_dict[var_name]
             var_type = type(var)
+            # XXX: python caching needs to be safe for recursion before it is reactivated
+            '''
             try:
                 b, hsh = self.inCache(var_name, var, var_type)
                 if b:
@@ -143,6 +145,7 @@ class VariableSync():
             except Exception as e:
                 # TODO: this control flow pattern needs to be purged
                 pass
+            '''
             if var_type == np.ndarray:
                 #Numpy is a special case and requires some managing to get data into a buffer
                 outBytes = BytesIO()
@@ -167,9 +170,9 @@ class VariableSync():
             elif var_type == bool:
                 final_output[var_name] = var
             elif var_type == dict:
-                final_output[var_name] = var
+                final_output[var_name] = self.parse_variables({}, var, var.keys(), custom_funcs, warn)
             elif var_type == list:
-                final_output[var_name] = var
+                final_output[var_name] = self.parse_variables([None]*len(var), var, range(len(var)), custom_funcs, warn)
             elif var_type == type(None):
                 final_output[var_name] = None
             else:
@@ -183,15 +186,15 @@ class VariableSync():
 
         return final_output
 
-    def unparse_variables(self, var_dict, custom_funcs, warn=False):
+    def unparse_variables(self, final_output, var_dict, keys, custom_funcs, warn=False):
         '''
         Reverse work of parse_variables by deserializaing JSON
         '''
-        final_output = {}
-        for var_name in list(var_dict.keys()):
+        for var_name in keys:
             var = var_dict[var_name]
+            var_type = type(var)
 
-            if type(var) == dict:
+            if var_type == dict:
                 if 'type' in var and 'data' in var:
                     if(var['type'] == 'numpy'):
                         data = var['data']
@@ -207,7 +210,9 @@ class VariableSync():
                             if warn:
                                 print(e)
                 else:
-                    final_output[var_name] = var_dict[var_name]
+                    final_output[var_name] = self.unparse_variables({}, var, var.keys(), custom_funcs, warn)
+            elif var_type == list:
+                final_output[var_name] = self.unparse_variables([None]*len(var), var, range(len(var)), custom_funcs, warn)
             else:
                 final_output[var_name] = var_dict[var_name]
         return final_output
@@ -221,7 +226,7 @@ class VariableSync():
             if key.startswith('_'):
                 var_dict.pop(key, None)
 
-        final_output = self.parse_variables(var_dict, var_dict.keys(), custom_funcs, warn = warn)
+        final_output = self.parse_variables({}, var_dict, var_dict.keys(), custom_funcs, warn = warn)
         final_str = json.dumps(final_output) + '\n'
         final_bytes = str.encode(final_str)
         try:
@@ -241,6 +246,6 @@ class VariableSync():
         final_str = byte_lines.decode()
 
         final_output = json.loads(final_str)
-        vars_to_sync = self.unparse_variables(final_output, custom_funcs, warn=warn)
+        vars_to_sync = self.unparse_variables({}, final_output, final_output.keys(), custom_funcs, warn=warn)
 
         return vars_to_sync
