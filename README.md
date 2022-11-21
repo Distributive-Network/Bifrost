@@ -1,6 +1,6 @@
 # Bifrost
 
-![Testing Suite](https://github.com/Kings-Distributed-Systems/Bifrost/actions/workflows/tests_dcp.yaml/badge.svg)
+![Testing Suite](https://github.com/Kings-Distributed-Systems/Bifrost/actions/workflows/test_dcp.yaml/badge.svg)
 
 
 An SHM/memmap based python and node communication/evaluation tool.
