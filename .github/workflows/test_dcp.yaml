@@ -33,7 +33,8 @@ jobs:
           DCP_ARTIFACTS_TOKEN: ${{ secrets.ARTIFACTS_ACCESS_TOKEN }}
         run: |
           echo "Prep Native Worker"
-          echo ls -lah ./
+          ls -lah ./
+          sudo npm remove dcp-worker -g
           sudo npm i dcp-worker -g
           echo "DCP-worker installed"
           echo "Getting artifacts for dcp-native"
