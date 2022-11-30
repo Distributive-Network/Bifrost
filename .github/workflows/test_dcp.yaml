@@ -35,6 +35,7 @@ jobs:
           echo "Prep Native Worker"
           ls -lah ./
           sudo npm remove dcp-worker -g
+          sudo npm install -g npm@latest
           sudo npm i dcp-worker -g
           echo "DCP-worker installed"
           echo "Getting artifacts for dcp-native"
