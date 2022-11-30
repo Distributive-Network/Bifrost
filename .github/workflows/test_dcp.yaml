@@ -26,25 +26,30 @@ jobs:
           node-version: ${{ matrix.node_version }}
       - run: python3 -m pip install -r ./dev-requirements.txt
       - run: python3 ./setup.py install
+      - name: Prepare environment
+        env:
+          DCP_ARTIFACTS_TOKEN: ${{ secrets.ARTIFACTS_ACCESS_TOKEN }}
+        run: |
+          echo "Prep Native Worker"
+          sudo npm i dcp-worker -g
+          curl --output ./artifacts.zip --location --header "PRIVATE-TOKEN: ${DCP_ARTIFACTS_TOKEN}" "https://gitlab.com/api/v4/projects/25835277/jobs/3293593922/artifacts"
+          unzip ./artifacts.zip
+          unzip ./dcp-native-1.2.0-Linux.zip
+          rm -rf ./artifacts.zip ./dcp-native-1.2.0-Linux.zip
+          echo "Native worker downloaded"
+          which dcp-evaluator-start
+          which dcp-worker
       - name: run tests
         shell: 'script -q -e -c "bash {0}"'
         env:
           DCP_ACCOUNT_KEYSTORE: ${{ secrets.ACCOUNT_KEYSTORE }}
           DCP_ID_KEYSTORE: ${{ secrets.ID_KEYSTORE }}
-          DCP_ARTIFACTS_TOKEN: ${{ secrets.ARTIFACTS_ACCESS_TOKEN }}
           DCP_CG_PASS: ${{ secrets.CG_PASS }}
         run: |
           mkdir -p ~/.dcp
           echo $DCP_ACCOUNT_KEYSTORE > ~/.dcp/default.keystore
           echo $DCP_ID_KEYSTORE > ~/.dcp/id.keystore
           chmod og-w ~/.dcp -R
-          echo "Prep Native Worker"
-          sudo npm i dcp-worker -g &> /dev/null 
-          curl --output ./artifacts.zip --location --header "PRIVATE-TOKEN: ${DCP_ARTIFACTS_TOKEN}" "https://gitlab.com/api/v4/projects/25835277/jobs/3293593922/artifacts"
-          unzip ./artifacts.zip &> /dev/null
-          unzip ./dcp-native-1.2.0-Linux.zip &> /dev/null
-          rm -rf ./artifacts.zip ./dcp-native-1.2.0-Linux.zip
-          echo "Native worker downloaded"
           echo "Starting evaluator"
           dcp-evaluator-start -e $(realpath ./artifacts/binary/Release/dcp-evaluator) -l $(realpath ./artifacts/binary/Release/) -p 9000 &
           sleep 10
