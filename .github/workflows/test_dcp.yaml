@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-      - ci/*
   pull_request:
 
 
@@ -14,8 +13,8 @@ jobs:
     strategy:
       matrix:
         os: [ 'ubuntu-latest' ] # , 'windows-latest', 'macos-latest' ]
-        python_version: [ '3.11' ] #, '3.10', '3.8', '3.6' ]
-        node_version: [ 14 ] #, 16 ]
+        python_version: [ '3.11' , '3.10', '3.8', '3.6' ]
+        node_version: [ 14 , 16 ]
       max-parallel: 1
     runs-on: ubuntu-latest
     steps:
@@ -44,8 +43,6 @@ jobs:
           unzip ./dcp-native-1.2.0-Linux.zip
           rm -rf ./artifacts.zip ./dcp-native-1.2.0-Linux.zip
           echo "Native worker downloaded"
-          which dcp-evaluator-start
-          which dcp-worker
       - name: run tests
         shell: 'script -q -e -c "bash {0}"'
         env:
