@@ -203,7 +203,7 @@ class VariableSync():
                         loaded_np = np.load(load_bytes, allow_pickle=False)
                         final_output[var_name] = loaded_np
                     else:
-                        data = var['data']
+                        data = var['data'] # TODO (Caleb Aikens) I think this breaks for Infinity
                         try:
                             final_output[var_name] = custom_funcs[var['type']](data)
                         except Exception as e:

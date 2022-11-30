@@ -6,20 +6,22 @@ def check_equals(in_vals, out_vals):
     """
     Returns true if both values given are equal
     """
-    flag = True
     for key in in_vals.keys(): 
         if key in out_vals:
             if isinstance(in_vals[key], dict):
                 if (not check_equals(in_vals[key], out_vals[key])):
                     return False
             elif isinstance(in_vals[key], np.ndarray):
-                if (not np.isclose(in_vals[key], out_vals[key])):
+                if (not check_equals(dict(enumerate(in_vals[key].flatten(), 1)), dict(enumerate(out_vals[key].flatten(), 1)))):
+                    return False
+            elif isinstance(in_vals[key], list):
+                if (not check_equals(dict(enumerate(in_vals[key])), dict(enumerate(out_vals[key])))):
                     return False
             else:
                 if (out_vals[key] != in_vals[key]):
                     print(key, " is not equivalent! problem during serialization")
                     return False
-    return flag
+    return True
 
 
 vals = {
@@ -27,7 +29,12 @@ vals = {
  'm': 128,
  'c': 7.6981928384058191820394,
  'f': True,
- 'arr': list(range(20,30, 2))
+ 'np': np.array([1, 2, 3]),
+ 'arr': list(range(20,30, 2)),
+ 'l': [{'a': 1, 'b': 2, 'c': 3}, {'d': 4, 'e': 5, 'f': 6}], #dicts in list
+ 'd': {'a': [1, 2, 3], 'b': [4, 5, 6]},                     #lists in dict
+ 'lnp': [np.array([1, 2, 3]), np.array([4, 5 ,6])],         #numpy arrays in list
+ 'dnp': {'a': np.array([1, 2, 3]), 'b': np.array([4, 5, 6])}#numpy arrays in dict
 }
 
 for i in range(10):
@@ -44,7 +51,12 @@ for i in range(10):
     log('m:', m, ' typeof: ', typeof m);
     log('c:', c, ' typeof: ', typeof c);
     log('f:', f, ' typeof: ', typeof f);
-    log('arr', arr, ' typeof: ', typeof arr, ' typeof elem: ', typeof arr[0]); 
+    log('np:', np, ' typeof: ', typeof np);
+    log('arr', arr, ' typeof: ', typeof arr, ' typeof elem: ', typeof arr[0]);
+    log('l:', l, ' typeof: ', typeof l);
+    log('d:', d, ' typeof: ', typeof d);
+    log('lnp:', lnp, ' typeof: ', typeof lnp);
+    log('dnp:', dnp, ' typeof: ', typeof dnp);
 
     """, vals)
 
