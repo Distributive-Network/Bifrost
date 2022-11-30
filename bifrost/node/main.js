@@ -191,20 +191,44 @@ class Evaluator{
     syncFrom(){
         var buffToParse = this.mm.slice(0, this.mm.indexOf('\n')); 
         var jsonVars    = JSON.parse(buffToParse.toString('utf-8'));
-        for (let key of Object.keys(jsonVars)){
-            let obj = jsonVars[key];
-            if (!!obj && obj['type'] == 'numpy' && typeof obj['data'] === 'string'){
-                let data = obj['data'];
-                let abData = utils.strtoab(data);
-                const npArr = npy.parseNumpyFile(abData);
-                obj = npArr;
-            }
-            if (!!obj && obj['type'] == 'infinity'){
-                obj = Infinity;
-            }
-            this.context[key] = obj;
+        
+        let output = this.unparseVariables({}, jsonVars, Object.keys(jsonVars));
+        for (let key of Object.keys(output)) {
+            this.context[key] = output[key];
         }
         this.toSync = Object.keys(jsonVars);
+    }
+
+    unparseVariables(output, var_dict, keys) {
+        for (let var_name of keys) {
+            let variable = var_dict[var_name];
+            let var_type = typeof variable;
+            
+            //Numpy array
+            if (Boolean(variable) && var_type == 'object' && variable['type'] =='numpy' && typeof variable['data'] == 'string') {
+                let data = variable['data'];
+                let abData = utils.strtoab(data);
+                const npArr = npy.parseNumpyFile(abData);
+                output[var_name] = npArr;
+            }
+            //Infinity
+            else if (Boolean(variable) && var_type == 'object' && variable['type'] == 'infinity') {
+                output[var_name] = Infinity;
+            }
+            //Dictionary
+            else if (var_type == 'object' && variable !== null && !(variable instanceof Array) && !(variable instanceof Date)) {
+                output[var_name] = this.unparseVariables({}, variable, Object.keys(variable));
+            }
+            //Array
+            else if (Array.isArray(variable)) {
+                output[var_name] = this.unparseVariables(new Array(variable.length).fill(null), variable, [...variable.keys()]);
+            }
+            //Primitive type (int, float, string, etc.)
+            else {
+                output[var_name] = variable;
+            }     
+        }
+        return output;
     }
 
     //evaluate some script in the given context.
