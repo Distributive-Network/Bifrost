@@ -371,6 +371,7 @@ class Job:
             'job_public': self.public,
             'job_requirements': self.requirements,
             'job_payment_account': self.payment_account,
+            'job_slice_payment_offer': self.slice_payment_offer,
         }
 
         worker_parameters = {
@@ -516,9 +517,11 @@ class Job:
     def on(self, event_name, event_function):
         self.events[event_name] = event_function
 
-    def exec(self, slice_payment_offer = False, payment_account = False, account = False, initial_slice_profile = False):
+    def exec(self, slice_payment_offer = False, slice_price = False, payment_account = False, account = False, initial_slice_profile = False):
         if ( slice_payment_offer != False ):
             self.slice_payment_offer = slice_payment_offer
+        if (slice_price != False):
+            self.slice_payment_offer = slice_price
         if ( payment_account != False ):
             self.payment_account = payment_account
         if ( account != False ):
