@@ -424,7 +424,11 @@ exports.deploy = async function pyjsDeployJob(
     let idKeystore = await (new dcpWallet.IdKeystore(null, ""));
 
     if (ksPassword) {
+      if (dcp_parameters['dcp_debug']) console.log("Keystore password was provided. Unlocking wallet.");
       await bankKeystore.unlock(ksPassword, 24 * 60 * 60 * 1000);
+      dcpWallet.passphrasePrompt = (message) => {
+        return ksPassword;
+      };
     }
 
     await dcpWallet.add(bankKeystore);
