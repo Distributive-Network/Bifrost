@@ -416,16 +416,24 @@ exports.deploy = async function pyjsDeployJob(
     return jobResults;
   }
 
-  async function addKeystore(keystoreInput) {
+  async function addKeystore(keystoreInput, ksPassword) {
     let dcpWallet = await require('dcp/wallet');
 
-    let walletKeystore = (typeof keystoreInput == 'string') ? new dcpWallet.IdKeystore(JSON.parse(keystoreInput)) : new dcpWallet.IdKeystore(keystoreInput);
+    let keystoreObject = (typeof keystoreInput == 'string') ? JSON.parse(keystoreInput) : keystoreInput;
+    let bankKeystore = await (new dcpWallet.Keystore(keystoreObject));
+    let idKeystore = await (new dcpWallet.IdKeystore(null, ""));
 
-    await dcpWallet.add(walletKeystore);
-    await dcpWallet.addId(walletKeystore);
+    if (ksPassword) {
+      await bankKeystore.unlock(ksPassword, 24 * 60 * 60 * 1000);
+    }
+
+    await dcpWallet.add(bankKeystore);
+    await dcpWallet.addId(idKeystore);
   }
 
-  if (job_parameters['job_payment_account'] !== false) await addKeystore(job_parameters['job_payment_account']);
+  if (job_parameters['job_payment_account'] !== false) {
+    await addKeystore(job_parameters['job_payment_account'], job_parameters['job_payment_account_password']);
+  }
 
   let jobData = dcp_parameters['dcp_data'];
   let jobMultiplier = dcp_parameters['dcp_multiplier'];
