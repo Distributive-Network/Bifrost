@@ -11,6 +11,10 @@ from .py_utils import is_notebook
 from .npm import Npm
 from .node import Node
 
+# Version
+
+__version__ = "0.8.1"
+
 # PROGRAM
 
 npm = Npm()
