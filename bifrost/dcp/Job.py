@@ -3,6 +3,7 @@
 # python standard library
 import codecs
 import inspect
+import getpass
 import pickle
 import random
 import re
@@ -35,6 +36,7 @@ class Job:
         self.initial_slice_profile = False # Not Used
         self.slice_payment_offer = False # TODO
         self.payment_account = False
+        self.payment_account_password = ""
         self.require_path = [] # dcp pyodide packages (populated via Job.requires)
         self.module_path = False # Not Used
         self.collate_results = True
@@ -371,6 +373,7 @@ class Job:
             'job_public': self.public,
             'job_requirements': self.requirements,
             'job_payment_account': self.payment_account,
+            'job_payment_account_password': self.payment_account_password,
             'job_slice_payment_offer': self.slice_payment_offer,
         }
 
@@ -517,7 +520,7 @@ class Job:
     def on(self, event_name, event_function):
         self.events[event_name] = event_function
 
-    def exec(self, slice_payment_offer = False, slice_price = False, payment_account = False, account = False, initial_slice_profile = False):
+    def exec(self, slice_payment_offer = False, slice_price = False, payment_account = False, account = False, initial_slice_profile = False, keystore_unlocked = False):
         if ( slice_payment_offer != False ):
             self.slice_payment_offer = slice_payment_offer
         if (slice_price != False):
@@ -527,10 +530,15 @@ class Job:
         if ( account != False ):
             self.payment_account = account
         if ( initial_slice_profile != False ):
-            self.initial_slice_profile = initial_slice_profile     
+            self.initial_slice_profile = initial_slice_profile
+        if not keystore_unlocked:
+            self.unlock_keystore()
         results = self.__dcp_run()
         self.results = results
         return results
+
+    def unlock_keystore(self):
+        self.payment_account_password = getpass.getpass("Enter keystore password: ")
 
     def local_exec(self, local_cores = 1):
         self.local_cores = local_cores
