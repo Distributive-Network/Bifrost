@@ -7,7 +7,7 @@ long_description = (this_directory / "README.md").read_text()
 
 setuptools.setup(
     name="Bifrost",
-    version="0.8.0",
+    version="0.8.1",
     author="Distributive",
     author_email="toolchains@distributive.network",
     description="Python to JS intercommunication and execution",
